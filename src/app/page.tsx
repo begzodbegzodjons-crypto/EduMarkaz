@@ -124,33 +124,33 @@ function AuthScreen({ mode, onModeChange, onSuccess }: { mode: 'login' | 'regist
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.6 }}
-          className="hidden lg:flex flex-col gap-8 p-12 xl:p-20 justify-center"
+          className="hidden lg:flex flex-col gap-7 p-12 xl:p-16 2xl:p-20 justify-center"
         >
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-xl shadow-emerald-500/30">
-              <GraduationCap className="w-7 h-7 text-white" />
+          <div className="flex items-center gap-4">
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-xl shadow-emerald-500/30">
+              <GraduationCap className="w-10 h-10 text-white" />
             </div>
             <div>
-              <div className="text-2xl font-bold tracking-tight">EduMarkaz</div>
-              <div className="text-xs text-emerald-600 font-medium">ERP Boshqaruv Tizimi</div>
+              <div className="text-3xl font-bold tracking-tight">EduMarkaz</div>
+              <div className="text-base text-emerald-600 font-medium">ERP Boshqaruv Tizimi</div>
             </div>
           </div>
-          <h1 className="text-4xl xl:text-5xl font-bold leading-tight tracking-tight">
+          <h1 className="text-5xl xl:text-6xl 2xl:text-7xl font-bold leading-tight tracking-tight">
             O'quv markazingizni <span className="shimmer-text">bir tizimda</span> boshqaring
           </h1>
-          <p className="text-muted-foreground text-lg leading-relaxed">
+          <p className="text-muted-foreground text-xl leading-relaxed">
             Talabalar, guruhlar, o'qituvchilar, to'lovlar, davomat va statistika — barchasi bir joyda.
             Zamonaviy dizayn, tezkor ishlash va ishonchli ma'lumotlar bazasi.
           </p>
-          <div className="grid grid-cols-2 gap-4 mt-2">
+          <div className="grid grid-cols-2 gap-5 mt-2">
             <FeaturePill icon="users" label="Talabalar boshqaruvi" />
             <FeaturePill icon="payments" label="To'lov kuzatuvi" />
             <FeaturePill icon="calendar" label="Dars jadvali" />
             <FeaturePill icon="chart" label="Statistika & Hisobot" />
           </div>
-          <div className="mt-4 p-4 rounded-xl bg-emerald-50/80 border border-emerald-200">
-            <div className="text-xs text-emerald-700 font-medium mb-1">BEPUL SINOV</div>
-            <div className="text-sm text-emerald-900">14 kun davomida barcha funksiyalar bilan bepul foydalaning. Karta talab qilinmaydi.</div>
+          <div className="mt-6 p-6 rounded-2xl bg-emerald-50/80 border border-emerald-200">
+            <div className="text-base text-emerald-700 font-bold mb-2 tracking-wide">BEPUL SINOV</div>
+            <div className="text-lg text-emerald-900 leading-relaxed">14 kun davomida barcha funksiyalar bilan bepul foydalaning. Karta talab qilinmaydi.</div>
           </div>
         </motion.div>
 
@@ -159,28 +159,28 @@ function AuthScreen({ mode, onModeChange, onSuccess }: { mode: 'login' | 'regist
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.1 }}
-          className="w-full flex items-center justify-center p-6 sm:p-10 lg:p-12 xl:p-20"
+          className="w-full flex items-center justify-center p-6 sm:p-10 lg:p-12 xl:p-16 2xl:p-20"
         >
-          <div className="glass rounded-3xl shadow-2xl shadow-emerald-900/10 border border-emerald-100/50 p-6 sm:p-8 w-full max-w-lg">
-            <div className="lg:hidden flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
-                <GraduationCap className="w-6 h-6 text-white" />
+          <div className="glass rounded-3xl shadow-2xl shadow-emerald-900/10 border border-emerald-100/50 p-8 sm:p-10 lg:p-10 xl:p-12 w-full max-w-2xl">
+            <div className="lg:hidden flex items-center gap-3 mb-8">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
+                <GraduationCap className="w-7 h-7 text-white" />
               </div>
-              <div className="text-xl font-bold">EduMarkaz</div>
+              <div className="text-2xl font-bold">EduMarkaz</div>
             </div>
 
-            <div className="flex p-1 bg-muted rounded-xl mb-6">
+            <div className="flex p-1.5 bg-muted rounded-2xl mb-8">
               <button
                 type="button"
                 onClick={() => onModeChange('login')}
-                className={`flex-1 py-2.5 text-sm font-semibold rounded-lg transition-all ${mode === 'login' ? 'bg-white text-emerald-700 shadow' : 'text-muted-foreground'}`}
+                className={`flex-1 py-3.5 text-lg font-semibold rounded-xl transition-all ${mode === 'login' ? 'bg-white text-emerald-700 shadow' : 'text-muted-foreground'}`}
               >
                 Tizimga kirish
               </button>
               <button
                 type="button"
                 onClick={() => onModeChange('register')}
-                className={`flex-1 py-2.5 text-sm font-semibold rounded-lg transition-all ${mode === 'register' ? 'bg-white text-emerald-700 shadow' : 'text-muted-foreground'}`}
+                className={`flex-1 py-3.5 text-lg font-semibold rounded-xl transition-all ${mode === 'register' ? 'bg-white text-emerald-700 shadow' : 'text-muted-foreground'}`}
               >
                 Ro'yxatdan o'tish
               </button>
@@ -194,9 +194,9 @@ function AuthScreen({ mode, onModeChange, onSuccess }: { mode: 'login' | 'regist
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: 10 }}
-                  className="space-y-4"
+                  className="space-y-6"
                 >
-                  <Field label="Email">
+                  <Field label="Email" labelSize="lg">
                     <input
                       type="email"
                       required
@@ -206,7 +206,7 @@ function AuthScreen({ mode, onModeChange, onSuccess }: { mode: 'login' | 'regist
                       placeholder="markaz@example.com"
                     />
                   </Field>
-                  <Field label="Parol">
+                  <Field label="Parol" labelSize="lg">
                     <input
                       type="password"
                       required
@@ -217,8 +217,8 @@ function AuthScreen({ mode, onModeChange, onSuccess }: { mode: 'login' | 'regist
                     />
                   </Field>
                   {err && <ErrorBanner message={err} />}
-                  <SubmitButton loading={loading} label="Kirish" />
-                  <p className="text-xs text-center text-muted-foreground">
+                  <SubmitButton loading={loading} label="Kirish" size="lg" />
+                  <p className="text-base text-center text-muted-foreground">
                     Demo admin: <code className="font-mono">admin@erp.uz</code> / <code className="font-mono">admin12345</code>
                   </p>
                 </motion.form>
@@ -229,37 +229,37 @@ function AuthScreen({ mode, onModeChange, onSuccess }: { mode: 'login' | 'regist
                   initial={{ opacity: 0, x: 10 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -10 }}
-                  className="space-y-4"
+                  className="space-y-5"
                 >
-                  <div className="grid sm:grid-cols-2 gap-4">
-                    <Field label="F.I.O *">
+                  <div className="grid sm:grid-cols-2 gap-5">
+                    <Field label="F.I.O *" labelSize="lg">
                       <input required value={regForm.full_name} onChange={(e) => setRegForm({ ...regForm, full_name: e.target.value })} className="erp-input" placeholder="Aliyev Vali" />
                     </Field>
-                    <Field label="Telefon *">
+                    <Field label="Telefon *" labelSize="lg">
                       <input required value={regForm.phone} onChange={(e) => setRegForm({ ...regForm, phone: e.target.value })} className="erp-input" placeholder="+998901234567" />
                     </Field>
                   </div>
-                  <Field label="O'quv markaz nomi *">
+                  <Field label="O'quv markaz nomi *" labelSize="lg">
                     <input required value={regForm.center_name} onChange={(e) => setRegForm({ ...regForm, center_name: e.target.value })} className="erp-input" placeholder="Mening Markazim" />
                   </Field>
-                  <Field label="Email *">
+                  <Field label="Email *" labelSize="lg">
                     <input type="email" required value={regForm.email} onChange={(e) => setRegForm({ ...regForm, email: e.target.value })} className="erp-input" placeholder="markaz@example.com" />
                   </Field>
-                  <Field label="Manzil (ixtiyoriy)">
+                  <Field label="Manzil (ixtiyoriy)" labelSize="lg">
                     <input value={regForm.address} onChange={(e) => setRegForm({ ...regForm, address: e.target.value })} className="erp-input" placeholder="Toshkent, Chilonzor" />
                   </Field>
-                  <Field label="Parol * (min. 6 belgi)">
+                  <Field label="Parol * (min. 6 belgi)" labelSize="lg">
                     <input type="password" required minLength={6} value={regForm.password} onChange={(e) => setRegForm({ ...regForm, password: e.target.value })} className="erp-input" placeholder="••••••••" />
                   </Field>
                   {err && <ErrorBanner message={err} />}
-                  <SubmitButton loading={loading} label="Ro'yxatdan o'tish" />
+                  <SubmitButton loading={loading} label="Ro'yxatdan o'tish" size="lg" />
                 </motion.form>
               )}
             </AnimatePresence>
 
-            <div className="mt-6 pt-6 border-t border-border/50 text-center">
-              <a href={TELEGRAM_URL} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-emerald-600 transition">
-                <TelegramIcon className="w-3.5 h-3.5" />
+            <div className="mt-8 pt-6 border-t border-border/50 text-center">
+              <a href={TELEGRAM_URL} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 text-base text-muted-foreground hover:text-emerald-600 transition">
+                <TelegramIcon className="w-5 h-5" />
                 Yordam: @{TELEGRAM_HANDLE}
               </a>
             </div>
@@ -270,28 +270,29 @@ function AuthScreen({ mode, onModeChange, onSuccess }: { mode: 'login' | 'regist
       <style jsx global>{`
         .erp-input {
           width: 100%;
-          padding: 0.625rem 1rem;
-          border-radius: 0.75rem;
+          padding: 1rem 1.25rem;
+          border-radius: 0.875rem;
           border: 1px solid var(--input);
           background: color-mix(in oklch, var(--background) 60%, transparent);
           outline: none;
           transition: all 0.15s;
-          font-size: 0.9rem;
+          font-size: 1.05rem;
         }
         .erp-input:focus {
           border-color: var(--primary);
           background: var(--background);
           box-shadow: 0 0 0 3px color-mix(in oklch, var(--primary) 20%, transparent);
         }
+        .erp-input::placeholder { color: oklch(0.6 0.01 220); }
       `}</style>
     </div>
   )
 }
 
-export function Field({ label, children }: { label: string; children: React.ReactNode }) {
+export function Field({ label, children, labelSize = 'sm' }: { label: string; children: React.ReactNode; labelSize?: 'sm' | 'lg' }) {
   return (
     <div>
-      <label className="block text-xs font-semibold text-foreground mb-1.5">{label}</label>
+      <label className={`block font-semibold text-foreground mb-2 ${labelSize === 'lg' ? 'text-base' : 'text-xs'}`}>{label}</label>
       {children}
     </div>
   )
@@ -302,21 +303,22 @@ export function ErrorBanner({ message }: { message: string }) {
     <motion.div
       initial={{ opacity: 0, y: -5 }}
       animate={{ opacity: 1, y: 0 }}
-      className="px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-sm text-red-700"
+      className="px-4 py-3.5 rounded-xl bg-red-50 border border-red-200 text-base text-red-700"
     >
       {message}
     </motion.div>
   )
 }
 
-export function SubmitButton({ loading, label, icon }: { loading: boolean; label: string; icon?: React.ReactNode }) {
+export function SubmitButton({ loading, label, icon, size = 'md' }: { loading: boolean; label: string; icon?: React.ReactNode; size?: 'md' | 'lg' }) {
+  const pad = size === 'lg' ? 'py-4 text-lg' : 'py-3 text-sm'
   return (
     <button
       type="submit"
       disabled={loading}
-      className="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-semibold shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+      className={`w-full ${pad} rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-semibold shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2`}
     >
-      {loading ? <Spinner className="w-4 h-4" /> : icon}
+      {loading ? <Spinner className="w-5 h-5" /> : icon}
       {loading ? 'Biroz kuting...' : label}
     </button>
   )
@@ -324,22 +326,21 @@ export function SubmitButton({ loading, label, icon }: { loading: boolean; label
 
 function FeaturePill({ icon, label }: { icon: string; label: string }) {
   return (
-    <div className="flex items-center gap-2.5 p-3 rounded-xl bg-white/70 border border-emerald-100 backdrop-blur">
-      <div className="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center text-emerald-700">
-        <FeatureIcon name={icon} />
+    <div className="flex items-center gap-3.5 p-4 rounded-2xl bg-white/70 border border-emerald-100 backdrop-blur">
+      <div className="w-11 h-11 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-700">
+        <FeatureIcon name={icon} className="w-5 h-5" />
       </div>
-      <span className="text-sm font-medium">{label}</span>
+      <span className="text-base font-medium">{label}</span>
     </div>
   )
 }
 
-function FeatureIcon({ name }: { name: string }) {
-  const cls = 'w-4 h-4'
+function FeatureIcon({ name, className = 'w-4 h-4' }: { name: string; className?: string }) {
   switch (name) {
-    case 'users': return <Users className={cls} />
-    case 'payments': return <Wallet className={cls} />
-    case 'calendar': return <Calendar className={cls} />
-    case 'chart': return <BarChart3 className={cls} />
+    case 'users': return <Users className={className} />
+    case 'payments': return <Wallet className={className} />
+    case 'calendar': return <Calendar className={className} />
+    case 'chart': return <BarChart3 className={className} />
     default: return null
   }
 }
