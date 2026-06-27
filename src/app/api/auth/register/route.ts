@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
 
     const passwordHash = await hashPassword(password)
     const now = new Date()
-    const trialEnds = new Date(now.getTime() + (Number(process.env.TRIAL_DAYS || 14)) * 24 * 60 * 60 * 1000)
+    const trialEnds = new Date(now.getTime() + (Number(process.env.TRIAL_DAYS || 10)) * 24 * 60 * 60 * 1000)
 
     const { data, error } = await sb
       .from('users')

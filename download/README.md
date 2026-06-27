@@ -12,7 +12,7 @@ To'liq, zamonaviy va chiroyli ERP tizimi. Next.js 16 + Supabase + Vercel stack.
 - **Davomat** — guruh bo'yicha bir vaqtda bir nechta talaba davomatini belgilash
 - **Dashboard** — umumiy statistika, oylik daromad grafigi, davomat foizi
 - **Admin panel** — aktivatsiya kodi generatsiyasi, foydalanuvchilar ro'yxati
-- **Avtomatik bloklash** — 14 kunlik bepul sinov → bloklash → aktivatsiya kodi → 30 kun aktiv
+- **Avtomatik bloklash** — 10 kunlik bepul sinov → bloklash → aktivatsiya kodi → 30 kun aktiv
 - **Telegram integratsiyasi** — bloklanganda `@norinkomp` ga yozish ko'rsatiladi
 
 ## 🚀 Deploy qilish (Vercel + Supabase)
@@ -89,7 +89,7 @@ where email = 'admin@erp.uz';
 
 ## 🔐 Litsenziya va to'lov tizimi
 
-- Har bir yangi foydalanuvchi **14 kun bepul** sinov oladi
+- Har bir yangi foydalanuvchi **10 kun bepul** sinov oladi
 - Sinov tugagach, tizim avtomatik **bloklanadi**
 - Bloklangan foydalanuvchi **faqat aktivatsiya kodi kiritish oynasini** ko'radi
 - Aktivatsiya kodi faqat **admin** tomonidan generatsiya qilinadi
