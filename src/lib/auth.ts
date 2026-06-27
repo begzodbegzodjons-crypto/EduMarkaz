@@ -2,6 +2,7 @@ import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import { cookies } from 'next/headers'
 import { getSupabase, isSupabaseConfigured } from './supabase'
+import { getDemoSupabase } from './demo-db'
 
 const JWT_SECRET = process.env.JWT_SECRET || 'norinkomp-erp-secret-key-2026-very-secure'
 const COOKIE_NAME = 'erp_session'
@@ -76,7 +77,7 @@ export async function getSession(): Promise<SessionUser | null> {
   return verifyToken(token)
 }
 
-// ---------- DB helpers ----------
+// ---------- DB helpers (real Supabase yoki demo rejim) ----------
 export interface DbUser {
   id: string
   full_name: string
@@ -93,6 +94,13 @@ export interface DbUser {
   last_login_at: string | null
   created_at: string
   updated_at: string
+}
+
+/**
+ * Real yoki demo DB client — konfiguratsiyaga qarab.
+ */
+function getDB() {
+  return isSupabaseConfigured() ? getSupabase() : (getDemoSupabase() as any)
 }
 
 /**
@@ -130,30 +138,35 @@ export function daysLeft(u: { status: UserStatus; trial_ends_at: string | null; 
 export async function syncUserStatus(user: DbUser): Promise<DbUser> {
   const newStatus = computeStatus(user)
   if (newStatus !== user.status) {
-    const sb = getSupabase()
-    await sb
-      .from('users')
-      .update({ status: newStatus, updated_at: new Date().toISOString() })
-      .eq('id', user.id)
+    try {
+      const sb = getDB()
+      await sb.from('users').update({ status: newStatus, updated_at: new Date().toISOString() }).eq('id', user.id)
+    } catch (e) { /* demo rejimda e'tibor berilmaydi */ }
     return { ...user, status: newStatus }
   }
   return user
 }
 
 export async function getUserById(id: string): Promise<DbUser | null> {
-  if (!isSupabaseConfigured()) return null
-  const sb = getSupabase()
-  const { data, error } = await sb.from('users').select('*').eq('id', id).maybeSingle()
-  if (error || !data) return null
-  return data as DbUser
+  try {
+    const sb = getDB()
+    const { data, error } = await sb.from('users').select('*').eq('id', id).maybeSingle()
+    if (error || !data) return null
+    return data as DbUser
+  } catch (e) {
+    return null
+  }
 }
 
 export async function getUserByEmail(email: string): Promise<DbUser | null> {
-  if (!isSupabaseConfigured()) return null
-  const sb = getSupabase()
-  const { data, error } = await sb.from('users').select('*').eq('email', email).maybeSingle()
-  if (error || !data) return null
-  return data as DbUser
+  try {
+    const sb = getDB()
+    const { data, error } = await sb.from('users').select('*').eq('email', email).maybeSingle()
+    if (error || !data) return null
+    return data as DbUser
+  } catch (e) {
+    return null
+  }
 }
 
 export async function audit(
@@ -166,8 +179,8 @@ export async function audit(
   ua?: string
 ) {
   try {
-    if (!isSupabaseConfigured() || !userId) return
-    const sb = getSupabase()
+    if (!userId) return
+    const sb = getDB()
     await sb.from('audit_log').insert({
       user_id: userId,
       action,

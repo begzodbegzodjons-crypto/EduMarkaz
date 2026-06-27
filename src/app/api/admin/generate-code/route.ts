@@ -1,10 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getSession, audit, } from '@/lib/auth'
-import { getSupabase, isSupabaseConfigured } from '@/lib/supabase'
+import { getSession, audit } from '@/lib/auth'
+import { isSupabaseConfigured } from '@/lib/supabase'
+import { getSupabase } from '@/lib/supabase'
+import { getDemoSupabase } from '@/lib/demo-db'
 import { randomBytes } from 'crypto'
 
+function getDB() {
+  return isSupabaseConfigured() ? getSupabase() : (getDemoSupabase() as any)
+}
+
 function generateCode(): string {
-  // Format: XXXX-XXXX-XXXX-XXXX-XXXX-XXXX (24 hex/alfanumerik)
   const raw = randomBytes(12).toString('hex').toUpperCase()
   return raw.match(/.{1,4}/g)!.join('-')
 }
@@ -14,16 +19,15 @@ export async function POST(req: NextRequest) {
     const sess = await getSession()
     if (!sess) return NextResponse.json({ ok: false, error: 'Avval tizimga kiring.' }, { status: 401 })
     if (sess.role !== 'admin') return NextResponse.json({ ok: false, error: 'Faqat admin.' }, { status: 403 })
-    if (!isSupabaseConfigured()) return NextResponse.json({ ok: false, error: 'Supabase sozlanmagan.' }, { status: 500 })
 
     const body = await req.json().catch(() => ({}))
     const count = Math.min(50, Math.max(1, Number(body.count) || 1))
     const durationDays = Number(body.duration_days) || Number(process.env.ACTIVATION_DAYS) || 30
     const expiresAt = body.expires_at
       ? new Date(body.expires_at).toISOString()
-      : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString() // 1 yil amal qiladi
+      : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString()
 
-    const sb = getSupabase()
+    const sb = getDB()
     const rows: any[] = []
     for (let i = 0; i < count; i++) {
       const code = generateCode()
@@ -56,12 +60,11 @@ export async function GET(req: NextRequest) {
     const sess = await getSession()
     if (!sess) return NextResponse.json({ ok: false, error: 'Avval tizimga kiring.' }, { status: 401 })
     if (sess.role !== 'admin') return NextResponse.json({ ok: false, error: 'Faqat admin.' }, { status: 403 })
-    if (!isSupabaseConfigured()) return NextResponse.json({ ok: false, error: 'Supabase sozlanmagan.' }, { status: 500 })
 
     const url = new URL(req.url)
     const status = url.searchParams.get('status') || 'all'
 
-    const sb = getSupabase()
+    const sb = getDB()
     let q = sb.from('activation_codes').select('*').order('created_at', { ascending: false }).limit(500)
     if (status !== 'all') q = q.eq('status', status)
     const { data, error } = await q

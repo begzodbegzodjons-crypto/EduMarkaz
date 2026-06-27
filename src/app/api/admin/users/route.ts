@@ -1,15 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getSession, audit, } from '@/lib/auth'
-import { getSupabase, isSupabaseConfigured } from '@/lib/supabase'
+import { getSession } from '@/lib/auth'
+import { isSupabaseConfigured } from '@/lib/supabase'
+import { getSupabase } from '@/lib/supabase'
+import { getDemoSupabase } from '@/lib/demo-db'
+
+function getDB() {
+  return isSupabaseConfigured() ? getSupabase() : (getDemoSupabase() as any)
+}
 
 export async function GET(req: NextRequest) {
   try {
     const sess = await getSession()
     if (!sess) return NextResponse.json({ ok: false, error: 'Avval tizimga kiring.' }, { status: 401 })
     if (sess.role !== 'admin') return NextResponse.json({ ok: false, error: 'Faqat admin.' }, { status: 403 })
-    if (!isSupabaseConfigured()) return NextResponse.json({ ok: false, error: 'Supabase sozlanmagan.' }, { status: 500 })
 
-    const sb = getSupabase()
+    const sb = getDB()
     const { data, error } = await sb
       .from('users')
       .select('id, full_name, email, phone, center_name, role, status, trial_started_at, trial_ends_at, active_until, last_login_at, created_at')

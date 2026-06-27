@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { hashPassword, setSessionCookie, audit, getUserByEmail, } from '@/lib/auth'
-import { getSupabase, isSupabaseConfigured } from '@/lib/supabase'
+import { hashPassword, setSessionCookie, audit, getUserByEmail } from '@/lib/auth'
+import { isSupabaseConfigured } from '@/lib/supabase'
+import { getSupabase } from '@/lib/supabase'
+import { getDemoSupabase } from '@/lib/demo-db'
+
+function getDB() {
+  return isSupabaseConfigured() ? getSupabase() : (getDemoSupabase() as any)
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -16,14 +22,8 @@ export async function POST(req: NextRequest) {
     if (password.length < 6) {
       return NextResponse.json({ ok: false, error: 'Parol kamida 6 belgidan iborat bo\'lishi kerak.' }, { status: 400 })
     }
-    if (!isSupabaseConfigured()) {
-      return NextResponse.json(
-        { ok: false, error: 'Supabase sozlanmagan. .env.local faylini to\'ldiring.' },
-        { status: 500 }
-      )
-    }
 
-    const sb = getSupabase()
+    const sb = getDB()
 
     // Unique email check
     const existing = await getUserByEmail(email.toLowerCase())

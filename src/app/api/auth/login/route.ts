@@ -7,15 +7,17 @@ import {
   audit,
 } from '@/lib/auth'
 import { getSupabase, isSupabaseConfigured } from '@/lib/supabase'
+import { getDemoSupabase } from '@/lib/demo-db'
+
+function getDB() {
+  return isSupabaseConfigured() ? getSupabase() : (getDemoSupabase() as any)
+}
 
 export async function POST(req: NextRequest) {
   try {
     const { email, password } = await req.json()
     if (!email || !password) {
       return NextResponse.json({ ok: false, error: 'Email va parol majburiy.' }, { status: 400 })
-    }
-    if (!isSupabaseConfigured()) {
-      return NextResponse.json({ ok: false, error: 'Supabase sozlanmagan.' }, { status: 500 })
     }
 
     const user = await getUserByEmail(email.toLowerCase())
@@ -31,8 +33,10 @@ export async function POST(req: NextRequest) {
     const synced = await syncUserStatus(user)
 
     // last_login_at
-    const sb = getSupabase()
-    await sb.from('users').update({ last_login_at: new Date().toISOString() }).eq('id', synced.id)
+    try {
+      const sb = getDB()
+      await sb.from('users').update({ last_login_at: new Date().toISOString() }).eq('id', synced.id)
+    } catch (e) { /* demo e'tibor berilmaydi */ }
 
     await setSessionCookie({
       id: synced.id,

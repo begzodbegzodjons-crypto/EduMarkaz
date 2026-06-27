@@ -1,19 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getSession, audit, } from '@/lib/auth'
-import { getSupabase, isSupabaseConfigured } from '@/lib/supabase'
+import { getSession, audit } from '@/lib/auth'
+import { isSupabaseConfigured } from '@/lib/supabase'
+import { getSupabase } from '@/lib/supabase'
+import { getDemoSupabase } from '@/lib/demo-db'
+
+function getDB() {
+  return isSupabaseConfigured() ? getSupabase() : (getDemoSupabase() as any)
+}
 
 export async function POST(req: NextRequest) {
   try {
     const sess = await getSession()
     if (!sess) return NextResponse.json({ ok: false, error: 'Avval tizimga kiring.' }, { status: 401 })
-    if (!isSupabaseConfigured()) return NextResponse.json({ ok: false, error: 'Supabase sozlanmagan.' }, { status: 500 })
 
     const { code } = await req.json()
     if (!code || typeof code !== 'string' || code.trim().length < 8) {
       return NextResponse.json({ ok: false, error: 'Aktivatsiya kod noto\'g\'ri formatda.' }, { status: 400 })
     }
 
-    const sb = getSupabase()
+    const sb = getDB()
 
     // Kodni qidirish
     const { data: codeRow, error: codeErr } = await sb
@@ -37,7 +42,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: false, error: 'Aktivatsiya kod muddati tugagan.' }, { status: 410 })
     }
 
-    // Foydalanuvchini aktiv qilish: active_until = max(now, current_active_until) + duration_days
+    // Foydalanuvchini aktiv qilish
     const now = new Date()
     const { data: userRow, error: userErr } = await sb.from('users').select('*').eq('id', sess.id).single()
     if (userErr || !userRow) {
@@ -64,15 +69,11 @@ export async function POST(req: NextRequest) {
     }
 
     // Kodni "used" ga o'tkazish
-    const { error: codeUpdErr } = await sb
-      .from('activation_codes')
-      .update({
-        status: 'used',
-        used_by: sess.id,
-        used_at: now.toISOString(),
-      })
-      .eq('id', codeRow.id)
-    if (codeUpdErr) console.error('code update error:', codeUpdErr)
+    await sb.from('activation_codes').update({
+      status: 'used',
+      used_by: sess.id,
+      used_at: now.toISOString(),
+    }).eq('id', codeRow.id)
 
     await audit(sess.id, 'activate', 'activation_codes', codeRow.id, { code: codeRow.code, days: codeRow.duration_days, active_until: newActiveUntil }, req.headers.get('x-forwarded-for') || '', req.headers.get('user-agent') || '')
 
