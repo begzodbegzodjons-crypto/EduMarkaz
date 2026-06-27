@@ -341,3 +341,22 @@ export function CreditCard(props: IconProps) {
     </svg>
   )
 }
+
+export function Award(props: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11a7 7 0 1 1 6.954 0z" />
+      <circle cx="12" cy="8" r="3" />
+    </svg>
+  )
+}
+
+export function Percent(props: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <line x1="19" x2="5" y1="5" y2="19" />
+      <circle cx="6.5" cy="6.5" r="2.5" />
+      <circle cx="17.5" cy="17.5" r="2.5" />
+    </svg>
+  )
+}

@@ -7,7 +7,7 @@ import {
   LayoutDashboard, ClipboardCheck, Settings, LogOut, Plus, Trash2, Pencil,
   Search, Lock, CheckCircle, AlertTriangle, Copy, KeyRound, Sparkles,
   Spinner, Menu, X, TelegramIcon, ChevronRight, Crown,
-  TrendingUp, TrendingDown, Star, Bell, FileText,
+  TrendingUp, TrendingDown, Star, Bell, FileText, Award, Percent,
 } from '@/components/icons'
 
 // Panellar
@@ -16,6 +16,10 @@ import { TeachersPanel, GroupsPanel, CoursesPanel, RatingsPanel } from './panels
 import { AttendancePanel, AttendanceReportPanel, TeacherAttendancePanel } from './panels-3'
 import { PaymentsPanel, FinancePanel, ExpensesPanel, ReportsPanel } from './panels-4'
 import { RemindersPanel, SettingsPanel, TelegramPanel, LicensePanel } from './panels-5'
+import {
+  SchedulePanel, ExamsPanel, CertificatesPanel, DiscountsPanel, DebtsPanel,
+  TeacherPayoutsPanel, NotificationsPanel, ReportsExportPanel,
+} from './panels-6'
 
 const TELEGRAM_HANDLE = process.env.NEXT_PUBLIC_TELEGRAM_HANDLE || 'norinkomp'
 const TELEGRAM_URL = process.env.NEXT_PUBLIC_TELEGRAM_URL || `https://t.me/${TELEGRAM_HANDLE}`
@@ -37,11 +41,23 @@ const NAV_SECTIONS = [
     { id: 'attendance-report', label: 'Davomatlar hisoboti', icon: BarChart3 },
     { id: 'teacher-attendance', label: 'Ustozlar davomati', icon: UserCog },
   ] },
+  { title: 'Dars va Imtihon', items: [
+    { id: 'schedule', label: 'Dars jadvali', icon: Calendar },
+    { id: 'exams', label: 'Imtihonlar', icon: FileText },
+    { id: 'certificates', label: 'Sertifikatlar', icon: Award },
+  ] },
   { title: 'Moliya', items: [
     { id: 'payments', label: 'To\'lovlar', icon: Wallet },
     { id: 'finance', label: 'Moliya', icon: TrendingUp },
     { id: 'expenses', label: 'Xarajatlar', icon: TrendingDown },
+    { id: 'debts', label: 'Talaba qarzlari', icon: AlertTriangle },
+    { id: 'teacher-payouts', label: 'O\'qituvchi maoshlari', icon: Wallet },
+    { id: 'discounts', label: 'Chegirmalar', icon: Percent },
     { id: 'reports', label: 'Hisobotlar', icon: FileText },
+    { id: 'reports-export', label: 'Eksport', icon: FileText },
+  ] },
+  { title: 'Aloqa', items: [
+    { id: 'notifications', label: 'Ota-onaga xabar', icon: Bell },
   ] },
   { title: 'Tizim', items: [
     { id: 'reminders', label: 'Eslatmalar', icon: Bell },
@@ -93,6 +109,7 @@ function AuthScreen({ mode, onModeChange, onSuccess }: { mode: 'login' | 'regist
   const [err, setErr] = useState<string | null>(null)
   const [loginForm, setLoginForm] = useState({ email: '', password: '' })
   const [regForm, setRegForm] = useState({ full_name: '', phone: '', email: '', center_name: '', address: '', password: '' })
+  const [forgotOpen, setForgotOpen] = useState(false)
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
@@ -151,6 +168,9 @@ function AuthScreen({ mode, onModeChange, onSuccess }: { mode: 'login' | 'regist
                   <Field label="Parol" labelSize="lg"><input type="password" required value={loginForm.password} onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })} className="erp-input" placeholder="••••••••" /></Field>
                   {err && <ErrorBanner message={err} />}
                   <SubmitButton loading={loading} label="Kirish" size="lg" />
+                  <div className="text-center">
+                    <button type="button" onClick={() => setForgotOpen(true)} className="text-sm text-emerald-600 hover:text-emerald-700 hover:underline">Parolni unutdingizmi?</button>
+                  </div>
                   <p className="text-base text-center text-muted-foreground">Demo admin: <code className="font-mono">admin@erp.uz</code> / <code className="font-mono">admin12345</code></p>
                 </motion.form>
               ) : (
@@ -174,6 +194,7 @@ function AuthScreen({ mode, onModeChange, onSuccess }: { mode: 'login' | 'regist
           </div>
         </motion.div>
       </div>
+      <ForgotPasswordModal open={forgotOpen} onClose={() => setForgotOpen(false)} />
       <style jsx global>{`
         .erp-input { width: 100%; padding: 0.75rem 1rem; border-radius: 0.75rem; border: 1px solid var(--input); background: color-mix(in oklch, var(--background) 60%, transparent); outline: none; transition: all 0.15s; font-size: 0.95rem; }
         .erp-input:focus { border-color: var(--primary); background: var(--background); box-shadow: 0 0 0 3px color-mix(in oklch, var(--primary) 20%, transparent); }
@@ -191,6 +212,89 @@ function FeaturePill({ icon, label }: { icon: string; label: string }) {
       <div className="w-11 h-11 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-700"><Icon className="w-5 h-5" /></div>
       <span className="text-base font-medium">{label}</span>
     </div>
+  )
+}
+
+// ============================================================================
+//  PAROLNI TIKLASH MODALI — yangi funksiya
+// ============================================================================
+function ForgotPasswordModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const [step, setStep] = useState<1 | 2>(1)
+  const [email, setEmail] = useState('')
+  const [token, setToken] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [msg, setMsg] = useState<string | null>(null)
+  const [err, setErr] = useState<string | null>(null)
+
+  function handleClose() {
+    onClose()
+    setTimeout(() => { setStep(1); setEmail(''); setToken(''); setNewPassword(''); setMsg(null); setErr(null) }, 300)
+  }
+
+  async function handleRequest() {
+    if (!email) return setErr('Email kiriting')
+    setLoading(true); setErr(null); setMsg(null)
+    const { ok, data, error } = await apiFetch('/api/auth/forgot-password', { method: 'POST', body: JSON.stringify({ email }) })
+    setLoading(false)
+    if (!ok) return setErr(error || 'Xatolik')
+    setMsg(data?.message || 'Tiklash kodi yaratildi.')
+    setStep(2)
+  }
+
+  async function handleReset() {
+    if (!email || !token || !newPassword) return setErr('Barcha maydonlarni to\'ldiring')
+    if (newPassword.length < 6) return setErr('Parol kamida 6 belgi bo\'lishi kerak')
+    setLoading(true); setErr(null); setMsg(null)
+    const { ok, data, error } = await apiFetch('/api/auth/reset-password', { method: 'POST', body: JSON.stringify({ email, token, new_password: newPassword }) })
+    setLoading(false)
+    if (!ok) return setErr(error || 'Xatolik')
+    setMsg(data?.message || 'Parol o\'zgartirildi!')
+    setTimeout(() => handleClose(), 2000)
+  }
+
+  return (
+    <AnimatePresence>
+      {open && (
+        <>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={handleClose} className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm" />
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
+            <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} className="bg-card rounded-2xl shadow-2xl border border-border/50 w-full max-w-md pointer-events-auto">
+              <div className="px-5 py-4 border-b border-border/40 flex items-center justify-between">
+                <h3 className="font-semibold">{step === 1 ? 'Parolni tiklash' : 'Yangi parol'}</h3>
+                <button onClick={handleClose} className="p-1.5 rounded-lg hover:bg-muted transition"><X className="w-4 h-4" /></button>
+              </div>
+              <div className="p-5 space-y-4">
+                {step === 1 ? (
+                  <>
+                    <p className="text-sm text-muted-foreground">Email manzilingizni kiriting. Sizga tiklash kodi yuboriladi (admin @norinkomp orqali).</p>
+                    <Field label="Email"><input type="email" className="erp-input" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="markaz@example.com" /></Field>
+                    {err && <div className="px-4 py-2.5 rounded-xl bg-red-50 border border-red-200 text-sm text-red-700">{err}</div>}
+                    {msg && <div className="px-4 py-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-sm text-emerald-700">{msg}</div>}
+                    <button onClick={handleRequest} disabled={loading} className="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-semibold disabled:opacity-50 flex items-center justify-center gap-2">
+                      {loading && <Spinner className="w-4 h-4" />}{loading ? 'Yuborilmoqda...' : 'Kod so\'rash'}
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-sm text-muted-foreground">Emailingizga yuborilgan 6-xonali kodni va yangi parolni kiriting.</p>
+                    <Field label="Email"><input type="email" className="erp-input" value={email} onChange={(e) => setEmail(e.target.value)} disabled /></Field>
+                    <Field label="Tiklash kodi"><input className="erp-input font-mono tracking-wider text-center" value={token} onChange={(e) => setToken(e.target.value)} placeholder="123456" maxLength={6} /></Field>
+                    <Field label="Yangi parol"><input type="password" className="erp-input" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="••••••••" /></Field>
+                    {err && <div className="px-4 py-2.5 rounded-xl bg-red-50 border border-red-200 text-sm text-red-700">{err}</div>}
+                    {msg && <div className="px-4 py-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-sm text-emerald-700 flex items-center gap-2"><CheckCircle className="w-4 h-4" /> {msg}</div>}
+                    <button onClick={handleReset} disabled={loading} className="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-semibold disabled:opacity-50 flex items-center justify-center gap-2">
+                      {loading && <Spinner className="w-4 h-4" />}{loading ? 'O\'zgartirilmoqda...' : 'Parolni o\'zgartirish'}
+                    </button>
+                    <button onClick={() => setStep(1)} className="w-full text-center text-xs text-muted-foreground hover:text-foreground">← Orqaga</button>
+                  </>
+                )}
+              </div>
+            </motion.div>
+          </div>
+        </>
+      )}
+    </AnimatePresence>
   )
 }
 
@@ -286,10 +390,18 @@ function AppShell({ user, onRefresh, onLogout }: { user: PublicUser; onRefresh: 
       case 'attendance': return <AttendancePanel />
       case 'attendance-report': return <AttendanceReportPanel />
       case 'teacher-attendance': return <TeacherAttendancePanel />
+      case 'schedule': return <SchedulePanel />
+      case 'exams': return <ExamsPanel />
+      case 'certificates': return <CertificatesPanel />
       case 'payments': return <PaymentsPanel />
       case 'finance': return <FinancePanel />
       case 'expenses': return <ExpensesPanel />
+      case 'debts': return <DebtsPanel />
+      case 'teacher-payouts': return <TeacherPayoutsPanel />
+      case 'discounts': return <DiscountsPanel />
       case 'reports': return <ReportsPanel />
+      case 'reports-export': return <ReportsExportPanel />
+      case 'notifications': return <NotificationsPanel />
       case 'reminders': return <RemindersPanel />
       case 'settings': return <SettingsPanel user={user} />
       case 'telegram': return <TelegramPanel user={user} />
