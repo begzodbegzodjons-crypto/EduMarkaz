@@ -195,11 +195,6 @@ function AuthScreen({ mode, onModeChange, onSuccess }: { mode: 'login' | 'regist
         </motion.div>
       </div>
       <ForgotPasswordModal open={forgotOpen} onClose={() => setForgotOpen(false)} />
-      <style jsx global>{`
-        .erp-input { width: 100%; padding: 0.75rem 1rem; border-radius: 0.75rem; border: 1px solid var(--input); background: color-mix(in oklch, var(--background) 60%, transparent); outline: none; transition: all 0.15s; font-size: 0.95rem; }
-        .erp-input:focus { border-color: var(--primary); background: var(--background); box-shadow: 0 0 0 3px color-mix(in oklch, var(--primary) 20%, transparent); }
-        .erp-input::placeholder { color: oklch(0.6 0.01 220); }
-      `}</style>
     </div>
   )
 }
