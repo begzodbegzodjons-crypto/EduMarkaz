@@ -1,0 +1,2002 @@
+     1→     1→'use client'
+     2→     2→import { useEffect, useState, useCallback, useMemo } from 'react'
+     3→     3→import { motion, AnimatePresence } from 'framer-motion'
+     4→     4→import { useUser, apiFetch, formatDate, formatDateTime, formatMoney, type PublicUser } from '@/lib/client'
+     5→     5→import {
+     6→     6→  GraduationCap, Users, Wallet, Calendar, BarChart3, BookOpen, UserCog,
+     7→     7→  LayoutDashboard, ClipboardCheck, Settings, LogOut, Plus, Trash2, Pencil,
+     8→     8→  Search, Lock, CheckCircle, AlertTriangle, Copy, KeyRound, Sparkles,
+     9→     9→  Phone, MapPin, Spinner, Menu, X, TelegramIcon, ChevronRight, Download, Crown,
+    10→    10→} from '@/components/icons'
+    11→    11→
+    12→    12→const TELEGRAM_HANDLE = process.env.NEXT_PUBLIC_TELEGRAM_HANDLE || 'norinkomp'
+    13→    13→const TELEGRAM_URL = process.env.NEXT_PUBLIC_TELEGRAM_URL || `https://t.me/${TELEGRAM_HANDLE}`
+    14→    14→
+    15→    15→// ============================================================================
+    16→    16→//  ASOSIY SAHIFA — yakka faylli ERP tizimi
+    17→    17→// ============================================================================
+    18→    18→export default function Home() {
+    19→    19→  const { user, loading, refresh } = useUser()
+    20→    20→  const [authMode, setAuthMode] = useState<'login' | 'register'>('login')
+    21→    21→
+    22→    22→  if (loading) return <FullScreenLoader />
+    23→    23→
+    24→    24→  if (!user) {
+    25→    25→    return <AuthScreen mode={authMode} onModeChange={setAuthMode} onSuccess={() => refresh()} />
+    26→    26→  }
+    27→    27→
+    28→    28→  // Bloklangan foydalanuvchi — faqat aktivatsiya kodi kiritish + telegram
+    29→    29→  if (user.status === 'blocked' && user.role !== 'admin') {
+    30→    30→    return (
+    31→    31→      <BlockedScreen
+    32→    32→        user={user}
+    33→    33→        onActivated={() => refresh()}
+    34→    34→        onLogout={async () => { await apiFetch('/api/auth/logout', { method: 'POST' }); refresh() }}
+    35→    35→      />
+    36→    36→    )
+    37→    37→  }
+    38→    38→
+    39→    39→  return (
+    40→    40→    <AppShell
+    41→    41→      user={user}
+    42→    42→      onRefresh={refresh}
+    43→    43→      onLogout={async () => { await apiFetch('/api/auth/logout', { method: 'POST' }); refresh() }}
+    44→    44→    />
+    45→    45→  )
+    46→    46→}
+    47→    47→
+    48→    48→// Re-export ikonkalar — boshqa komponentlar uchun
+    49→    49→export {
+    50→    50→  GraduationCap, Users, Wallet, Calendar, BarChart3, BookOpen, UserCog,
+    51→    51→  LayoutDashboard, ClipboardCheck, Settings, LogOut, Plus, Trash2, Pencil,
+    52→    52→  Search, Lock, CheckCircle, AlertTriangle, Copy, KeyRound, Sparkles,
+    53→    53→  Phone, MapPin, Spinner, Menu, X, TelegramIcon, ChevronRight, Download, Crown,
+    54→    54→}
+    55→    55→
+    56→    56→// ============================================================================
+    57→    57→//  LOADER
+    58→    58→// ============================================================================
+    59→    59→function FullScreenLoader() {
+    60→    60→  return (
+    61→    61→    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-emerald-50 via-white to-teal-50">
+    62→    62→      <AuroraBackground />
+    63→    63→      <motion.div
+    64→    64→        initial={{ opacity: 0, scale: 0.9 }}
+    65→    65→        animate={{ opacity: 1, scale: 1 }}
+    66→    66→        className="relative z-10 flex flex-col items-center gap-4"
+    67→    67→      >
+    68→    68→        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-xl shadow-emerald-500/30">
+    69→    69→          <Spinner className="w-8 h-8 text-white" />
+    70→    70→        </div>
+    71→    71→        <div className="text-emerald-700 font-medium">Yuklanmoqda...</div>
+    72→    72→      </motion.div>
+    73→    73→    </div>
+    74→    74→  )
+    75→    75→}
+    76→    76→
+    77→    77→// ============================================================================
+    78→    78→//  AURORA FON
+    79→    79→// ============================================================================
+    80→    80→export function AuroraBackground() {
+    81→    81→  return (
+    82→    82→    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+    83→    83→      <div className="aurora-blob absolute -top-40 -left-40 w-[40rem] h-[40rem] rounded-full bg-emerald-300/30 blur-3xl" />
+    84→    84→      <div className="aurora-blob absolute top-1/2 -right-40 w-[35rem] h-[35rem] rounded-full bg-teal-300/25 blur-3xl" style={{ animationDelay: '4s' }} />
+    85→    85→      <div className="aurora-blob absolute -bottom-40 left-1/3 w-[30rem] h-[30rem] rounded-full bg-cyan-200/20 blur-3xl" style={{ animationDelay: '8s' }} />
+    86→    86→    </div>
+    87→    87→  )
+    88→    88→}
+    89→    89→
+    90→    90→// ============================================================================
+    91→    91→//  AUTH SCREEN (login / register)
+    92→    92→// ============================================================================
+    93→    93→function AuthScreen({ mode, onModeChange, onSuccess }: { mode: 'login' | 'register'; onModeChange: (m: 'login' | 'register') => void; onSuccess: () => void }) {
+    94→    94→  const [loading, setLoading] = useState(false)
+    95→    95→  const [err, setErr] = useState<string | null>(null)
+    96→    96→
+    97→    97→  const [loginForm, setLoginForm] = useState({ email: '', password: '' })
+    98→    98→  const [regForm, setRegForm] = useState({ full_name: '', phone: '', email: '', center_name: '', address: '', password: '' })
+    99→    99→
+   100→   100→  async function handleLogin(e: React.FormEvent) {
+   101→   101→    e.preventDefault()
+   102→   102→    setLoading(true); setErr(null)
+   103→   103→    const { ok, error } = await apiFetch('/api/auth/login', { method: 'POST', body: JSON.stringify(loginForm) })
+   104→   104→    setLoading(false)
+   105→   105→    if (!ok) return setErr(error || 'Xatolik')
+   106→   106→    onSuccess()
+   107→   107→  }
+   108→   108→
+   109→   109→  async function handleRegister(e: React.FormEvent) {
+   110→   110→    e.preventDefault()
+   111→   111→    setLoading(true); setErr(null)
+   112→   112→    const { ok, error } = await apiFetch('/api/auth/register', { method: 'POST', body: JSON.stringify(regForm) })
+   113→   113→    setLoading(false)
+   114→   114→    if (!ok) return setErr(error || 'Xatolik')
+   115→   115→    onSuccess()
+   116→   116→  }
+   117→   117→
+   118→   118→  return (
+   119→   119→    <div className="min-h-screen flex items-stretch bg-gradient-to-br from-emerald-50 via-white to-teal-50 relative overflow-hidden">
+   120→   120→      <AuroraBackground />
+   121→   121→      <div className="relative z-10 w-full grid lg:grid-cols-2 items-stretch">
+   122→   122→        {/* LEFT — Brand */}
+   123→   123→        <motion.div
+   124→   124→          initial={{ opacity: 0, x: -20 }}
+   125→   125→          animate={{ opacity: 1, x: 0 }}
+   126→   126→          transition={{ duration: 0.6 }}
+   127→   127→          className="hidden lg:flex flex-col gap-7 p-12 xl:p-16 2xl:p-20 justify-center"
+   128→   128→        >
+   129→   129→          <div className="flex items-center gap-4">
+   130→   130→            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-xl shadow-emerald-500/30">
+   131→   131→              <GraduationCap className="w-10 h-10 text-white" />
+   132→   132→            </div>
+   133→   133→            <div>
+   134→   134→              <div className="text-3xl font-bold tracking-tight">EduMarkaz</div>
+   135→   135→              <div className="text-base text-emerald-600 font-medium">ERP Boshqaruv Tizimi</div>
+   136→   136→            </div>
+   137→   137→          </div>
+   138→   138→          <h1 className="text-5xl xl:text-6xl 2xl:text-7xl font-bold leading-tight tracking-tight">
+   139→   139→            O'quv markazingizni <span className="shimmer-text">bir tizimda</span> boshqaring
+   140→   140→          </h1>
+   141→   141→          <p className="text-muted-foreground text-xl leading-relaxed">
+   142→   142→            Talabalar, guruhlar, o'qituvchilar, to'lovlar, davomat va statistika — barchasi bir joyda.
+   143→   143→            Zamonaviy dizayn, tezkor ishlash va ishonchli ma'lumotlar bazasi.
+   144→   144→          </p>
+   145→   145→          <div className="grid grid-cols-2 gap-5 mt-2">
+   146→   146→            <FeaturePill icon="users" label="Talabalar boshqaruvi" />
+   147→   147→            <FeaturePill icon="payments" label="To'lov kuzatuvi" />
+   148→   148→            <FeaturePill icon="calendar" label="Dars jadvali" />
+   149→   149→            <FeaturePill icon="chart" label="Statistika & Hisobot" />
+   150→   150→          </div>
+   151→   151→          <div className="mt-6 p-6 rounded-2xl bg-emerald-50/80 border border-emerald-200">
+   152→   152→            <div className="text-base text-emerald-700 font-bold mb-2 tracking-wide">BEPUL SINOV</div>
+   153→   153→            <div className="text-lg text-emerald-900 leading-relaxed">14 kun davomida barcha funksiyalar bilan bepul foydalaning. Karta talab qilinmaydi.</div>
+   154→   154→          </div>
+   155→   155→        </motion.div>
+   156→   156→
+   157→   157→        {/* RIGHT — Form card */}
+   158→   158→        <motion.div
+   159→   159→          initial={{ opacity: 0, y: 20 }}
+   160→   160→          animate={{ opacity: 1, y: 0 }}
+   161→   161→          transition={{ duration: 0.6, delay: 0.1 }}
+   162→   162→          className="w-full flex items-center justify-center p-6 sm:p-10 lg:p-12 xl:p-16 2xl:p-20"
+   163→   163→        >
+   164→   164→          <div className="glass rounded-3xl shadow-2xl shadow-emerald-900/10 border border-emerald-100/50 p-8 sm:p-10 lg:p-10 xl:p-12 w-full max-w-2xl">
+   165→   165→            <div className="lg:hidden flex items-center gap-3 mb-8">
+   166→   166→              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
+   167→   167→                <GraduationCap className="w-7 h-7 text-white" />
+   168→   168→              </div>
+   169→   169→              <div className="text-2xl font-bold">EduMarkaz</div>
+   170→   170→            </div>
+   171→   171→
+   172→   172→            <div className="flex p-1.5 bg-muted rounded-2xl mb-8">
+   173→   173→              <button
+   174→   174→                type="button"
+   175→   175→                onClick={() => onModeChange('login')}
+   176→   176→                className={`flex-1 py-3.5 text-lg font-semibold rounded-xl transition-all ${mode === 'login' ? 'bg-white text-emerald-700 shadow' : 'text-muted-foreground'}`}
+   177→   177→              >
+   178→   178→                Tizimga kirish
+   179→   179→              </button>
+   180→   180→              <button
+   181→   181→                type="button"
+   182→   182→                onClick={() => onModeChange('register')}
+   183→   183→                className={`flex-1 py-3.5 text-lg font-semibold rounded-xl transition-all ${mode === 'register' ? 'bg-white text-emerald-700 shadow' : 'text-muted-foreground'}`}
+   184→   184→              >
+   185→   185→                Ro'yxatdan o'tish
+   186→   186→              </button>
+   187→   187→            </div>
+   188→   188→
+   189→   189→            <AnimatePresence mode="wait">
+   190→   190→              {mode === 'login' ? (
+   191→   191→                <motion.form
+   192→   192→                  key="login"
+   193→   193→                  onSubmit={handleLogin}
+   194→   194→                  initial={{ opacity: 0, x: -10 }}
+   195→   195→                  animate={{ opacity: 1, x: 0 }}
+   196→   196→                  exit={{ opacity: 0, x: 10 }}
+   197→   197→                  className="space-y-6"
+   198→   198→                >
+   199→   199→                  <Field label="Email" labelSize="lg">
+   200→   200→                    <input
+   201→   201→                      type="email"
+   202→   202→                      required
+   203→   203→                      value={loginForm.email}
+   204→   204→                      onChange={(e) => setLoginForm({ ...loginForm, email: e.target.value })}
+   205→   205→                      className="erp-input"
+   206→   206→                      placeholder="markaz@example.com"
+   207→   207→                    />
+   208→   208→                  </Field>
+   209→   209→                  <Field label="Parol" labelSize="lg">
+   210→   210→                    <input
+   211→   211→                      type="password"
+   212→   212→                      required
+   213→   213→                      value={loginForm.password}
+   214→   214→                      onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
+   215→   215→                      className="erp-input"
+   216→   216→                      placeholder="••••••••"
+   217→   217→                    />
+   218→   218→                  </Field>
+   219→   219→                  {err && <ErrorBanner message={err} />}
+   220→   220→                  <SubmitButton loading={loading} label="Kirish" size="lg" />
+   221→   221→                  <p className="text-base text-center text-muted-foreground">
+   222→   222→                    Demo admin: <code className="font-mono">admin@erp.uz</code> / <code className="font-mono">admin12345</code>
+   223→   223→                  </p>
+   224→   224→                </motion.form>
+   225→   225→              ) : (
+   226→   226→                <motion.form
+   227→   227→                  key="register"
+   228→   228→                  onSubmit={handleRegister}
+   229→   229→                  initial={{ opacity: 0, x: 10 }}
+   230→   230→                  animate={{ opacity: 1, x: 0 }}
+   231→   231→                  exit={{ opacity: 0, x: -10 }}
+   232→   232→                  className="space-y-5"
+   233→   233→                >
+   234→   234→                  <div className="grid sm:grid-cols-2 gap-5">
+   235→   235→                    <Field label="F.I.O *" labelSize="lg">
+   236→   236→                      <input required value={regForm.full_name} onChange={(e) => setRegForm({ ...regForm, full_name: e.target.value })} className="erp-input" placeholder="Aliyev Vali" />
+   237→   237→                    </Field>
+   238→   238→                    <Field label="Telefon *" labelSize="lg">
+   239→   239→                      <input required value={regForm.phone} onChange={(e) => setRegForm({ ...regForm, phone: e.target.value })} className="erp-input" placeholder="+998901234567" />
+   240→   240→                    </Field>
+   241→   241→                  </div>
+   242→   242→                  <Field label="O'quv markaz nomi *" labelSize="lg">
+   243→   243→                    <input required value={regForm.center_name} onChange={(e) => setRegForm({ ...regForm, center_name: e.target.value })} className="erp-input" placeholder="Mening Markazim" />
+   244→   244→                  </Field>
+   245→   245→                  <Field label="Email *" labelSize="lg">
+   246→   246→                    <input type="email" required value={regForm.email} onChange={(e) => setRegForm({ ...regForm, email: e.target.value })} className="erp-input" placeholder="markaz@example.com" />
+   247→   247→                  </Field>
+   248→   248→                  <Field label="Manzil (ixtiyoriy)" labelSize="lg">
+   249→   249→                    <input value={regForm.address} onChange={(e) => setRegForm({ ...regForm, address: e.target.value })} className="erp-input" placeholder="Toshkent, Chilonzor" />
+   250→   250→                  </Field>
+   251→   251→                  <Field label="Parol * (min. 6 belgi)" labelSize="lg">
+   252→   252→                    <input type="password" required minLength={6} value={regForm.password} onChange={(e) => setRegForm({ ...regForm, password: e.target.value })} className="erp-input" placeholder="••••••••" />
+   253→   253→                  </Field>
+   254→   254→                  {err && <ErrorBanner message={err} />}
+   255→   255→                  <SubmitButton loading={loading} label="Ro'yxatdan o'tish" size="lg" />
+   256→   256→                </motion.form>
+   257→   257→              )}
+   258→   258→            </AnimatePresence>
+   259→   259→
+   260→   260→            <div className="mt-8 pt-6 border-t border-border/50 text-center">
+   261→   261→              <a href={TELEGRAM_URL} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 text-base text-muted-foreground hover:text-emerald-600 transition">
+   262→   262→                <TelegramIcon className="w-5 h-5" />
+   263→   263→                Yordam: @{TELEGRAM_HANDLE}
+   264→   264→              </a>
+   265→   265→            </div>
+   266→   266→          </div>
+   267→   267→        </motion.div>
+   268→   268→      </div>
+   269→   269→
+   270→   270→      <style jsx global>{`
+   271→   271→        .erp-input {
+   272→   272→          width: 100%;
+   273→   273→          padding: 1rem 1.25rem;
+   274→   274→          border-radius: 0.875rem;
+   275→   275→          border: 1px solid var(--input);
+   276→   276→          background: color-mix(in oklch, var(--background) 60%, transparent);
+   277→   277→          outline: none;
+   278→   278→          transition: all 0.15s;
+   279→   279→          font-size: 1.05rem;
+   280→   280→        }
+   281→   281→        .erp-input:focus {
+   282→   282→          border-color: var(--primary);
+   283→   283→          background: var(--background);
+   284→   284→          box-shadow: 0 0 0 3px color-mix(in oklch, var(--primary) 20%, transparent);
+   285→   285→        }
+   286→   286→        .erp-input::placeholder { color: oklch(0.6 0.01 220); }
+   287→   287→      `}</style>
+   288→   288→    </div>
+   289→   289→  )
+   290→   290→}
+   291→   291→
+   292→   292→export function Field({ label, children, labelSize = 'sm' }: { label: string; children: React.ReactNode; labelSize?: 'sm' | 'lg' }) {
+   293→   293→  return (
+   294→   294→    <div>
+   295→   295→      <label className={`block font-semibold text-foreground mb-2 ${labelSize === 'lg' ? 'text-base' : 'text-xs'}`}>{label}</label>
+   296→   296→      {children}
+   297→   297→    </div>
+   298→   298→  )
+   299→   299→}
+   300→   300→
+   301→   301→export function ErrorBanner({ message }: { message: string }) {
+   302→   302→  return (
+   303→   303→    <motion.div
+   304→   304→      initial={{ opacity: 0, y: -5 }}
+   305→   305→      animate={{ opacity: 1, y: 0 }}
+   306→   306→      className="px-4 py-3.5 rounded-xl bg-red-50 border border-red-200 text-base text-red-700"
+   307→   307→    >
+   308→   308→      {message}
+   309→   309→    </motion.div>
+   310→   310→  )
+   311→   311→}
+   312→   312→
+   313→   313→export function SubmitButton({ loading, label, icon, size = 'md' }: { loading: boolean; label: string; icon?: React.ReactNode; size?: 'md' | 'lg' }) {
+   314→   314→  const pad = size === 'lg' ? 'py-4 text-lg' : 'py-3 text-sm'
+   315→   315→  return (
+   316→   316→    <button
+   317→   317→      type="submit"
+   318→   318→      disabled={loading}
+   319→   319→      className={`w-full ${pad} rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-semibold shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2`}
+   320→   320→    >
+   321→   321→      {loading ? <Spinner className="w-5 h-5" /> : icon}
+   322→   322→      {loading ? 'Biroz kuting...' : label}
+   323→   323→    </button>
+   324→   324→  )
+   325→   325→}
+   326→   326→
+   327→   327→function FeaturePill({ icon, label }: { icon: string; label: string }) {
+   328→   328→  return (
+   329→   329→    <div className="flex items-center gap-3.5 p-4 rounded-2xl bg-white/70 border border-emerald-100 backdrop-blur">
+   330→   330→      <div className="w-11 h-11 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-700">
+   331→   331→        <FeatureIcon name={icon} className="w-5 h-5" />
+   332→   332→      </div>
+   333→   333→      <span className="text-base font-medium">{label}</span>
+   334→   334→    </div>
+   335→   335→  )
+   336→   336→}
+   337→   337→
+   338→   338→function FeatureIcon({ name, className = 'w-4 h-4' }: { name: string; className?: string }) {
+   339→   339→  switch (name) {
+   340→   340→    case 'users': return <Users className={className} />
+   341→   341→    case 'payments': return <Wallet className={className} />
+   342→   342→    case 'calendar': return <Calendar className={className} />
+   343→   343→    case 'chart': return <BarChart3 className={className} />
+   344→   344→    default: return null
+   345→   345→  }
+   346→   346→}
+   347→   347→
+   348→   348→// ============================================================================
+   349→   349→//  BLOCKED SCREEN — faqat aktivatsiya kodi kiritish + telegram kontakt
+   350→   350→// ============================================================================
+   351→   351→function BlockedScreen({ user, onActivated, onLogout }: { user: PublicUser; onActivated: () => void; onLogout: () => void }) {
+   352→   352→  const [code, setCode] = useState('')
+   353→   353→  const [loading, setLoading] = useState(false)
+   354→   354→  const [err, setErr] = useState<string | null>(null)
+   355→   355→  const [success, setSuccess] = useState<string | null>(null)
+   356→   356→
+   357→   357→  async function handleActivate(e: React.FormEvent) {
+   358→   358→    e.preventDefault()
+   359→   359→    setLoading(true); setErr(null); setSuccess(null)
+   360→   360→    const { ok, data, error } = await apiFetch('/api/activate', { method: 'POST', body: JSON.stringify({ code }) })
+   361→   361→    setLoading(false)
+   362→   362→    if (!ok) return setErr(error || 'Xatolik')
+   363→   363→    setSuccess(`Tabriklaymiz! Sizning tizimga kirish huquqingiz ${data?.days_added || 30} kunga uzaytirildi.`)
+   364→   364→    setTimeout(() => onActivated(), 2000)
+   365→   365→  }
+   366→   366→
+   367→   367→  return (
+   368→   368→    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-950 relative overflow-hidden">
+   369→   369→      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+   370→   370→        <div className="aurora-blob absolute -top-40 -left-40 w-[40rem] h-[40rem] rounded-full bg-emerald-500/20 blur-3xl" />
+   371→   371→        <div className="aurora-blob absolute top-1/2 -right-40 w-[35rem] h-[35rem] rounded-full bg-teal-500/15 blur-3xl" style={{ animationDelay: '4s' }} />
+   372→   372→      </div>
+   373→   373→
+   374→   374→      <motion.div
+   375→   375→        initial={{ opacity: 0, y: 30 }}
+   376→   376→        animate={{ opacity: 1, y: 0 }}
+   377→   377→        transition={{ duration: 0.6 }}
+   378→   378→        className="relative z-10 w-full max-w-md"
+   379→   379→      >
+   380→   380→        <div className="glass rounded-3xl shadow-2xl border border-white/10 p-8 backdrop-blur-xl">
+   381→   381→          {/* Lock icon */}
+   382→   382→          <div className="flex justify-center mb-6">
+   383→   383→            <motion.div
+   384→   384→              animate={{ scale: [1, 1.05, 1] }}
+   385→   385→              transition={{ duration: 2, repeat: Infinity }}
+   386→   386→              className="w-20 h-20 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-2xl shadow-amber-500/30"
+   387→   387→            >
+   388→   388→              <Lock className="w-10 h-10 text-white" />
+   389→   389→            </motion.div>
+   390→   390→          </div>
+   391→   391→
+   392→   392→          <h2 className="text-center text-2xl font-bold text-white mb-2">Tizim bloklangan</h2>
+   393→   393→          <p className="text-center text-slate-300 text-sm mb-6">
+   394→   394→            Hurmatli <span className="font-semibold text-white">{user.full_name}</span>,
+   395→   395→            sizning bepul 14 kunlik sinov muddatingiz tugadi.
+   396→   396→            Tizimda davom etish uchun aktivatsiya kodini kiriting.
+   397→   397→          </p>
+   398→   398→
+   399→   399→          {/* Activation form */}
+   400→   400→          <form onSubmit={handleActivate} className="space-y-4">
+   401→   401→            <div>
+   402→   402→              <label className="block text-xs font-semibold text-slate-300 mb-2">AKTIVATSIYA KODI</label>
+   403→   403→              <input
+   404→   404→                value={code}
+   405→   405→                onChange={(e) => setCode(e.target.value.toUpperCase())}
+   406→   406→                placeholder="XXXX-XXXX-XXXX-XXXX-XXXX-XXXX"
+   407→   407→                className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white font-mono tracking-wider text-center focus:bg-white/10 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/30 outline-none transition"
+   408→   408→                required
+   409→   409→              />
+   410→   410→            </div>
+   411→   411→            {err && (
+   412→   412→              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="px-4 py-2.5 rounded-xl bg-red-500/20 border border-red-500/30 text-sm text-red-200">
+   413→   413→                {err}
+   414→   414→              </motion.div>
+   415→   415→            )}
+   416→   416→            {success && (
+   417→   417→              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="px-4 py-2.5 rounded-xl bg-emerald-500/20 border border-emerald-500/30 text-sm text-emerald-200 flex items-center gap-2">
+   418→   418→                <CheckCircle className="w-4 h-4" /> {success}
+   419→   419→              </motion.div>
+   420→   420→            )}
+   421→   421→            <button
+   422→   422→              type="submit"
+   423→   423→              disabled={loading}
+   424→   424→              className="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-semibold shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 flex items-center justify-center gap-2"
+   425→   425→            >
+   426→   426→              {loading ? <Spinner className="w-4 h-4" /> : <KeyRound className="w-4 h-4" />}
+   427→   427→              {loading ? 'Tekshirilmoqda...' : 'Aktivlashtirish'}
+   428→   428→            </button>
+   429→   429→          </form>
+   430→   430→
+   431→   431→          {/* Telegram CTA */}
+   432→   432→          <div className="mt-6 pt-6 border-t border-white/10">
+   433→   433→            <div className="text-center text-xs text-slate-400 mb-3">AKTIVATSIYA KODINI OLISH UCHUN</div>
+   434→   434→            <a
+   435→   435→              href={TELEGRAM_URL}
+   436→   436→              target="_blank"
+   437→   437→              rel="noreferrer"
+   438→   438→              className="block w-full py-3 rounded-xl bg-[#229ED9] hover:bg-[#1d8bc4] text-white font-semibold shadow-lg transition-all hover:scale-[1.01] active:scale-[0.99] flex items-center justify-center gap-2"
+   439→   439→            >
+   440→   440→              <TelegramIcon className="w-5 h-5" />
+   441→   441→              Telegram orqali yozing: @{TELEGRAM_HANDLE}
+   442→   442→            </a>
+   443→   443→            <p className="text-center text-xs text-slate-400 mt-3 leading-relaxed">
+   444→   444→              To'lovni amalga oshiring va @<strong className="text-slate-200">{TELEGRAM_HANDLE}</strong> akkauntiga yozing.
+   445→   445→              Sizga 30 kunlik aktivatsiya kodi yuboriladi.
+   446→   446→            </p>
+   447→   447→          </div>
+   448→   448→
+   449→   449→          <button
+   450→   450→            onClick={onLogout}
+   451→   451→            className="mt-4 w-full text-center text-xs text-slate-500 hover:text-slate-300 transition"
+   452→   452→          >
+   453→   453→            Tizimdan chiqish
+   454→   454→          </button>
+   455→   455→        </div>
+   456→   456→      </motion.div>
+   457→   457→    </div>
+   458→   458→  )
+   459→   459→}
+   460→   460→
+   461→   461→// ============================================================================
+   462→   462→//  APP SHELL — asosiy ERP interfeysi (sidebar + content)
+   463→   463→// ============================================================================
+   464→   464→function AppShell({ user, onRefresh, onLogout }: { user: PublicUser; onRefresh: () => void; onLogout: () => void }) {
+   465→   465→  const [activeTab, setActiveTab] = useState<string>('dashboard')
+   466→   466→  const [mobileNav, setMobileNav] = useState(false)
+   467→   467→
+   468→   468→  const navItems = useMemo(() => {
+   469→   469→    const items = [
+   470→   470→      { id: 'dashboard', label: 'Boshqaruv paneli', icon: LayoutDashboard },
+   471→   471→      { id: 'students', label: 'Talabalar', icon: Users },
+   472→   472→      { id: 'teachers', label: 'O\'qituvchilar', icon: UserCog },
+   473→   473→      { id: 'groups', label: 'Guruhlar', icon: Users },
+   474→   474→      { id: 'courses', label: 'Kurslar', icon: BookOpen },
+   475→   475→      { id: 'payments', label: 'To\'lovlar', icon: Wallet },
+   476→   476→      { id: 'attendance', label: 'Davomat', icon: ClipboardCheck },
+   477→   477→    ]
+   478→   478→    if (user.role === 'admin') {
+   479→   479→      items.push({ id: 'admin', label: 'Admin Panel', icon: Crown } as any)
+   480→   480→    }
+   481→   481→    return items
+   482→   482→  }, [user.role])
+   483→   483→
+   484→   484→  const renderContent = () => {
+   485→   485→    switch (activeTab) {
+   486→   486→      case 'dashboard': return <DashboardPanel user={user} />
+   487→   487→      case 'students': return <StudentsPanel />
+   488→   488→      case 'teachers': return <TeachersPanel />
+   489→   489→      case 'groups': return <GroupsPanel />
+   490→   490→      case 'courses': return <CoursesPanel />
+   491→   491→      case 'payments': return <PaymentsPanel />
+   492→   492→      case 'attendance': return <AttendancePanel />
+   493→   493→      case 'admin': return user.role === 'admin' ? <AdminPanel user={user} /> : null
+   494→   494→      default: return null
+   495→   495→    }
+   496→   496→  }
+   497→   497→
+   498→   498→  return (
+   499→   499→    <div className="min-h-screen flex bg-gradient-to-br from-emerald-50/30 via-background to-teal-50/20">
+   500→   500→      {/* Sidebar — desktop */}
+   501→   501→      <aside className="hidden lg:flex w-64 flex-col bg-sidebar text-sidebar-foreground shrink-0">
+   502→   502→        <SidebarContent
+   503→   503→          user={user}
+   504→   504→          navItems={navItems}
+   505→   505→          activeTab={activeTab}
+   506→   506→          setActiveTab={setActiveTab}
+   507→   507→          onLogout={onLogout}
+   508→   508→        />
+   509→   509→      </aside>
+   510→   510→
+   511→   511→      {/* Sidebar — mobile */}
+   512→   512→      <AnimatePresence>
+   513→   513→        {mobileNav && (
+   514→   514→          <>
+   515→   515→            <motion.div
+   516→   516→              initial={{ opacity: 0 }}
+   517→   517→              animate={{ opacity: 1 }}
+   518→   518→              exit={{ opacity: 0 }}
+   519→   519→              onClick={() => setMobileNav(false)}
+   520→   520→              className="lg:hidden fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
+   521→   521→            />
+   522→   522→            <motion.aside
+   523→   523→              initial={{ x: -300 }}
+   524→   524→              animate={{ x: 0 }}
+   525→   525→              exit={{ x: -300 }}
+   526→   526→              transition={{ type: 'spring', damping: 25, stiffness: 250 }}
+   527→   527→              className="lg:hidden fixed left-0 top-0 bottom-0 z-50 w-72 flex flex-col bg-sidebar text-sidebar-foreground"
+   528→   528→            >
+   529→   529→              <SidebarContent
+   530→   530→                user={user}
+   531→   531→                navItems={navItems}
+   532→   532→                activeTab={activeTab}
+   533→   533→                setActiveTab={(t) => { setActiveTab(t); setMobileNav(false) }}
+   534→   534→                onLogout={onLogout}
+   535→   535→              />
+   536→   536→            </motion.aside>
+   537→   537→          </>
+   538→   538→        )}
+   539→   539→      </AnimatePresence>
+   540→   540→
+   541→   541→      {/* Main content */}
+   542→   542→      <main className="flex-1 flex flex-col min-w-0">
+   543→   543→        <header className="sticky top-0 z-30 glass border-b border-border/40 px-4 lg:px-8 py-3.5 flex items-center justify-between">
+   544→   544→          <div className="flex items-center gap-3">
+   545→   545→            <button
+   546→   546→              onClick={() => setMobileNav(true)}
+   547→   547→              className="lg:hidden p-2 rounded-lg hover:bg-muted"
+   548→   548→            >
+   549→   549→              <Menu className="w-5 h-5" />
+   550→   550→            </button>
+   551→   551→            <div>
+   552→   552→              <div className="text-xs text-muted-foreground">Assalomu alaykum,</div>
+   553→   553→              <div className="font-semibold text-sm">{user.full_name}</div>
+   554→   554→            </div>
+   555→   555→          </div>
+   556→   556→          <div className="flex items-center gap-3">
+   557→   557→            <StatusBadge user={user} />
+   558→   558→            <button
+   559→   559→              onClick={onLogout}
+   560→   560→              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition"
+   561→   561→            >
+   562→   562→              <LogOut className="w-3.5 h-3.5" /> Chiqish
+   563→   563→            </button>
+   564→   564→          </div>
+   565→   565→        </header>
+   566→   566→
+   567→   567→        <div className="flex-1 p-4 lg:p-8">
+   568→   568→          <AnimatePresence mode="wait">
+   569→   569→            <motion.div
+   570→   570→              key={activeTab}
+   571→   571→              initial={{ opacity: 0, y: 8 }}
+   572→   572→              animate={{ opacity: 1, y: 0 }}
+   573→   573→              exit={{ opacity: 0, y: -8 }}
+   574→   574→              transition={{ duration: 0.2 }}
+   575→   575→            >
+   576→   576→              {renderContent()}
+   577→   577→            </motion.div>
+   578→   578→          </AnimatePresence>
+   579→   579→        </div>
+   580→   580→
+   581→   581→        <footer className="px-4 lg:px-8 py-4 text-center text-xs text-muted-foreground border-t border-border/40">
+   582→   582→          <span>EduMarkaz ERP v1.0 • </span>
+   583→   583→          <a href={TELEGRAM_URL} target="_blank" rel="noreferrer" className="hover:text-emerald-600 transition inline-flex items-center gap-1">
+   584→   584→            <TelegramIcon className="w-3 h-3" /> @{TELEGRAM_HANDLE}
+   585→   585→          </a>
+   586→   586→        </footer>
+   587→   587→      </main>
+   588→   588→    </div>
+   589→   589→  )
+   590→   590→}
+   591→   591→
+   592→   592→function SidebarContent({ user, navItems, activeTab, setActiveTab, onLogout }: {
+   593→   593→  user: PublicUser
+   594→   594→  navItems: any[]
+   595→   595→  activeTab: string
+   596→   596→  setActiveTab: (id: string) => void
+   597→   597→  onLogout: () => void
+   598→   598→}) {
+   599→   599→  return (
+   600→   600→    <>
+   601→   601→      <div className="p-5 border-b border-sidebar-border/50">
+   602→   602→        <div className="flex items-center gap-3">
+   603→   603→          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center shadow-lg shadow-emerald-500/20">
+   604→   604→            <GraduationCap className="w-6 h-6 text-white" />
+   605→   605→          </div>
+   606→   606→          <div>
+   607→   607→            <div className="font-bold text-sidebar-foreground">EduMarkaz</div>
+   608→   608→            <div className="text-[10px] text-sidebar-foreground/60">{user.center_name}</div>
+   609→   609→          </div>
+   610→   610→        </div>
+   611→   611→      </div>
+   612→   612→      <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
+   613→   613→        {navItems.map((item) => {
+   614→   614→          const Icon = item.icon
+   615→   615→          const isActive = activeTab === item.id
+   616→   616→          return (
+   617→   617→            <button
+   618→   618→              key={item.id}
+   619→   619→              onClick={() => setActiveTab(item.id)}
+   620→   620→              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
+   621→   621→                isActive
+   622→   622→                  ? 'bg-sidebar-primary text-sidebar-primary-foreground shadow-lg shadow-emerald-500/20'
+   623→   623→                  : 'text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground'
+   624→   624→              }`}
+   625→   625→            >
+   626→   626→              <Icon className="w-4 h-4 shrink-0" />
+   627→   627→              <span className="truncate">{item.label}</span>
+   628→   628→              {isActive && <ChevronRight className="w-4 h-4 ml-auto" />}
+   629→   629→            </button>
+   630→   630→          )
+   631→   631→        })}
+   632→   632→      </nav>
+   633→   633→      <div className="p-3 border-t border-sidebar-border/50">
+   634→   634→        <div className="px-3 py-2 mb-2 rounded-xl bg-sidebar-accent/50">
+   635→   635→          <div className="flex items-center gap-2 text-xs">
+   636→   636→            {user.status === 'trial' && <Sparkles className="w-3.5 h-3.5 text-amber-400" />}
+   637→   637→            {user.status === 'active' && <CheckCircle className="w-3.5 h-3.5 text-emerald-400" />}
+   638→   638→            <span className="text-sidebar-foreground/80">
+   639→   639→              {user.status === 'trial' && `Bepul sinov: ${user.days_left} kun qoldi`}
+   640→   640→              {user.status === 'active' && `Aktiv: ${user.days_left} kun qoldi`}
+   641→   641→              {user.role === 'admin' && 'Administrator'}
+   642→   642→            </span>
+   643→   643→          </div>
+   644→   644→        </div>
+   645→   645→        <button
+   646→   646→          onClick={onLogout}
+   647→   647→          className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground transition"
+   648→   648→        >
+   649→   649→          <LogOut className="w-4 h-4" /> Tizimdan chiqish
+   650→   650→        </button>
+   651→   651→      </div>
+   652→   652→    </>
+   653→   653→  )
+   654→   654→}
+   655→   655→
+   656→   656→function StatusBadge({ user }: { user: PublicUser }) {
+   657→   657→  if (user.role === 'admin') {
+   658→   658→    return (
+   659→   659→      <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-100 text-amber-700 text-xs font-semibold">
+   660→   660→        <Crown className="w-3 h-3" /> Admin
+   661→   661→      </div>
+   662→   662→    )
+   663→   663→  }
+   664→   664→  if (user.status === 'trial') {
+   665→   665→    return (
+   666→   666→      <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-100 text-amber-700 text-xs font-semibold">
+   667→   667→        <Sparkles className="w-3 h-3" /> Sinov: {user.days_left}k
+   668→   668→      </div>
+   669→   669→    )
+   670→   670→  }
+   671→   671→  if (user.status === 'active') {
+   672→   672→    return (
+   673→   673→      <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700 text-xs font-semibold">
+   674→   674→        <CheckCircle className="w-3 h-3" /> Aktiv: {user.days_left}k
+   675→   675→      </div>
+   676→   676→    )
+   677→   677→  }
+   678→   678→  return null
+   679→   679→}
+   680→   680→
+   681→   681→// ============================================================================
+   682→   682→//  PANEL: DASHBOARD
+   683→   683→// ============================================================================
+   684→   684→function DashboardPanel({ user }: { user: PublicUser }) {
+   685→   685→  const [stats, setStats] = useState<any>(null)
+   686→   686→  const [loading, setLoading] = useState(true)
+   687→   687→
+   688→   688→  useEffect(() => {
+   689→   689→    apiFetch('/api/dashboard').then(({ ok, data }) => {
+   690→   690→      if (ok && data) setStats(data.stats)
+   691→   691→      setLoading(false)
+   692→   692→    })
+   693→   693→  }, [])
+   694→   694→
+   695→   695→  if (loading) return <PanelLoader />
+   696→   696→  if (!stats) return <div className="text-center text-muted-foreground py-12">Statistikani yuklab bo'lmadi.</div>
+   697→   697→
+   698→   698→  const attendanceRate = stats.attendance.total > 0
+   699→   699→    ? Math.round((stats.attendance.present / stats.attendance.total) * 100)
+   700→   700→    : 0
+   701→   701→
+   702→   702→  return (
+   703→   703→    <div className="space-y-6">
+   704→   704→      <div>
+   705→   705→        <h1 className="text-2xl lg:text-3xl font-bold">Boshqaruv paneli</h1>
+   706→   706→        <p className="text-muted-foreground text-sm mt-1">{user.center_name} — umumiy ko'rinish</p>
+   707→   707→      </div>
+   708→   708→
+   709→   709→      {/* Stat cards */}
+   710→   710→      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+   711→   711→        <StatCard label="Jami talabalar" value={stats.totalStudents} sub={`${stats.activeStudents} faol`} icon={Users} color="emerald" />
+   712→   712→        <StatCard label="Guruhlar" value={stats.totalGroups} sub={`${stats.totalCourses} kurs`} icon={BookOpen} color="teal" />
+   713→   713→        <StatCard label="O'qituvchilar" value={stats.totalTeachers} sub="murabbiylar" icon={UserCog} color="cyan" />
+   714→   714→        <StatCard label="Oylik daromad" value={formatMoney(stats.monthRevenue)} sub={`Jami: ${formatMoney(stats.totalRevenue)}`} icon={Wallet} color="amber" />
+   715→   715→      </div>
+   716→   716→
+   717→   717→      {/* Charts row */}
+   718→   718→      <div className="grid lg:grid-cols-2 gap-4">
+   719→   719→        <Card>
+   720→   720→          <CardHeader title="Oylik daromad dinamikasi" subtitle="So'nggi 6 oy" />
+   721→   721→          <div className="p-4 pt-0">
+   722→   722→            <SimpleBarChart data={stats.monthlyRevenue.map((m: any) => ({ label: m.month.slice(5), value: m.total }))} />
+   723→   723→          </div>
+   724→   724→        </Card>
+   725→   725→
+   726→   726→        <Card>
+   727→   727→          <CardHeader title="Davomat statistikasi" subtitle={`${attendanceRate}% kelish`} />
+   728→   728→          <div className="p-4 pt-0">
+   729→   729→            <div className="grid grid-cols-3 gap-3">
+   730→   730→              <AttendanceStat label="Keldi" value={stats.attendance.present} color="emerald" />
+   731→   731→              <AttendanceStat label="Kelmadi" value={stats.attendance.absent} color="red" />
+   732→   732→              <AttendanceStat label="Kechikdi" value={stats.attendance.late} color="amber" />
+   733→   733→            </div>
+   734→   734→            <div className="mt-4">
+   735→   735→              <div className="text-xs text-muted-foreground mb-1.5">Umumiy kelish foizi</div>
+   736→   736→              <div className="h-3 rounded-full bg-muted overflow-hidden">
+   737→   737→                <motion.div
+   738→   738→                  initial={{ width: 0 }}
+   739→   739→                  animate={{ width: `${attendanceRate}%` }}
+   740→   740→                  transition={{ duration: 1, ease: 'easeOut' }}
+   741→   741→                  className="h-full bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full"
+   742→   742→                />
+   743→   743→              </div>
+   744→   744→              <div className="text-right text-xs text-muted-foreground mt-1">{attendanceRate}%</div>
+   745→   745→            </div>
+   746→   746→          </div>
+   747→   747→        </Card>
+   748→   748→      </div>
+   749→   749→
+   750→   750→      {/* Trial banner */}
+   751→   751→      {user.status === 'trial' && (
+   752→   752→        <Card>
+   753→   753→          <div className="p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+   754→   754→            <div className="flex items-start gap-3">
+   755→   755→              <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center">
+   756→   756→                <Sparkles className="w-5 h-5" />
+   757→   757→              </div>
+   758→   758→              <div>
+   759→   759→                <div className="font-semibold">Bepul sinov muddati — {user.days_left} kun qoldi</div>
+   760→   760→                <div className="text-sm text-muted-foreground">Davom etish uchun aktivatsiya kodi oling: @{TELEGRAM_HANDLE}</div>
+   761→   761→              </div>
+   762→   762→            </div>
+   763→   763→            <a href={TELEGRAM_URL} target="_blank" rel="noreferrer" className="shrink-0 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#229ED9] hover:bg-[#1d8bc4] text-white text-sm font-semibold transition">
+   764→   764→              <TelegramIcon className="w-4 h-4" /> Yozish
+   765→   765→            </a>
+   766→   766→          </div>
+   767→   767→        </Card>
+   768→   768→      )}
+   769→   769→    </div>
+   770→   770→  )
+   771→   771→}
+   772→   772→
+   773→   773→function StatCard({ label, value, sub, icon: Icon, color }: { label: string; value: any; sub: string; icon: any; color: string }) {
+   774→   774→  const colorMap: any = {
+   775→   775→    emerald: 'from-emerald-500 to-emerald-600 shadow-emerald-500/25',
+   776→   776→    teal: 'from-teal-500 to-teal-600 shadow-teal-500/25',
+   777→   777→    cyan: 'from-cyan-500 to-cyan-600 shadow-cyan-500/25',
+   778→   778→    amber: 'from-amber-500 to-orange-600 shadow-amber-500/25',
+   779→   779→  }
+   780→   780→  return (
+   781→   781→    <motion.div
+   782→   782→      whileHover={{ y: -2 }}
+   783→   783→      className="bg-card rounded-2xl border border-border/50 p-4 shadow-sm"
+   784→   784→    >
+   785→   785→      <div className="flex items-start justify-between">
+   786→   786→        <div className="min-w-0">
+   787→   787→          <div className="text-xs text-muted-foreground font-medium">{label}</div>
+   788→   788→          <div className="text-xl lg:text-2xl font-bold mt-1 truncate">{value}</div>
+   789→   789→          <div className="text-[10px] text-muted-foreground mt-0.5">{sub}</div>
+   790→   790→        </div>
+   791→   791→        <div className={`shrink-0 w-9 h-9 rounded-xl bg-gradient-to-br ${colorMap[color]} flex items-center justify-center shadow-lg`}>
+   792→   792→          <Icon className="w-4 h-4 text-white" />
+   793→   793→        </div>
+   794→   794→      </div>
+   795→   795→    </motion.div>
+   796→   796→  )
+   797→   797→}
+   798→   798→
+   799→   799→function AttendanceStat({ label, value, color }: { label: string; value: number; color: string }) {
+   800→   800→  const map: any = {
+   801→   801→    emerald: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+   802→   802→    red: 'bg-red-50 text-red-700 border-red-200',
+   803→   803→    amber: 'bg-amber-50 text-amber-700 border-amber-200',
+   804→   804→  }
+   805→   805→  return (
+   806→   806→    <div className={`rounded-xl border p-3 text-center ${map[color]}`}>
+   807→   807→      <div className="text-2xl font-bold">{value}</div>
+   808→   808→      <div className="text-xs font-medium">{label}</div>
+   809→   809→    </div>
+   810→   810→  )
+   811→   811→}
+   812→   812→
+   813→   813→function SimpleBarChart({ data }: { data: { label: string; value: number }[] }) {
+   814→   814→  const max = Math.max(...data.map((d) => d.value), 1)
+   815→   815→  return (
+   816→   816→    <div className="flex items-end gap-2 h-40">
+   817→   817→      {data.map((d, i) => (
+   818→   818→        <div key={i} className="flex-1 flex flex-col items-center gap-1.5">
+   819→   819→          <div className="text-[10px] text-muted-foreground font-medium">
+   820→   820→            {d.value > 0 ? Math.round(d.value / 1000) + 'k' : ''}
+   821→   821→          </div>
+   822→   822→          <div className="w-full bg-muted rounded-t-lg overflow-hidden flex items-end" style={{ height: '100%' }}>
+   823→   823→            <motion.div
+   824→   824→              initial={{ height: 0 }}
+   825→   825→              animate={{ height: `${(d.value / max) * 100}%` }}
+   826→   826→              transition={{ duration: 0.6, delay: i * 0.1 }}
+   827→   827→              className="w-full bg-gradient-to-t from-emerald-500 to-teal-400 rounded-t-lg"
+   828→   828→            />
+   829→   829→          </div>
+   830→   830→          <div className="text-[10px] text-muted-foreground">{d.label}</div>
+   831→   831→        </div>
+   832→   832→      ))}
+   833→   833→    </div>
+   834→   834→  )
+   835→   835→}
+   836→   836→
+   837→   837→// ============================================================================
+   838→   838→//  YORDAMCHI UI KOMPONENTLARI
+   839→   839→// ============================================================================
+   840→   840→export function Card({ children, className = '' }: { children: React.ReactNode; className?: string }) {
+   841→   841→  return (
+   842→   842→    <div className={`bg-card rounded-2xl border border-border/50 shadow-sm overflow-hidden ${className}`}>
+   843→   843→      {children}
+   844→   844→    </div>
+   845→   845→  )
+   846→   846→}
+   847→   847→
+   848→   848→export function CardHeader({ title, subtitle, action }: { title: string; subtitle?: string; action?: React.ReactNode }) {
+   849→   849→  return (
+   850→   850→    <div className="px-5 py-4 border-b border-border/40 flex items-center justify-between">
+   851→   851→      <div>
+   852→   852→        <h3 className="font-semibold text-base">{title}</h3>
+   853→   853→        {subtitle && <p className="text-xs text-muted-foreground mt-0.5">{subtitle}</p>}
+   854→   854→      </div>
+   855→   855→      {action}
+   856→   856→    </div>
+   857→   857→  )
+   858→   858→}
+   859→   859→
+   860→   860→export function PanelLoader() {
+   861→   861→  return (
+   862→   862→    <div className="flex items-center justify-center py-20">
+   863→   863→      <Spinner className="w-8 h-8 text-emerald-500" />
+   864→   864→    </div>
+   865→   865→  )
+   866→   866→}
+   867→   867→
+   868→   868→export function EmptyState({ title, description, action }: { title: string; description?: string; action?: React.ReactNode }) {
+   869→   869→  return (
+   870→   870→    <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
+   871→   871→      <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mb-4">
+   872→   872→        <Search className="w-7 h-7 text-muted-foreground" />
+   873→   873→      </div>
+   874→   874→      <h3 className="font-semibold text-lg">{title}</h3>
+   875→   875→      {description && <p className="text-sm text-muted-foreground mt-1 max-w-md">{description}</p>}
+   876→   876→      {action && <div className="mt-4">{action}</div>}
+   877→   877→    </div>
+   878→   878→  )
+   879→   879→}
+   880→   880→
+   881→   881→export function Modal({ open, onClose, title, children, size = 'md' }: { open: boolean; onClose: () => void; title: string; children: React.ReactNode; size?: 'sm' | 'md' | 'lg' }) {
+   882→   882→  const sizeMap = { sm: 'max-w-md', md: 'max-w-lg', lg: 'max-w-2xl' }
+   883→   883→  return (
+   884→   884→    <AnimatePresence>
+   885→   885→      {open && (
+   886→   886→        <>
+   887→   887→          <motion.div
+   888→   888→            initial={{ opacity: 0 }}
+   889→   889→            animate={{ opacity: 1 }}
+   890→   890→            exit={{ opacity: 0 }}
+   891→   891→            onClick={onClose}
+   892→   892→            className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
+   893→   893→          />
+   894→   894→          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
+   895→   895→            <motion.div
+   896→   896→              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+   897→   897→              animate={{ opacity: 1, scale: 1, y: 0 }}
+   898→   898→              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+   899→   899→              className={`bg-card rounded-2xl shadow-2xl border border-border/50 w-full ${sizeMap[size]} max-h-[90vh] overflow-y-auto pointer-events-auto`}
+   900→   900→            >
+   901→   901→              <div className="px-5 py-4 border-b border-border/40 flex items-center justify-between sticky top-0 bg-card z-10">
+   902→   902→                <h3 className="font-semibold">{title}</h3>
+   903→   903→                <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-muted transition">
+   904→   904→                  <X className="w-4 h-4" />
+   905→   905→                </button>
+   906→   906→              </div>
+   907→   907→              <div className="p-5">{children}</div>
+   908→   908→            </motion.div>
+   909→   909→          </div>
+   910→   910→        </>
+   911→   911→      )}
+   912→   912→    </AnimatePresence>
+   913→   913→  )
+   914→   914→}
+   915→   915→
+   916→   916→export function PrimaryButton({ children, onClick, type = 'button', disabled, className = '' }: { children: React.ReactNode; onClick?: () => void; type?: 'button' | 'submit'; disabled?: boolean; className?: string }) {
+   917→   917→  return (
+   918→   918→    <button
+   919→   919→      type={type}
+   920→   920→      onClick={onClick}
+   921→   921→      disabled={disabled}
+   922→   922→      className={`inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white text-sm font-semibold shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
+   923→   923→    >
+   924→   924→      {children}
+   925→   925→    </button>
+   926→   926→  )
+   927→   927→}
+   928→   928→
+   929→   929→export function GhostButton({ children, onClick, className = '' }: { children: React.ReactNode; onClick?: () => void; className?: string }) {
+   930→   930→  return (
+   931→   931→    <button
+   932→   932→      onClick={onClick}
+   933→   933→      className={`inline-flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition ${className}`}
+   934→   934→    >
+   935→   935→      {children}
+   936→   936→    </button>
+   937→   937→  )
+   938→   938→}
+   939→   939→
+   940→   940→export function IconButton({ children, onClick, title, danger }: { children: React.ReactNode; onClick?: () => void; title?: string; danger?: boolean }) {
+   941→   941→  return (
+   942→   942→    <button
+   943→   943→      onClick={onClick}
+   944→   944→      title={title}
+   945→   945→      className={`p-1.5 rounded-lg transition ${danger ? 'text-red-600 hover:bg-red-50' : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`}
+   946→   946→    >
+   947→   947→      {children}
+   948→   948→    </button>
+   949→   949→  )
+   950→   950→}
+   951→   951→
+   952→   952→// ============================================================================
+   953→   953→//  TALABALAR PANELI
+   954→   954→// ============================================================================
+   955→   955→function StudentsPanel() {
+   956→   956→  const [items, setItems] = useState<any[]>([])
+   957→   957→  const [groups, setGroups] = useState<any[]>([])
+   958→   958→  const [courses, setCourses] = useState<any[]>([])
+   959→   959→  const [loading, setLoading] = useState(true)
+   960→   960→  const [search, setSearch] = useState('')
+   961→   961→  const [openModal, setOpenModal] = useState(false)
+   962→   962→  const [editing, setEditing] = useState<any>(null)
+   963→   963→  const [form, setForm] = useState<any>({ full_name: '', phone: '', parent_phone: '', birth_date: '', address: '', group_id: '', course_id: '', status: 'active', notes: '' })
+   964→   964→
+   965→   965→  const load = useCallback(async () => {
+   966→   966→    setLoading(true)
+   967→   967→    const [s, g, c] = await Promise.all([
+   968→   968→      apiFetch('/api/students'),
+   969→   969→      apiFetch('/api/groups'),
+   970→   970→      apiFetch('/api/courses'),
+   971→   971→    ])
+   972→   972→    if (s.ok) setItems(s.data?.students || [])
+   973→   973→    if (g.ok) setGroups(g.data?.groups || [])
+   974→   974→    if (c.ok) setCourses(c.data?.courses || [])
+   975→   975→    setLoading(false)
+   976→   976→  }, [])
+   977→   977→
+   978→   978→  useEffect(() => { load() }, [load])
+   979→   979→
+   980→   980→  const filtered = items.filter((s) =>
+   981→   981→    !search || s.full_name?.toLowerCase().includes(search.toLowerCase()) || s.phone?.includes(search)
+   982→   982→  )
+   983→   983→
+   984→   984→  async function handleSave() {
+   985→   985→    if (editing) {
+   986→   986→      const { ok, error } = await apiFetch('/api/students', { method: 'PUT', body: JSON.stringify({ id: editing.id, ...form }) })
+   987→   987→      if (!ok) return alert(error)
+   988→   988→    } else {
+   989→   989→      const { ok, error } = await apiFetch('/api/students', { method: 'POST', body: JSON.stringify(form) })
+   990→   990→      if (!ok) return alert(error)
+   991→   991→    }
+   992→   992→    setOpenModal(false)
+   993→   993→    setEditing(null)
+   994→   994→    load()
+   995→   995→  }
+   996→   996→
+   997→   997→  async function handleDelete(id: string) {
+   998→   998→    if (!confirm('Rostdan ham o\'chirmoqchimisiz?')) return
+   999→   999→    const { ok, error } = await apiFetch(`/api/students?id=${id}`, { method: 'DELETE' })
+  1000→  1000→    if (!ok) return alert(error)
+  1001→  1001→    load()
+  1002→  1002→  }
+  1003→  1003→
+  1004→  1004→  return (
+  1005→  1005→    <div className="space-y-5">
+  1006→  1006→      <div className="flex items-center justify-between flex-wrap gap-3">
+  1007→  1007→        <div>
+  1008→  1008→          <h1 className="text-2xl lg:text-3xl font-bold">Talabalar</h1>
+  1009→  1009→          <p className="text-muted-foreground text-sm mt-1">{items.length} talaba ro'yxatdan o'tgan</p>
+  1010→  1010→        </div>
+  1011→  1011→        <PrimaryButton onClick={() => { setEditing(null); setForm({ full_name: '', phone: '', parent_phone: '', birth_date: '', address: '', group_id: '', course_id: '', status: 'active', notes: '' }); setOpenModal(true) }}>
+  1012→  1012→          <Plus className="w-4 h-4" /> Yangi talaba
+  1013→  1013→        </PrimaryButton>
+  1014→  1014→      </div>
+  1015→  1015→
+  1016→  1016→      <div className="flex items-center gap-2 px-3 py-2 bg-card rounded-xl border border-border/50">
+  1017→  1017→        <Search className="w-4 h-4 text-muted-foreground" />
+  1018→  1018→        <input
+  1019→  1019→          value={search}
+  1020→  1020→          onChange={(e) => setSearch(e.target.value)}
+  1021→  1021→          placeholder="Ism yoki telefon bo'yicha qidirish..."
+  1022→  1022→          className="flex-1 bg-transparent outline-none text-sm"
+  1023→  1023→        />
+  1024→  1024→      </div>
+  1025→  1025→
+  1026→  1026→      {loading ? <PanelLoader /> : filtered.length === 0 ? (
+  1027→  1027→        <Card><EmptyState title="Talabalar topilmadi" description="Birinchi talabangizni qo'shing." /></Card>
+  1028→  1028→      ) : (
+  1029→  1029→        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+  1030→  1030→          {filtered.map((s) => (
+  1031→  1031→            <motion.div key={s.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+  1032→  1032→              <Card>
+  1033→  1033→                <div className="p-4">
+  1034→  1034→                  <div className="flex items-start justify-between">
+  1035→  1035→                    <div className="flex items-center gap-3 min-w-0">
+  1036→  1036→                      <Avatar name={s.full_name} />
+  1037→  1037→                      <div className="min-w-0">
+  1038→  1038→                        <div className="font-semibold truncate">{s.full_name}</div>
+  1039→  1039→                        <div className="text-xs text-muted-foreground truncate">{s.phone || '—'}</div>
+  1040→  1040→                      </div>
+  1041→  1041→                    </div>
+  1042→  1042→                    <div className="flex gap-1">
+  1043→  1043→                      <IconButton title="Tahrirlash" onClick={() => { setEditing(s); setForm({ full_name: s.full_name, phone: s.phone || '', parent_phone: s.parent_phone || '', birth_date: s.birth_date || '', address: s.address || '', group_id: s.group_id || '', course_id: s.course_id || '', status: s.status, notes: s.notes || '' }); setOpenModal(true) }}>
+  1044→  1044→                        <Pencil className="w-3.5 h-3.5" />
+  1045→  1045→                      </IconButton>
+  1046→  1046→                      <IconButton title="O'chirish" danger onClick={() => handleDelete(s.id)}>
+  1047→  1047→                        <Trash2 className="w-3.5 h-3.5" />
+  1048→  1048→                      </IconButton>
+  1049→  1049→                    </div>
+  1050→  1050→                  </div>
+  1051→  1051→                  <div className="mt-3 space-y-1.5 text-xs">
+  1052→  1052→                    {s.group && <Row label="Guruh" value={s.group.name} />}
+  1053→  1053→                    {s.course && <Row label="Kurs" value={s.course.name} />}
+  1054→  1054→                    {s.parent_phone && <Row label="Ota-ona" value={s.parent_phone} />}
+  1055→  1055→                  </div>
+  1056→  1056→                  <div className="mt-3 pt-3 border-t border-border/40 flex items-center justify-between">
+  1057→  1057→                    <StatusChip status={s.status} />
+  1058→  1058→                    <span className="text-[10px] text-muted-foreground">{formatDate(s.enrollment_date)}</span>
+  1059→  1059→                  </div>
+  1060→  1060→                </div>
+  1061→  1061→              </Card>
+  1062→  1062→            </motion.div>
+  1063→  1063→          ))}
+  1064→  1064→        </div>
+  1065→  1065→      )}
+  1066→  1066→
+  1067→  1067→      <Modal open={openModal} onClose={() => setOpenModal(false)} title={editing ? 'Talabani tahrirlash' : 'Yangi talaba'} size="md">
+  1068→  1068→        <div className="space-y-3">
+  1069→  1069→          <Field label="F.I.O *">
+  1070→  1070→            <input className="erp-input" value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} />
+  1071→  1071→          </Field>
+  1072→  1072→          <div className="grid sm:grid-cols-2 gap-3">
+  1073→  1073→            <Field label="Telefon">
+  1074→  1074→              <input className="erp-input" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+  1075→  1075→            </Field>
+  1076→  1076→            <Field label="Ota-ona telefoni">
+  1077→  1077→              <input className="erp-input" value={form.parent_phone} onChange={(e) => setForm({ ...form, parent_phone: e.target.value })} />
+  1078→  1078→            </Field>
+  1079→  1079→          </div>
+  1080→  1080→          <div className="grid sm:grid-cols-2 gap-3">
+  1081→  1081→            <Field label="Tug'ilgan sana">
+  1082→  1082→              <input type="date" className="erp-input" value={form.birth_date} onChange={(e) => setForm({ ...form, birth_date: e.target.value })} />
+  1083→  1083→            </Field>
+  1084→  1084→            <Field label="Holat">
+  1085→  1085→              <select className="erp-input" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
+  1086→  1086→                <option value="active">Faol</option>
+  1087→  1087→                <option value="paused">To'xtatilgan</option>
+  1088→  1088→                <option value="graduated">Bitirgan</option>
+  1089→  1089→                <option value="left">Ketgan</option>
+  1090→  1090→              </select>
+  1091→  1091→            </Field>
+  1092→  1092→          </div>
+  1093→  1093→          <Field label="Guruh">
+  1094→  1094→            <select className="erp-input" value={form.group_id} onChange={(e) => setForm({ ...form, group_id: e.target.value })}>
+  1095→  1095→              <option value="">— Tanlang —</option>
+  1096→  1096→              {groups.map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}
+  1097→  1097→            </select>
+  1098→  1098→          </Field>
+  1099→  1099→          <Field label="Kurs">
+  1100→  1100→            <select className="erp-input" value={form.course_id} onChange={(e) => setForm({ ...form, course_id: e.target.value })}>
+  1101→  1101→              <option value="">— Tanlang —</option>
+  1102→  1102→              {courses.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+  1103→  1103→            </select>
+  1104→  1104→          </Field>
+  1105→  1105→          <Field label="Manzil">
+  1106→  1106→            <input className="erp-input" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
+  1107→  1107→          </Field>
+  1108→  1108→          <Field label="Izoh">
+  1109→  1109→            <textarea className="erp-input" rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
+  1110→  1110→          </Field>
+  1111→  1111→          <div className="flex gap-2 pt-2">
+  1112→  1112→            <PrimaryButton onClick={handleSave} className="flex-1">Saqlash</PrimaryButton>
+  1113→  1113→            <GhostButton onClick={() => setOpenModal(false)}>Bekor</GhostButton>
+  1114→  1114→          </div>
+  1115→  1115→        </div>
+  1116→  1116→      </Modal>
+  1117→  1117→    </div>
+  1118→  1118→  )
+  1119→  1119→}
+  1120→  1120→
+  1121→  1121→function Avatar({ name }: { name: string }) {
+  1122→  1122→  const initials = (name || '?').split(' ').slice(0, 2).map((s) => s[0]?.toUpperCase()).join('')
+  1123→  1123→  return (
+  1124→  1124→    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 text-white flex items-center justify-center font-semibold text-sm shrink-0">
+  1125→  1125→      {initials}
+  1126→  1126→    </div>
+  1127→  1127→  )
+  1128→  1128→}
+  1129→  1129→
+  1130→  1130→function Row({ label, value }: { label: string; value: string }) {
+  1131→  1131→  return (
+  1132→  1132→    <div className="flex justify-between gap-2">
+  1133→  1133→      <span className="text-muted-foreground shrink-0">{label}:</span>
+  1134→  1134→      <span className="font-medium text-right truncate">{value}</span>
+  1135→  1135→    </div>
+  1136→  1136→  )
+  1137→  1137→}
+  1138→  1138→
+  1139→  1139→function StatusChip({ status }: { status: string }) {
+  1140→  1140→  const map: any = {
+  1141→  1141→    active: { label: 'Faol', cls: 'bg-emerald-100 text-emerald-700' },
+  1142→  1142→    paused: { label: 'To\'xtatilgan', cls: 'bg-amber-100 text-amber-700' },
+  1143→  1143→    graduated: { label: 'Bitirgan', cls: 'bg-blue-100 text-blue-700' },
+  1144→  1144→    left: { label: 'Ketgan', cls: 'bg-red-100 text-red-700' },
+  1145→  1145→  }
+  1146→  1146→  const s = map[status] || map.active
+  1147→  1147→  return <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${s.cls}`}>{s.label}</span>
+  1148→  1148→}
+  1149→  1149→
+  1150→  1150→// ============================================================================
+  1151→  1151→//  O'QITUVCHILAR PANELI
+  1152→  1152→// ============================================================================
+  1153→  1153→function TeachersPanel() {
+  1154→  1154→  const [items, setItems] = useState<any[]>([])
+  1155→  1155→  const [loading, setLoading] = useState(true)
+  1156→  1156→  const [openModal, setOpenModal] = useState(false)
+  1157→  1157→  const [editing, setEditing] = useState<any>(null)
+  1158→  1158→  const [form, setForm] = useState<any>({ full_name: '', phone: '', subject: '', salary_amount: 0, hire_date: '', notes: '' })
+  1159→  1159→
+  1160→  1160→  const load = useCallback(async () => {
+  1161→  1161→    setLoading(true)
+  1162→  1162→    const { ok, data } = await apiFetch('/api/teachers')
+  1163→  1163→    if (ok) setItems(data?.teachers || [])
+  1164→  1164→    setLoading(false)
+  1165→  1165→  }, [])
+  1166→  1166→
+  1167→  1167→  useEffect(() => { load() }, [load])
+  1168→  1168→
+  1169→  1169→  async function handleSave() {
+  1170→  1170→    if (editing) {
+  1171→  1171→      const { ok, error } = await apiFetch('/api/teachers', { method: 'PUT', body: JSON.stringify({ id: editing.id, ...form }) })
+  1172→  1172→      if (!ok) return alert(error)
+  1173→  1173→    } else {
+  1174→  1174→      const { ok, error } = await apiFetch('/api/teachers', { method: 'POST', body: JSON.stringify(form) })
+  1175→  1175→      if (!ok) return alert(error)
+  1176→  1176→    }
+  1177→  1177→    setOpenModal(false); setEditing(null); load()
+  1178→  1178→  }
+  1179→  1179→
+  1180→  1180→  async function handleDelete(id: string) {
+  1181→  1181→    if (!confirm('O\'chirmoqchimisiz?')) return
+  1182→  1182→    const { ok, error } = await apiFetch(`/api/teachers?id=${id}`, { method: 'DELETE' })
+  1183→  1183→    if (!ok) return alert(error)
+  1184→  1184→    load()
+  1185→  1185→  }
+  1186→  1186→
+  1187→  1187→  return (
+  1188→  1188→    <div className="space-y-5">
+  1189→  1189→      <div className="flex items-center justify-between flex-wrap gap-3">
+  1190→  1190→        <div>
+  1191→  1191→          <h1 className="text-2xl lg:text-3xl font-bold">O'qituvchilar</h1>
+  1192→  1192→          <p className="text-muted-foreground text-sm mt-1">{items.length} murabbiy</p>
+  1193→  1193→        </div>
+  1194→  1194→        <PrimaryButton onClick={() => { setEditing(null); setForm({ full_name: '', phone: '', subject: '', salary_amount: 0, hire_date: '', notes: '' }); setOpenModal(true) }}>
+  1195→  1195→          <Plus className="w-4 h-4" /> Yangi o'qituvchi
+  1196→  1196→        </PrimaryButton>
+  1197→  1197→      </div>
+  1198→  1198→
+  1199→  1199→      {loading ? <PanelLoader /> : items.length === 0 ? (
+  1200→  1200→        <Card><EmptyState title="O'qituvchilar yo'q" description="Birinchi murabbiyingizni qo'shing." /></Card>
+  1201→  1201→      ) : (
+  1202→  1202→        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+  1203→  1203→          {items.map((t) => (
+  1204→  1204→            <Card key={t.id}>
+  1205→  1205→              <div className="p-4">
+  1206→  1206→                <div className="flex items-start justify-between">
+  1207→  1207→                  <div className="flex items-center gap-3">
+  1208→  1208→                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-teal-600 text-white flex items-center justify-center font-semibold text-sm">
+  1209→  1209→                      {t.full_name?.[0]?.toUpperCase()}
+  1210→  1210→                    </div>
+  1211→  1211→                    <div>
+  1212→  1212→                      <div className="font-semibold">{t.full_name}</div>
+  1213→  1213→                      <div className="text-xs text-muted-foreground">{t.subject || 'Fan ko\'rsatilmagan'}</div>
+  1214→  1214→                    </div>
+  1215→  1215→                  </div>
+  1216→  1216→                  <div className="flex gap-1">
+  1217→  1217→                    <IconButton title="Tahrirlash" onClick={() => { setEditing(t); setForm({ full_name: t.full_name, phone: t.phone || '', subject: t.subject || '', salary_amount: t.salary_amount || 0, hire_date: t.hire_date || '', notes: t.notes || '' }); setOpenModal(true) }}>
+  1218→  1218→                      <Pencil className="w-3.5 h-3.5" />
+  1219→  1219→                    </IconButton>
+  1220→  1220→                    <IconButton title="O'chirish" danger onClick={() => handleDelete(t.id)}>
+  1221→  1221→                      <Trash2 className="w-3.5 h-3.5" />
+  1222→  1222→                    </IconButton>
+  1223→  1223→                  </div>
+  1224→  1224→                </div>
+  1225→  1225→                <div className="mt-3 space-y-1.5 text-xs">
+  1226→  1226→                  {t.phone && <Row label="Telefon" value={t.phone} />}
+  1227→  1227→                  <Row label="Maosh" value={formatMoney(t.salary_amount)} />
+  1228→  1228→                  <Row label="Ish boshlagan" value={formatDate(t.hire_date)} />
+  1229→  1229→                </div>
+  1230→  1230→              </div>
+  1231→  1231→            </Card>
+  1232→  1232→          ))}
+  1233→  1233→        </div>
+  1234→  1234→      )}
+  1235→  1235→
+  1236→  1236→      <Modal open={openModal} onClose={() => setOpenModal(false)} title={editing ? 'O\'qituvchini tahrirlash' : 'Yangi o\'qituvchi'}>
+  1237→  1237→        <div className="space-y-3">
+  1238→  1238→          <Field label="F.I.O *"><input className="erp-input" value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} /></Field>
+  1239→  1239→          <div className="grid sm:grid-cols-2 gap-3">
+  1240→  1240→            <Field label="Telefon"><input className="erp-input" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></Field>
+  1241→  1241→            <Field label="Fan / Mutaxassislik"><input className="erp-input" value={form.subject} onChange={(e) => setForm({ ...form, subject: e.target.value })} /></Field>
+  1242→  1242→          </div>
+  1243→  1243→          <div className="grid sm:grid-cols-2 gap-3">
+  1244→  1244→            <Field label="Maosh (so'm)"><input type="number" className="erp-input" value={form.salary_amount} onChange={(e) => setForm({ ...form, salary_amount: Number(e.target.value) })} /></Field>
+  1245→  1245→            <Field label="Ish boshlagan sana"><input type="date" className="erp-input" value={form.hire_date} onChange={(e) => setForm({ ...form, hire_date: e.target.value })} /></Field>
+  1246→  1246→          </div>
+  1247→  1247→          <Field label="Izoh"><textarea className="erp-input" rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} /></Field>
+  1248→  1248→          <div className="flex gap-2 pt-2">
+  1249→  1249→            <PrimaryButton onClick={handleSave} className="flex-1">Saqlash</PrimaryButton>
+  1250→  1250→            <GhostButton onClick={() => setOpenModal(false)}>Bekor</GhostButton>
+  1251→  1251→          </div>
+  1252→  1252→        </div>
+  1253→  1253→      </Modal>
+  1254→  1254→    </div>
+  1255→  1255→  )
+  1256→  1256→}
+  1257→  1257→
+  1258→  1258→// ============================================================================
+  1259→  1259→//  GURUHLAR PANELI
+  1260→  1260→// ============================================================================
+  1261→  1261→function GroupsPanel() {
+  1262→  1262→  const [items, setItems] = useState<any[]>([])
+  1263→  1263→  const [courses, setCourses] = useState<any[]>([])
+  1264→  1264→  const [teachers, setTeachers] = useState<any[]>([])
+  1265→  1265→  const [loading, setLoading] = useState(true)
+  1266→  1266→  const [openModal, setOpenModal] = useState(false)
+  1267→  1267→  const [editing, setEditing] = useState<any>(null)
+  1268→  1268→  const [form, setForm] = useState<any>({ name: '', course_id: '', teacher_id: '', start_date: '', end_date: '', schedule: '', max_students: 12 })
+  1269→  1269→
+  1270→  1270→  const load = useCallback(async () => {
+  1271→  1271→    setLoading(true)
+  1272→  1272→    const [g, c, t] = await Promise.all([apiFetch('/api/groups'), apiFetch('/api/courses'), apiFetch('/api/teachers')])
+  1273→  1273→    if (g.ok) setItems(g.data?.groups || [])
+  1274→  1274→    if (c.ok) setCourses(c.data?.courses || [])
+  1275→  1275→    if (t.ok) setTeachers(t.data?.teachers || [])
+  1276→  1276→    setLoading(false)
+  1277→  1277→  }, [])
+  1278→  1278→
+  1279→  1279→  useEffect(() => { load() }, [load])
+  1280→  1280→
+  1281→  1281→  async function handleSave() {
+  1282→  1282→    if (editing) {
+  1283→  1283→      const { ok, error } = await apiFetch('/api/groups', { method: 'PUT', body: JSON.stringify({ id: editing.id, ...form }) })
+  1284→  1284→      if (!ok) return alert(error)
+  1285→  1285→    } else {
+  1286→  1286→      const { ok, error } = await apiFetch('/api/groups', { method: 'POST', body: JSON.stringify(form) })
+  1287→  1287→      if (!ok) return alert(error)
+  1288→  1288→    }
+  1289→  1289→    setOpenModal(false); setEditing(null); load()
+  1290→  1290→  }
+  1291→  1291→
+  1292→  1292→  async function handleDelete(id: string) {
+  1293→  1293→    if (!confirm('O\'chirmoqchimisiz?')) return
+  1294→  1294→    const { ok, error } = await apiFetch(`/api/groups?id=${id}`, { method: 'DELETE' })
+  1295→  1295→    if (!ok) return alert(error)
+  1296→  1296→    load()
+  1297→  1297→  }
+  1298→  1298→
+  1299→  1299→  return (
+  1300→  1300→    <div className="space-y-5">
+  1301→  1301→      <div className="flex items-center justify-between flex-wrap gap-3">
+  1302→  1302→        <div>
+  1303→  1303→          <h1 className="text-2xl lg:text-3xl font-bold">Guruhlar</h1>
+  1304→  1304→          <p className="text-muted-foreground text-sm mt-1">{items.length} guruh</p>
+  1305→  1305→        </div>
+  1306→  1306→        <PrimaryButton onClick={() => { setEditing(null); setForm({ name: '', course_id: '', teacher_id: '', start_date: '', end_date: '', schedule: '', max_students: 12 }); setOpenModal(true) }}>
+  1307→  1307→          <Plus className="w-4 h-4" /> Yangi guruh
+  1308→  1308→        </PrimaryButton>
+  1309→  1309→      </div>
+  1310→  1310→
+  1311→  1311→      {loading ? <PanelLoader /> : items.length === 0 ? (
+  1312→  1312→        <Card><EmptyState title="Guruhlar yo'q" description="Birinchi guruhingizni yarating." /></Card>
+  1313→  1313→      ) : (
+  1314→  1314→        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+  1315→  1315→          {items.map((g) => (
+  1316→  1316→            <Card key={g.id}>
+  1317→  1317→              <div className="p-4">
+  1318→  1318→                <div className="flex items-start justify-between">
+  1319→  1319→                  <div className="flex items-center gap-3">
+  1320→  1320→                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 text-white flex items-center justify-center">
+  1321→  1321→                      <Users className="w-5 h-5" />
+  1322→  1322→                    </div>
+  1323→  1323→                    <div>
+  1324→  1324→                      <div className="font-semibold">{g.name}</div>
+  1325→  1325→                      <div className="text-xs text-muted-foreground">{g.course?.name || 'Kurs yo\'q'}</div>
+  1326→  1326→                    </div>
+  1327→  1327→                  </div>
+  1328→  1328→                  <div className="flex gap-1">
+  1329→  1329→                    <IconButton title="Tahrirlash" onClick={() => { setEditing(g); setForm({ name: g.name, course_id: g.course_id || '', teacher_id: g.teacher_id || '', start_date: g.start_date || '', end_date: g.end_date || '', schedule: g.schedule || '', max_students: g.max_students || 12 }); setOpenModal(true) }}>
+  1330→  1330→                      <Pencil className="w-3.5 h-3.5" />
+  1331→  1331→                    </IconButton>
+  1332→  1332→                    <IconButton title="O'chirish" danger onClick={() => handleDelete(g.id)}>
+  1333→  1333→                      <Trash2 className="w-3.5 h-3.5" />
+  1334→  1334→                    </IconButton>
+  1335→  1335→                  </div>
+  1336→  1336→                </div>
+  1337→  1337→                <div className="mt-3 space-y-1.5 text-xs">
+  1338→  1338→                  {g.teacher && <Row label="O'qituvchi" value={g.teacher.full_name} />}
+  1339→  1339→                  <Row label="Jadval" value={g.schedule || '—'} />
+  1340→  1340→                  <Row label="Boshlanish" value={formatDate(g.start_date)} />
+  1341→  1341→                  <Row label="Tugash" value={formatDate(g.end_date)} />
+  1342→  1342→                </div>
+  1343→  1343→              </div>
+  1344→  1344→            </Card>
+  1345→  1345→          ))}
+  1346→  1346→        </div>
+  1347→  1347→      )}
+  1348→  1348→
+  1349→  1349→      <Modal open={openModal} onClose={() => setOpenModal(false)} title={editing ? 'Guruhni tahrirlash' : 'Yangi guruh'}>
+  1350→  1350→        <div className="space-y-3">
+  1351→  1351→          <Field label="Guruh nomi *"><input className="erp-input" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></Field>
+  1352→  1352→          <div className="grid sm:grid-cols-2 gap-3">
+  1353→  1353→            <Field label="Kurs">
+  1354→  1354→              <select className="erp-input" value={form.course_id} onChange={(e) => setForm({ ...form, course_id: e.target.value })}>
+  1355→  1355→                <option value="">— Tanlang —</option>
+  1356→  1356→                {courses.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+  1357→  1357→              </select>
+  1358→  1358→            </Field>
+  1359→  1359→            <Field label="O'qituvchi">
+  1360→  1360→              <select className="erp-input" value={form.teacher_id} onChange={(e) => setForm({ ...form, teacher_id: e.target.value })}>
+  1361→  1361→                <option value="">— Tanlang —</option>
+  1362→  1362→                {teachers.map((t) => <option key={t.id} value={t.id}>{t.full_name}</option>)}
+  1363→  1363→              </select>
+  1364→  1364→            </Field>
+  1365→  1365→          </div>
+  1366→  1366→          <div className="grid sm:grid-cols-2 gap-3">
+  1367→  1367→            <Field label="Boshlanish sana"><input type="date" className="erp-input" value={form.start_date} onChange={(e) => setForm({ ...form, start_date: e.target.value })} /></Field>
+  1368→  1368→            <Field label="Tugash sana"><input type="date" className="erp-input" value={form.end_date} onChange={(e) => setForm({ ...form, end_date: e.target.value })} /></Field>
+  1369→  1369→          </div>
+  1370→  1370→          <Field label="Jadval (matn)"><input className="erp-input" value={form.schedule} onChange={(e) => setForm({ ...form, schedule: e.target.value })} placeholder="Du-Chor-Juma 14:00-16:00" /></Field>
+  1371→  1371→          <Field label="Maks talabalar soni"><input type="number" className="erp-input" value={form.max_students} onChange={(e) => setForm({ ...form, max_students: Number(e.target.value) })} /></Field>
+  1372→  1372→          <div className="flex gap-2 pt-2">
+  1373→  1373→            <PrimaryButton onClick={handleSave} className="flex-1">Saqlash</PrimaryButton>
+  1374→  1374→            <GhostButton onClick={() => setOpenModal(false)}>Bekor</GhostButton>
+  1375→  1375→          </div>
+  1376→  1376→        </div>
+  1377→  1377→      </Modal>
+  1378→  1378→    </div>
+  1379→  1379→  )
+  1380→  1380→}
+  1381→  1381→
+  1382→  1382→// ============================================================================
+  1383→  1383→//  KURSLAR PANELI
+  1384→  1384→// ============================================================================
+  1385→  1385→function CoursesPanel() {
+  1386→  1386→  const [items, setItems] = useState<any[]>([])
+  1387→  1387→  const [loading, setLoading] = useState(true)
+  1388→  1388→  const [openModal, setOpenModal] = useState(false)
+  1389→  1389→  const [editing, setEditing] = useState<any>(null)
+  1390→  1390→  const [form, setForm] = useState<any>({ name: '', description: '', duration_months: 3, price: 0 })
+  1391→  1391→
+  1392→  1392→  const load = useCallback(async () => {
+  1393→  1393→    setLoading(true)
+  1394→  1394→    const { ok, data } = await apiFetch('/api/courses')
+  1395→  1395→    if (ok) setItems(data?.courses || [])
+  1396→  1396→    setLoading(false)
+  1397→  1397→  }, [])
+  1398→  1398→
+  1399→  1399→  useEffect(() => { load() }, [load])
+  1400→  1400→
+  1401→  1401→  async function handleSave() {
+  1402→  1402→    if (editing) {
+  1403→  1403→      const { ok, error } = await apiFetch('/api/courses', { method: 'PUT', body: JSON.stringify({ id: editing.id, ...form }) })
+  1404→  1404→      if (!ok) return alert(error)
+  1405→  1405→    } else {
+  1406→  1406→      const { ok, error } = await apiFetch('/api/courses', { method: 'POST', body: JSON.stringify(form) })
+  1407→  1407→      if (!ok) return alert(error)
+  1408→  1408→    }
+  1409→  1409→    setOpenModal(false); setEditing(null); load()
+  1410→  1410→  }
+  1411→  1411→
+  1412→  1412→  async function handleDelete(id: string) {
+  1413→  1413→    if (!confirm('O\'chirmoqchimisiz?')) return
+  1414→  1414→    const { ok, error } = await apiFetch(`/api/courses?id=${id}`, { method: 'DELETE' })
+  1415→  1415→    if (!ok) return alert(error)
+  1416→  1416→    load()
+  1417→  1417→  }
+  1418→  1418→
+  1419→  1419→  return (
+  1420→  1420→    <div className="space-y-5">
+  1421→  1421→      <div className="flex items-center justify-between flex-wrap gap-3">
+  1422→  1422→        <div>
+  1423→  1423→          <h1 className="text-2xl lg:text-3xl font-bold">Kurslar</h1>
+  1424→  1424→          <p className="text-muted-foreground text-sm mt-1">{items.length} kurs</p>
+  1425→  1425→        </div>
+  1426→  1426→        <PrimaryButton onClick={() => { setEditing(null); setForm({ name: '', description: '', duration_months: 3, price: 0 }); setOpenModal(true) }}>
+  1427→  1427→          <Plus className="w-4 h-4" /> Yangi kurs
+  1428→  1428→        </PrimaryButton>
+  1429→  1429→      </div>
+  1430→  1430→
+  1431→  1431→      {loading ? <PanelLoader /> : items.length === 0 ? (
+  1432→  1432→        <Card><EmptyState title="Kurslar yo'q" description="Birinchi kursingizni yarating." /></Card>
+  1433→  1433→      ) : (
+  1434→  1434→        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+  1435→  1435→          {items.map((c) => (
+  1436→  1436→            <Card key={c.id}>
+  1437→  1437→              <div className="p-4">
+  1438→  1438→                <div className="flex items-start justify-between">
+  1439→  1439→                  <div className="flex items-center gap-3">
+  1440→  1440→                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 text-white flex items-center justify-center">
+  1441→  1441→                      <BookOpen className="w-5 h-5" />
+  1442→  1442→                    </div>
+  1443→  1443→                    <div>
+  1444→  1444→                      <div className="font-semibold">{c.name}</div>
+  1445→  1445→                      <div className="text-xs text-muted-foreground">{c.duration_months} oy</div>
+  1446→  1446→                    </div>
+  1447→  1447→                  </div>
+  1448→  1448→                  <div className="flex gap-1">
+  1449→  1449→                    <IconButton title="Tahrirlash" onClick={() => { setEditing(c); setForm({ name: c.name, description: c.description || '', duration_months: c.duration_months, price: c.price }); setOpenModal(true) }}>
+  1450→  1450→                      <Pencil className="w-3.5 h-3.5" />
+  1451→  1451→                    </IconButton>
+  1452→  1452→                    <IconButton title="O'chirish" danger onClick={() => handleDelete(c.id)}>
+  1453→  1453→                      <Trash2 className="w-3.5 h-3.5" />
+  1454→  1454→                    </IconButton>
+  1455→  1455→                  </div>
+  1456→  1456→                </div>
+  1457→  1457→                {c.description && <p className="mt-3 text-xs text-muted-foreground line-clamp-2">{c.description}</p>}
+  1458→  1458→                <div className="mt-3 pt-3 border-t border-border/40 flex items-center justify-between">
+  1459→  1459→                  <span className="text-xs text-muted-foreground">Narxi</span>
+  1460→  1460→                  <span className="font-bold text-emerald-600">{formatMoney(c.price)}</span>
+  1461→  1461→                </div>
+  1462→  1462→              </div>
+  1463→  1463→            </Card>
+  1464→  1464→          ))}
+  1465→  1465→        </div>
+  1466→  1466→      )}
+  1467→  1467→
+  1468→  1468→      <Modal open={openModal} onClose={() => setOpenModal(false)} title={editing ? 'Kursni tahrirlash' : 'Yangi kurs'}>
+  1469→  1469→        <div className="space-y-3">
+  1470→  1470→          <Field label="Kurs nomi *"><input className="erp-input" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></Field>
+  1471→  1471→          <Field label="Tavsif"><textarea className="erp-input" rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></Field>
+  1472→  1472→          <div className="grid sm:grid-cols-2 gap-3">
+  1473→  1473→            <Field label="Davomiyligi (oy)"><input type="number" className="erp-input" value={form.duration_months} onChange={(e) => setForm({ ...form, duration_months: Number(e.target.value) })} /></Field>
+  1474→  1474→            <Field label="Narxi (so'm)"><input type="number" className="erp-input" value={form.price} onChange={(e) => setForm({ ...form, price: Number(e.target.value) })} /></Field>
+  1475→  1475→          </div>
+  1476→  1476→          <div className="flex gap-2 pt-2">
+  1477→  1477→            <PrimaryButton onClick={handleSave} className="flex-1">Saqlash</PrimaryButton>
+  1478→  1478→            <GhostButton onClick={() => setOpenModal(false)}>Bekor</GhostButton>
+  1479→  1479→          </div>
+  1480→  1480→        </div>
+  1481→  1481→      </Modal>
+  1482→  1482→    </div>
+  1483→  1483→  )
+  1484→  1484→}
+  1485→  1485→
+  1486→  1486→// ============================================================================
+  1487→  1487→//  TO'LOVLAR PANELI
+  1488→  1488→// ============================================================================
+  1489→  1489→function PaymentsPanel() {
+  1490→  1490→  const [items, setItems] = useState<any[]>([])
+  1491→  1491→  const [students, setStudents] = useState<any[]>([])
+  1492→  1492→  const [groups, setGroups] = useState<any[]>([])
+  1493→  1493→  const [loading, setLoading] = useState(true)
+  1494→  1494→  const [openModal, setOpenModal] = useState(false)
+  1495→  1495→  const [form, setForm] = useState<any>({ student_id: '', group_id: '', amount: 0, payment_date: new Date().toISOString().slice(0, 10), payment_type: 'cash', for_month: '', description: '' })
+  1496→  1496→
+  1497→  1497→  const total = items.reduce((sum, p) => sum + Number(p.amount || 0), 0)
+  1498→  1498→  const monthTotal = items.filter((p) => String(p.payment_date).startsWith(new Date().toISOString().slice(0, 7))).reduce((sum, p) => sum + Number(p.amount || 0), 0)
+  1499→  1499→
+  1500→  1500→  const load = useCallback(async () => {
+  1501→  1501→    setLoading(true)
+  1502→  1502→    const [p, s, g] = await Promise.all([apiFetch('/api/payments'), apiFetch('/api/students'), apiFetch('/api/groups')])
+  1503→  1503→    if (p.ok) setItems(p.data?.payments || [])
+  1504→  1504→    if (s.ok) setStudents(s.data?.students || [])
+  1505→  1505→    if (g.ok) setGroups(g.data?.groups || [])
+  1506→  1506→    setLoading(false)
+  1507→  1507→  }, [])
+  1508→  1508→
+  1509→  1509→  useEffect(() => { load() }, [load])
+  1510→  1510→
+  1511→  1511→  async function handleSave() {
+  1512→  1512→    const { ok, error } = await apiFetch('/api/payments', { method: 'POST', body: JSON.stringify(form) })
+  1513→  1513→    if (!ok) return alert(error)
+  1514→  1514→    setOpenModal(false)
+  1515→  1515→    setForm({ student_id: '', group_id: '', amount: 0, payment_date: new Date().toISOString().slice(0, 10), payment_type: 'cash', for_month: '', description: '' })
+  1516→  1516→    load()
+  1517→  1517→  }
+  1518→  1518→
+  1519→  1519→  async function handleDelete(id: string) {
+  1520→  1520→    if (!confirm('O\'chirmoqchimisiz?')) return
+  1521→  1521→    const { ok, error } = await apiFetch(`/api/payments?id=${id}`, { method: 'DELETE' })
+  1522→  1522→    if (!ok) return alert(error)
+  1523→  1523→    load()
+  1524→  1524→  }
+  1525→  1525→
+  1526→  1526→  return (
+  1527→  1527→    <div className="space-y-5">
+  1528→  1528→      <div className="flex items-center justify-between flex-wrap gap-3">
+  1529→  1529→        <div>
+  1530→  1530→          <h1 className="text-2xl lg:text-3xl font-bold">To'lovlar</h1>
+  1531→  1531→          <p className="text-muted-foreground text-sm mt-1">{items.length} to'lov yozuvi</p>
+  1532→  1532→        </div>
+  1533→  1533→        <PrimaryButton onClick={() => setOpenModal(true)}>
+  1534→  1534→          <Plus className="w-4 h-4" /> Yangi to'lov
+  1535→  1535→        </PrimaryButton>
+  1536→  1536→      </div>
+  1537→  1537→
+  1538→  1538→      <div className="grid grid-cols-2 gap-4">
+  1539→  1539→        <StatCard label="Jami to'lovlar" value={formatMoney(total)} sub={`${items.length} ta`} icon={Wallet} color="emerald" />
+  1540→  1540→        <StatCard label="Shu oygi" value={formatMoney(monthTotal)} sub={new Date().toLocaleDateString('uz-UZ', { month: 'long' })} icon={BarChart3} color="teal" />
+  1541→  1541→      </div>
+  1542→  1542→
+  1543→  1543→      {loading ? <PanelLoader /> : items.length === 0 ? (
+  1544→  1544→        <Card><EmptyState title="To'lovlar yo'q" description="Birinchi to'lov yozuvini qo'shing." /></Card>
+  1545→  1545→      ) : (
+  1546→  1546→        <Card>
+  1547→  1547→          <CardHeader title="To'lovlar tarixi" subtitle={`${items.length} yozuv`} />
+  1548→  1548→          <div className="overflow-x-auto">
+  1549→  1549→            <table className="w-full text-sm">
+  1550→  1550→              <thead>
+  1551→  1551→                <tr className="border-b border-border/40 text-xs text-muted-foreground">
+  1552→  1552→                  <th className="text-left px-4 py-3 font-medium">Talaba</th>
+  1553→  1553→                  <th className="text-left px-4 py-3 font-medium">Guruh</th>
+  1554→  1554→                  <th className="text-right px-4 py-3 font-medium">Summa</th>
+  1555→  1555→                  <th className="text-left px-4 py-3 font-medium">Sana</th>
+  1556→  1556→                  <th className="text-left px-4 py-3 font-medium">Turi</th>
+  1557→  1557→                  <th className="text-left px-4 py-3 font-medium">Oy</th>
+  1558→  1558→                  <th className="px-4 py-3"></th>
+  1559→  1559→                </tr>
+  1560→  1560→              </thead>
+  1561→  1561→              <tbody>
+  1562→  1562→                {items.map((p) => (
+  1563→  1563→                  <tr key={p.id} className="border-b border-border/20 hover:bg-muted/40 transition">
+  1564→  1564→                    <td className="px-4 py-3 font-medium">{p.student?.full_name || '—'}</td>
+  1565→  1565→                    <td className="px-4 py-3 text-muted-foreground">{p.group?.name || '—'}</td>
+  1566→  1566→                    <td className="px-4 py-3 text-right font-bold text-emerald-600">{formatMoney(p.amount)}</td>
+  1567→  1567→                    <td className="px-4 py-3">{formatDate(p.payment_date)}</td>
+  1568→  1568→                    <td className="px-4 py-3"><PaymentTypeChip type={p.payment_type} /></td>
+  1569→  1569→                    <td className="px-4 py-3 text-muted-foreground">{p.for_month || '—'}</td>
+  1570→  1570→                    <td className="px-4 py-3 text-right">
+  1571→  1571→                      <IconButton danger onClick={() => handleDelete(p.id)} title="O'chirish">
+  1572→  1572→                        <Trash2 className="w-3.5 h-3.5" />
+  1573→  1573→                      </IconButton>
+  1574→  1574→                    </td>
+  1575→  1575→                  </tr>
+  1576→  1576→                ))}
+  1577→  1577→              </tbody>
+  1578→  1578→            </table>
+  1579→  1579→          </div>
+  1580→  1580→        </Card>
+  1581→  1581→      )}
+  1582→  1582→
+  1583→  1583→      <Modal open={openModal} onClose={() => setOpenModal(false)} title="Yangi to'lov">
+  1584→  1584→        <div className="space-y-3">
+  1585→  1585→          <Field label="Talaba *">
+  1586→  1586→            <select className="erp-input" value={form.student_id} onChange={(e) => setForm({ ...form, student_id: e.target.value })}>
+  1587→  1587→              <option value="">— Tanlang —</option>
+  1588→  1588→              {students.map((s) => <option key={s.id} value={s.id}>{s.full_name}</option>)}
+  1589→  1589→            </select>
+  1590→  1590→          </Field>
+  1591→  1591→          <Field label="Guruh">
+  1592→  1592→            <select className="erp-input" value={form.group_id} onChange={(e) => setForm({ ...form, group_id: e.target.value })}>
+  1593→  1593→              <option value="">— Tanlang —</option>
+  1594→  1594→              {groups.map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}
+  1595→  1595→            </select>
+  1596→  1596→          </Field>
+  1597→  1597→          <div className="grid sm:grid-cols-2 gap-3">
+  1598→  1598→            <Field label="Summa (so'm) *"><input type="number" className="erp-input" value={form.amount} onChange={(e) => setForm({ ...form, amount: Number(e.target.value) })} /></Field>
+  1599→  1599→            <Field label="To'lov sanasi"><input type="date" className="erp-input" value={form.payment_date} onChange={(e) => setForm({ ...form, payment_date: e.target.value })} /></Field>
+  1600→  1600→          </div>
+  1601→  1601→          <div className="grid sm:grid-cols-2 gap-3">
+  1602→  1602→            <Field label="To'lov turi">
+  1603→  1603→              <select className="erp-input" value={form.payment_type} onChange={(e) => setForm({ ...form, payment_type: e.target.value })}>
+  1604→  1604→                <option value="cash">Naqd</option>
+  1605→  1605→                <option value="card">Karta</option>
+  1606→  1606→                <option value="transfer">O'tkazma</option>
+  1607→  1607→                <option value="other">Boshqa</option>
+  1608→  1608→              </select>
+  1609→  1609→            </Field>
+  1610→  1610→            <Field label="Oy (YYYY-MM)"><input className="erp-input" value={form.for_month} onChange={(e) => setForm({ ...form, for_month: e.target.value })} placeholder="2026-06" /></Field>
+  1611→  1611→          </div>
+  1612→  1612→          <Field label="Izoh"><input className="erp-input" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></Field>
+  1613→  1613→          <div className="flex gap-2 pt-2">
+  1614→  1614→            <PrimaryButton onClick={handleSave} className="flex-1">Saqlash</PrimaryButton>
+  1615→  1615→            <GhostButton onClick={() => setOpenModal(false)}>Bekor</GhostButton>
+  1616→  1616→          </div>
+  1617→  1617→        </div>
+  1618→  1618→      </Modal>
+  1619→  1619→    </div>
+  1620→  1620→  )
+  1621→  1621→}
+  1622→  1622→
+  1623→  1623→function PaymentTypeChip({ type }: { type: string }) {
+  1624→  1624→  const map: any = {
+  1625→  1625→    cash: { label: 'Naqd', cls: 'bg-emerald-100 text-emerald-700' },
+  1626→  1626→    card: { label: 'Karta', cls: 'bg-blue-100 text-blue-700' },
+  1627→  1627→    transfer: { label: 'O\'tkazma', cls: 'bg-violet-100 text-violet-700' },
+  1628→  1628→    other: { label: 'Boshqa', cls: 'bg-slate-100 text-slate-700' },
+  1629→  1629→  }
+  1630→  1630→  const s = map[type] || map.other
+  1631→  1631→  return <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${s.cls}`}>{s.label}</span>
+  1632→  1632→}
+  1633→  1633→
+  1634→  1634→// ============================================================================
+  1635→  1635→//  DAVOMAT PANELI
+  1636→  1636→// ============================================================================
+  1637→  1637→function AttendancePanel() {
+  1638→  1638→  const [items, setItems] = useState<any[]>([])
+  1639→  1639→  const [students, setStudents] = useState<any[]>([])
+  1640→  1640→  const [groups, setGroups] = useState<any[]>([])
+  1641→  1641→  const [loading, setLoading] = useState(true)
+  1642→  1642→  const [openModal, setOpenModal] = useState(false)
+  1643→  1643→  const [form, setForm] = useState<any>({ group_id: '', lesson_date: new Date().toISOString().slice(0, 10), records: [] })
+  1644→  1644→
+  1645→  1645→  const load = useCallback(async () => {
+  1646→  1646→    setLoading(true)
+  1647→  1647→    const [a, s, g] = await Promise.all([apiFetch('/api/attendance'), apiFetch('/api/students'), apiFetch('/api/groups')])
+  1648→  1648→    if (a.ok) setItems(a.data?.attendance || [])
+  1649→  1649→    if (s.ok) setStudents(s.data?.students || [])
+  1650→  1650→    if (g.ok) setGroups(g.data?.groups || [])
+  1651→  1651→    setLoading(false)
+  1652→  1652→  }, [])
+  1653→  1653→
+  1654→  1654→  useEffect(() => { load() }, [load])
+  1655→  1655→
+  1656→  1656→  // Form uchun guruh talabalari
+  1657→  1657→  const groupStudents = useMemo(() => {
+  1658→  1658→    if (!form.group_id) return []
+  1659→  1659→    return students.filter((s) => s.group_id === form.group_id)
+  1660→  1660→  }, [form.group_id, students])
+  1661→  1661→
+  1662→  1662→  // Guruh tanlanganda barcha talaba uchun "present" qilamiz
+  1663→  1663→  useEffect(() => {
+  1664→  1664→    if (form.group_id) {
+  1665→  1665→      setForm((prev: any) => ({
+  1666→  1666→        ...prev,
+  1667→  1667→        records: groupStudents.map((s) => ({ student_id: s.id, group_id: prev.group_id, lesson_date: prev.lesson_date, status: 'present' })),
+  1668→  1668→      }))
+  1669→  1669→    } else {
+  1670→  1670→      setForm((prev: any) => ({ ...prev, records: [] }))
+  1671→  1671→    }
+  1672→  1672→  }, [form.group_id, groupStudents.length])
+  1673→  1673→
+  1674→  1674→  function updateRecord(i: number, status: string) {
+  1675→  1675→    setForm((prev: any) => {
+  1676→  1676→      const records = [...prev.records]
+  1677→  1677→      records[i] = { ...records[i], status }
+  1678→  1678→      return { ...prev, records }
+  1679→  1679→    })
+  1680→  1680→  }
+  1681→  1681→
+  1682→  1682→  async function handleSave() {
+  1683→  1683→    if (form.records.length === 0) return alert('Talabalar yo\'q')
+  1684→  1684→    const { ok, error } = await apiFetch('/api/attendance', { method: 'POST', body: JSON.stringify({ records: form.records }) })
+  1685→  1685→    if (!ok) return alert(error)
+  1686→  1686→    setOpenModal(false)
+  1687→  1687→    setForm({ group_id: '', lesson_date: new Date().toISOString().slice(0, 10), records: [] })
+  1688→  1688→    load()
+  1689→  1689→  }
+  1690→  1690→
+  1691→  1691→  async function handleDelete(id: string) {
+  1692→  1692→    if (!confirm('O\'chirmoqchimisiz?')) return
+  1693→  1693→    const { ok, error } = await apiFetch(`/api/attendance?id=${id}`, { method: 'DELETE' })
+  1694→  1694→    if (!ok) return alert(error)
+  1695→  1695→    load()
+  1696→  1696→  }
+  1697→  1697→
+  1698→  1698→  // Guruhlash
+  1699→  1699→  const grouped = useMemo(() => {
+  1700→  1700→    const m: Record<string, any[]> = {}
+  1701→  1701→    items.forEach((a) => {
+  1702→  1702→      const key = a.lesson_date
+  1703→  1703→      if (!m[key]) m[key] = []
+  1704→  1704→      m[key].push(a)
+  1705→  1705→    })
+  1706→  1706→    return Object.entries(m).sort(([a], [b]) => b.localeCompare(a))
+  1707→  1707→  }, [items])
+  1708→  1708→
+  1709→  1709→  return (
+  1710→  1710→    <div className="space-y-5">
+  1711→  1711→      <div className="flex items-center justify-between flex-wrap gap-3">
+  1712→  1712→        <div>
+  1713→  1713→          <h1 className="text-2xl lg:text-3xl font-bold">Davomat</h1>
+  1714→  1714→          <p className="text-muted-foreground text-sm mt-1">{items.length} yozuv</p>
+  1715→  1715→        </div>
+  1716→  1716→        <PrimaryButton onClick={() => setOpenModal(true)}>
+  1717→  1717→          <Plus className="w-4 h-4" /> Davomat belgilash
+  1718→  1718→        </PrimaryButton>
+  1719→  1719→      </div>
+  1720→  1720→
+  1721→  1721→      {loading ? <PanelLoader /> : items.length === 0 ? (
+  1722→  1722→        <Card><EmptyState title="Davomat yo'q" description="Birinchi davomat yozuvini qo'shing." /></Card>
+  1723→  1723→      ) : (
+  1724→  1724→        <div className="space-y-4">
+  1725→  1725→          {grouped.map(([date, recs]) => (
+  1726→  1726→            <Card key={date}>
+  1727→  1727→              <CardHeader title={formatDate(date)} subtitle={`${recs.length} talaba`} />
+  1728→  1728→              <div className="p-4 pt-3 grid sm:grid-cols-2 lg:grid-cols-3 gap-2">
+  1729→  1729→                {recs.map((a) => (
+  1730→  1730→                  <div key={a.id} className="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-muted/40 transition">
+  1731→  1731→                    <div className="text-sm font-medium truncate">{a.student?.full_name}</div>
+  1732→  1732→                    <div className="flex items-center gap-1">
+  1733→  1733→                      <AttendanceStatus status={a.status} />
+  1734→  1734→                      <IconButton danger onClick={() => handleDelete(a.id)} title="O'chirish">
+  1735→  1735→                        <Trash2 className="w-3 h-3" />
+  1736→  1736→                      </IconButton>
+  1737→  1737→                    </div>
+  1738→  1738→                  </div>
+  1739→  1739→                ))}
+  1740→  1740→              </div>
+  1741→  1741→            </Card>
+  1742→  1742→          ))}
+  1743→  1743→        </div>
+  1744→  1744→      )}
+  1745→  1745→
+  1746→  1746→      <Modal open={openModal} onClose={() => setOpenModal(false)} title="Davomat belgilash" size="lg">
+  1747→  1747→        <div className="space-y-4">
+  1748→  1748→          <div className="grid sm:grid-cols-2 gap-3">
+  1749→  1749→            <Field label="Guruh *">
+  1750→  1750→              <select className="erp-input" value={form.group_id} onChange={(e) => setForm({ ...form, group_id: e.target.value })}>
+  1751→  1751→                <option value="">— Tanlang —</option>
+  1752→  1752→                {groups.map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}
+  1753→  1753→              </select>
+  1754→  1754→            </Field>
+  1755→  1755→            <Field label="Dars sanasi *">
+  1756→  1756→              <input type="date" className="erp-input" value={form.lesson_date} onChange={(e) => setForm({ ...form, lesson_date: e.target.value })} />
+  1757→  1757→            </Field>
+  1758→  1758→          </div>
+  1759→  1759→
+  1760→  1760→          {form.group_id && groupStudents.length === 0 && (
+  1761→  1761→            <div className="px-4 py-3 rounded-xl bg-amber-50 border border-amber-200 text-sm text-amber-700">
+  1762→  1762→              Bu guruhda talabalar yo'q. Avval talabalar bo'limidan guruhga talaba qo'shing.
+  1763→  1763→            </div>
+  1764→  1764→          )}
+  1765→  1765→
+  1766→  1766→          {groupStudents.length > 0 && (
+  1767→  1767→            <div className="space-y-2 max-h-96 overflow-y-auto">
+  1768→  1768→              {groupStudents.map((s, i) => (
+  1769→  1769→                <div key={s.id} className="flex items-center justify-between px-3 py-2 rounded-xl bg-muted/40">
+  1770→  1770→                  <span className="text-sm font-medium">{s.full_name}</span>
+  1771→  1771→                  <div className="flex gap-1">
+  1772→  1772→                    {[
+  1773→  1773→                      { v: 'present', label: 'Keldi', cls: 'bg-emerald-500 text-white' },
+  1774→  1774→                      { v: 'absent', label: 'Kelmadi', cls: 'bg-red-500 text-white' },
+  1775→  1775→                      { v: 'late', label: 'Kechikdi', cls: 'bg-amber-500 text-white' },
+  1776→  1776→                      { v: 'excused', label: 'Sababli', cls: 'bg-blue-500 text-white' },
+  1777→  1777→                    ].map((opt) => (
+  1778→  1778→                      <button
+  1779→  1779→                        key={opt.v}
+  1780→  1780→                        type="button"
+  1781→  1781→                        onClick={() => updateRecord(i, opt.v)}
+  1782→  1782→                        className={`px-2.5 py-1 rounded-lg text-[10px] font-semibold transition ${
+  1783→  1783→                          form.records[i]?.status === opt.v ? opt.cls : 'bg-white text-muted-foreground border border-border/50 hover:bg-muted'
+  1784→  1784→                        }`}
+  1785→  1785→                      >
+  1786→  1786→                        {opt.label}
+  1787→  1787→                      </button>
+  1788→  1788→                    ))}
+  1789→  1789→                  </div>
+  1790→  1790→                </div>
+  1791→  1791→              ))}
+  1792→  1792→            </div>
+  1793→  1793→          )}
+  1794→  1794→
+  1795→  1795→          <div className="flex gap-2 pt-2">
+  1796→  1796→            <PrimaryButton onClick={handleSave} className="flex-1" disabled={form.records.length === 0}>Saqlash</PrimaryButton>
+  1797→  1797→            <GhostButton onClick={() => setOpenModal(false)}>Bekor</GhostButton>
+  1798→  1798→          </div>
+  1799→  1799→        </div>
+  1800→  1800→      </Modal>
+  1801→  1801→    </div>
+  1802→  1802→  )
+  1803→  1803→}
+  1804→  1804→
+  1805→  1805→function AttendanceStatus({ status }: { status: string }) {
+  1806→  1806→  const map: any = {
+  1807→  1807→    present: { label: 'Keldi', cls: 'bg-emerald-100 text-emerald-700' },
+  1808→  1808→    absent: { label: 'Kelmadi', cls: 'bg-red-100 text-red-700' },
+  1809→  1809→    late: { label: 'Kechikdi', cls: 'bg-amber-100 text-amber-700' },
+  1810→  1810→    excused: { label: 'Sababli', cls: 'bg-blue-100 text-blue-700' },
+  1811→  1811→  }
+  1812→  1812→  const s = map[status] || map.present
+  1813→  1813→  return <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${s.cls}`}>{s.label}</span>
+  1814→  1814→}
+  1815→  1815→
+  1816→  1816→// ============================================================================
+  1817→  1817→//  ADMIN PANEL — aktivatsiya kodlari generatsiyasi
+  1818→  1818→// ============================================================================
+  1819→  1819→function AdminPanel({ user }: { user: PublicUser }) {
+  1820→  1820→  const [codes, setCodes] = useState<any[]>([])
+  1821→  1821→  const [users, setUsers] = useState<any[]>([])
+  1822→  1822→  const [loading, setLoading] = useState(true)
+  1823→  1823→  const [tab, setTab] = useState<'codes' | 'users'>('codes')
+  1824→  1824→  const [genCount, setGenCount] = useState(1)
+  1825→  1825→  const [genDays, setGenDays] = useState(30)
+  1826→  1826→  const [generating, setGenerating] = useState(false)
+  1827→  1827→  const [filterStatus, setFilterStatus] = useState<'all' | 'unused' | 'used' | 'expired'>('all')
+  1828→  1828→  const [copied, setCopied] = useState<string | null>(null)
+  1829→  1829→
+  1830→  1830→  const load = useCallback(async () => {
+  1831→  1831→    setLoading(true)
+  1832→  1832→    const [c, u] = await Promise.all([
+  1833→  1833→      apiFetch(`/api/admin/generate-code?status=${filterStatus}`),
+  1834→  1834→      apiFetch('/api/admin/users'),
+  1835→  1835→    ])
+  1836→  1836→    if (c.ok) setCodes(c.data?.codes || [])
+  1837→  1837→    if (u.ok) setUsers(u.data?.users || [])
+  1838→  1838→    setLoading(false)
+  1839→  1839→  }, [filterStatus])
+  1840→  1840→
+  1841→  1841→  useEffect(() => { load() }, [load])
+  1842→  1842→
+  1843→  1843→  async function handleGenerate() {
+  1844→  1844→    setGenerating(true)
+  1845→  1845→    const { ok, error } = await apiFetch('/api/admin/generate-code', {
+  1846→  1846→      method: 'POST',
+  1847→  1847→      body: JSON.stringify({ count: genCount, duration_days: genDays }),
+  1848→  1848→    })
+  1849→  1849→    setGenerating(false)
+  1850→  1850→    if (!ok) return alert(error)
+  1851→  1851→    load()
+  1852→  1852→  }
+  1853→  1853→
+  1854→  1854→  function copyCode(code: string) {
+  1855→  1855→    navigator.clipboard.writeText(code)
+  1856→  1856→    setCopied(code)
+  1857→  1857→    setTimeout(() => setCopied(null), 1500)
+  1858→  1858→  }
+  1859→  1859→
+  1860→  1860→  const unused = codes.filter((c) => c.status === 'unused').length
+  1861→  1861→  const used = codes.filter((c) => c.status === 'used').length
+  1862→  1862→  const totalUsers = users.length
+  1863→  1863→  const activeUsers = users.filter((u) => u.status === 'active').length
+  1864→  1864→  const blockedUsers = users.filter((u) => u.status === 'blocked').length
+  1865→  1865→  const trialUsers = users.filter((u) => u.status === 'trial').length
+  1866→  1866→
+  1867→  1867→  return (
+  1868→  1868→    <div className="space-y-5">
+  1869→  1869→      <div>
+  1870→  1870→        <h1 className="text-2xl lg:text-3xl font-bold flex items-center gap-2">
+  1871→  1871→          <Crown className="w-6 h-6 text-amber-500" /> Admin Panel
+  1872→  1872→        </h1>
+  1873→  1873→        <p className="text-muted-foreground text-sm mt-1">Aktivatsiya kodlari va foydalanuvchilarni boshqaring</p>
+  1874→  1874→      </div>
+  1875→  1875→
+  1876→  1876→      {/* Stats */}
+  1877→  1877→      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+  1878→  1878→        <StatCard label="Foydalanuvchilar" value={totalUsers} sub={`${activeUsers} aktiv`} icon={Users} color="emerald" />
+  1879→  1879→        <StatCard label="Sinovda" value={trialUsers} sub={`${blockedUsers} bloklangan`} icon={Sparkles} color="amber" />
+  1880→  1880→        <StatCard label="Bo'sh kodlar" value={unused} sub={`${used} ishlatilgan`} icon={KeyRound} color="teal" />
+  1881→  1881→        <StatCard label="Jami kodlar" value={codes.length} sub={`${codes.length} generatsiya`} icon={CheckCircle} color="cyan" />
+  1882→  1882→      </div>
+  1883→  1883→
+  1884→  1884→      {/* Generate codes */}
+  1885→  1885→      <Card>
+  1886→  1886→        <CardHeader title="Aktivatsiya kodi generatsiyasi" subtitle="Foydalanuvchilarga berish uchun yangi kodlar yarating" />
+  1887→  1887→        <div className="p-5 grid sm:grid-cols-3 gap-3 items-end">
+  1888→  1888→          <Field label="Miqdori">
+  1889→  1889→            <input type="number" min={1} max={50} className="erp-input" value={genCount} onChange={(e) => setGenCount(Number(e.target.value))} />
+  1890→  1890→          </Field>
+  1891→  1891→          <Field label="Muddati (kun)">
+  1892→  1892→            <input type="number" min={1} max={365} className="erp-input" value={genDays} onChange={(e) => setGenDays(Number(e.target.value))} />
+  1893→  1893→          </Field>
+  1894→  1894→          <PrimaryButton onClick={handleGenerate} disabled={generating} className="h-[42px]">
+  1895→  1895→            {generating ? <Spinner className="w-4 h-4" /> : <Sparkles className="w-4 h-4" />}
+  1896→  1896→            {generating ? 'Yaratilmoqda...' : 'Generatsiya qilish'}
+  1897→  1897→          </PrimaryButton>
+  1898→  1898→        </div>
+  1899→  1899→      </Card>
+  1900→  1900→
+  1901→  1901→      {/* Tabs */}
+  1902→  1902→      <div className="flex p-1 bg-muted rounded-xl max-w-md">
+  1903→  1903→        <button onClick={() => setTab('codes')} className={`flex-1 py-2 text-sm font-semibold rounded-lg transition ${tab === 'codes' ? 'bg-card shadow' : 'text-muted-foreground'}`}>Aktivatsiya kodlari</button>
+  1904→  1904→        <button onClick={() => setTab('users')} className={`flex-1 py-2 text-sm font-semibold rounded-lg transition ${tab === 'users' ? 'bg-card shadow' : 'text-muted-foreground'}`}>Foydalanuvchilar</button>
+  1905→  1905→      </div>
+  1906→  1906→
+  1907→  1907→      {loading ? <PanelLoader /> : tab === 'codes' ? (
+  1908→  1908→        <Card>
+  1909→  1909→          <CardHeader
+  1910→  1910→            title="Aktivatsiya kodlari ro'yxati"
+  1911→  1911→            subtitle={`${codes.length} ta kod`}
+  1912→  1912→            action={
+  1913→  1913→              <select className="px-3 py-1.5 rounded-lg border border-border/50 text-xs bg-background" value={filterStatus} onChange={(e) => setFilterStatus(e.target.value as any)}>
+  1914→  1914→                <option value="all">Barchasi</option>
+  1915→  1915→                <option value="unused">Ishlatilmagan</option>
+  1916→  1916→                <option value="used">Ishlatilgan</option>
+  1917→  1917→                <option value="expired">Muddati tugagan</option>
+  1918→  1918→              </select>
+  1919→  1919→            }
+  1920→  1920→          />
+  1921→  1921→          {codes.length === 0 ? (
+  1922→  1922→            <EmptyState title="Kodlar yo'q" description="Yuqoridan generatsiya qiling." />
+  1923→  1923→          ) : (
+  1924→  1924→            <div className="overflow-x-auto">
+  1925→  1925→              <table className="w-full text-sm">
+  1926→  1926→                <thead>
+  1927→  1927→                  <tr className="border-b border-border/40 text-xs text-muted-foreground">
+  1928→  1928→                    <th className="text-left px-4 py-3 font-medium">Kod</th>
+  1929→  1929→                    <th className="text-left px-4 py-3 font-medium">Muddat</th>
+  1930→  1930→                    <th className="text-left px-4 py-3 font-medium">Holat</th>
+  1931→  1931→                    <th className="text-left px-4 py-3 font-medium">Yaratilgan</th>
+  1932→  1932→                    <th className="text-left px-4 py-3 font-medium">Ishlatgan</th>
+  1933→  1933→                    <th className="px-4 py-3"></th>
+  1934→  1934→                  </tr>
+  1935→  1935→                </thead>
+  1936→  1936→                <tbody>
+  1937→  1937→                  {codes.map((c) => (
+  1938→  1938→                    <tr key={c.id} className="border-b border-border/20 hover:bg-muted/40 transition">
+  1939→  1939→                      <td className="px-4 py-3 font-mono text-xs font-semibold tracking-wider">{c.code}</td>
+  1940→  1940→                      <td className="px-4 py-3">{c.duration_days} kun</td>
+  1941→  1941→                      <td className="px-4 py-3"><CodeStatusChip status={c.status} /></td>
+  1942→  1942→                      <td className="px-4 py-3 text-muted-foreground">{formatDateTime(c.created_at)}</td>
+  1943→  1943→                      <td className="px-4 py-3 text-muted-foreground">{c.used_at ? formatDateTime(c.used_at) : '—'}</td>
+  1944→  1944→                      <td className="px-4 py-3 text-right">
+  1945→  1945→                        {c.status === 'unused' && (
+  1946→  1946→                          <IconButton title="Nusxa olish" onClick={() => copyCode(c.code)}>
+  1947→  1947→                            {copied === c.code ? <CheckCircle className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
+  1948→  1948→                          </IconButton>
+  1949→  1949→                        )}
+  1950→  1950→                      </td>
+  1951→  1951→                    </tr>
+  1952→  1952→                  ))}
+  1953→  1953→                </tbody>
+  1954→  1954→              </table>
+  1955→  1955→            </div>
+  1956→  1956→          )}
+  1957→  1957→        </Card>
+  1958→  1958→      ) : (
+  1959→  1959→        <Card>
+  1960→  1960→          <CardHeader title="Foydalanuvchilar ro'yxati" subtitle={`${users.length} foydalanuvchi`} />
+  1961→  1961→          <div className="overflow-x-auto">
+  1962→  1962→            <table className="w-full text-sm">
+  1963→  1963→              <thead>
+  1964→  1964→                <tr className="border-b border-border/40 text-xs text-muted-foreground">
+  1965→  1965→                  <th className="text-left px-4 py-3 font-medium">Ism</th>
+  1966→  1966→                  <th className="text-left px-4 py-3 font-medium">Markaz</th>
+  1967→  1967→                  <th className="text-left px-4 py-3 font-medium">Email</th>
+  1968→  1968→                  <th className="text-left px-4 py-3 font-medium">Holat</th>
+  1969→  1969→                  <th className="text-left px-4 py-3 font-medium">Sinov tugaydi</th>
+  1970→  1970→                  <th className="text-left px-4 py-3 font-medium">Aktiv tugaydi</th>
+  1971→  1971→                  <th className="text-left px-4 py-3 font-medium">Oxirgi kirish</th>
+  1972→  1972→                </tr>
+  1973→  1973→              </thead>
+  1974→  1974→              <tbody>
+  1975→  1975→                {users.map((u) => (
+  1976→  1976→                  <tr key={u.id} className="border-b border-border/20 hover:bg-muted/40 transition">
+  1977→  1977→                    <td className="px-4 py-3 font-medium">{u.full_name}</td>
+  1978→  1978→                    <td className="px-4 py-3 text-muted-foreground">{u.center_name}</td>
+  1979→  1979→                    <td className="px-4 py-3 text-muted-foreground">{u.email}</td>
+  1980→  1980→                    <td className="px-4 py-3"><UserStatusChip status={u.status} role={u.role} /></td>
+  1981→  1981→                    <td className="px-4 py-3 text-muted-foreground">{formatDate(u.trial_ends_at)}</td>
+  1982→  1982→                    <td className="px-4 py-3 text-muted-foreground">{formatDate(u.active_until)}</td>
+  1983→  1983→                    <td className="px-4 py-3 text-muted-foreground">{formatDateTime(u.last_login_at)}</td>
+  1984→  1984→                  </tr>
+  1985→  1985→                ))}
+  1986→  1986→              </tbody>
+  1987→  1987→            </table>
+  1988→  1988→          </div>
+  1989→  1989→        </Card>
+  1990→  1990→      )}
+  1991→  1991→    </div>
+  1992→  1992→  )
+  1993→  1993→}
+  1994→  1994→
+  1995→  1995→function CodeStatusChip({ status }: { status: string }) {
+  1996→  1996→  const map: any = {
+  1997→  1997→    unused: { label: 'Bo\'sh', cls: 'bg-emerald-100 text-emerald-700' },
+  1998→  1998→    used: { label: 'Ishlatilgan', cls: 'bg-slate-100 text-slate-700' },
+  1999→  1999→    expired: { label: 'Muddati o\'tgan', cls: 'bg-red-100 text-red-700' },
+  2000→  2000→  }
+
+[showing lines 1-2000 of 2002; use offset=2001 with limit to continue reading]
