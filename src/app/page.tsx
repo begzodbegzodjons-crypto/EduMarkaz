@@ -116,15 +116,15 @@ function AuthScreen({ mode, onModeChange, onSuccess }: { mode: 'login' | 'regist
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-emerald-50 via-white to-teal-50 relative overflow-hidden">
+    <div className="min-h-screen flex items-stretch bg-gradient-to-br from-emerald-50 via-white to-teal-50 relative overflow-hidden">
       <AuroraBackground />
-      <div className="relative z-10 w-full max-w-5xl grid lg:grid-cols-2 gap-8 items-center">
+      <div className="relative z-10 w-full grid lg:grid-cols-2 items-stretch">
         {/* LEFT — Brand */}
         <motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.6 }}
-          className="hidden lg:flex flex-col gap-6 p-8"
+          className="hidden lg:flex flex-col gap-8 p-12 xl:p-20 justify-center"
         >
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-xl shadow-emerald-500/30">
@@ -159,9 +159,9 @@ function AuthScreen({ mode, onModeChange, onSuccess }: { mode: 'login' | 'regist
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.1 }}
-          className="w-full"
+          className="w-full flex items-center justify-center p-6 sm:p-10 lg:p-12 xl:p-20"
         >
-          <div className="glass rounded-3xl shadow-2xl shadow-emerald-900/10 border border-emerald-100/50 p-6 sm:p-8">
+          <div className="glass rounded-3xl shadow-2xl shadow-emerald-900/10 border border-emerald-100/50 p-6 sm:p-8 w-full max-w-lg">
             <div className="lg:hidden flex items-center gap-3 mb-6">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
                 <GraduationCap className="w-6 h-6 text-white" />
