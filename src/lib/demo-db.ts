@@ -117,6 +117,16 @@ class QueryBuilder {
     return this
   }
 
+  in(col: string, val: any[]) {
+    this.filters.push({ col, val, op: 'in' })
+    return this
+  }
+
+  neq(col: string, val: any) {
+    this.filters.push({ col, val, op: 'neq' })
+    return this
+  }
+
   or(condition: string) {
     // condition format: "and(start_time.lt.X,end_time.gt.Y)" — soddalashtirilgan, e'tibor berilmaydi
     return this
@@ -151,6 +161,7 @@ class QueryBuilder {
         if (f.op === 'neq') return v !== f.val
         if (f.op === 'gte') return v >= f.val
         if (f.op === 'lte') return v <= f.val
+        if (f.op === 'in') return Array.isArray(f.val) && f.val.includes(v)
         return true
       })
     })
