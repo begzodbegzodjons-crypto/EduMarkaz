@@ -196,7 +196,6 @@ function AuthScreen({ mode, onModeChange, onSuccess }: { mode: 'login' | 'regist
                   <div className="text-center">
                     <button type="button" onClick={() => setForgotOpen(true)} className="text-sm text-emerald-600 hover:text-emerald-700 hover:underline">Parolni unutdingizmi?</button>
                   </div>
-                  <p className="text-base text-center text-muted-foreground">Demo admin: <code className="font-mono">admin@erp.uz</code> / <code className="font-mono">admin12345</code></p>
                 </motion.form>
               ) : (
                 <motion.form key="register" onSubmit={handleRegister} initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} className="space-y-5">
