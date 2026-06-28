@@ -236,9 +236,41 @@ export function LicensePanel({ user, onActivated }: { user: PublicUser; onActiva
     setTimeout(() => onActivated?.() || window.location.reload(), 2000)
   }
 
+  const isAdmin = user.role === 'admin'
   const isTrial = user.status === 'trial'
   const isActive = user.status === 'active'
   const isBlocked = user.status === 'blocked'
+
+  // ====== ADMIN UCHUN MAXSUS KO'RINISH ======
+  if (isAdmin) {
+    return (
+      <div className="space-y-5 max-w-2xl">
+        <div><h1 className="text-2xl lg:text-3xl font-bold">Administrator</h1><p className="text-muted-foreground text-sm mt-1">Sayt egasi kabineti</p></div>
+        <Card>
+          <div className="p-8 text-center">
+            <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-amber-500/30">
+              <Crown className="w-10 h-10 text-white" />
+            </div>
+            <h2 className="text-2xl font-bold">Administrator rejimi</h2>
+            <p className="text-muted-foreground text-sm mt-2 max-w-md mx-auto">
+              Siz sayt egasi sifatida tizimga kirdingiz. Administrator uchun litsenziya cheksiz muddatga amal qiladi.
+              Aktivatsiya kodlarini generatsiya qilish uchun alohida admin portaldan foydalaning.
+            </p>
+            <div className="mt-6 grid grid-cols-2 gap-3 max-w-md mx-auto">
+              <div className="rounded-xl bg-amber-50 border border-amber-200 p-4">
+                <div className="text-xs text-amber-700 uppercase">Holat</div>
+                <div className="text-lg font-bold text-amber-900 mt-1">Administrator</div>
+              </div>
+              <div className="rounded-xl bg-emerald-50 border border-emerald-200 p-4">
+                <div className="text-xs text-emerald-700 uppercase">Muddat</div>
+                <div className="text-lg font-bold text-emerald-900 mt-1">Cheksiz</div>
+              </div>
+            </div>
+          </div>
+        </Card>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-5 max-w-2xl">
