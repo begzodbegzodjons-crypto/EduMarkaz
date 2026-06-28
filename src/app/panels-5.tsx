@@ -200,7 +200,7 @@ export function TelegramPanel({ user }: { user: PublicUser }) {
         <div className="p-5 space-y-4">
           <FAQItem q="Aktivatsiya kodini qayerdan olaman?" a={`To'lovni amalga oshiring va @${TELEGRAM_HANDLE} telegram akkauntiga yozing. Sizga 30 kunlik aktivatsiya kodi yuboriladi.`} />
           <FAQItem q="Sinov muddati qancha?" a="Har bir yangi foydalanuvchi 10 kun bepul sinov oladi. Sinov tugagach, tizim avtomatik bloklanadi." />
-          <FAQItem q="Ma'lumotlarim saqlanadimi?" a="Ha, barcha ma'lumotlaringiz Supabase (PostgreSQL) bulutli bazasida xavfsiz saqlanadi." />
+          <FAQItem q="Ma'lumotlarim saqlanadimi?" a="Ha, barcha ma'lumotlaringiz serverda xavfsiz saqlanadi. Hech kim ruxsatsiz kirib ko'rolmaydi." />
           <FAQItem q="Boshqa qurilmada kirsa bo'ladimi?" a="Ha, istalgan qurilmadan (kompyuter, telefon, planshet) tizimga kirishingiz mumkin." />
         </div>
       </Card>
