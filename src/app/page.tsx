@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { useUser, apiFetch, type PublicUser } from '@/lib/client'
+import { useUser, apiFetch, formatDate, type PublicUser } from '@/lib/client'
 import {
   GraduationCap, Users, Wallet, Calendar, BarChart3, BookOpen, UserCog,
   LayoutDashboard, ClipboardCheck, Settings, LogOut, Plus, Trash2, Pencil,
@@ -361,14 +361,27 @@ function BlockedScreen({ user, onActivated, onLogout }: { user: PublicUser; onAc
       <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="relative z-10 w-full max-w-md">
         <div className="glass rounded-3xl shadow-2xl border border-white/10 p-8 backdrop-blur-xl">
           <div className="flex justify-center mb-6">
-            <motion.div animate={{ scale: [1, 1.05, 1] }} transition={{ duration: 2, repeat: Infinity }} className="w-20 h-20 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-2xl shadow-amber-500/30"><Lock className="w-10 h-10 text-white" /></motion.div>
+            <motion.div animate={{ scale: [1, 1.05, 1] }} transition={{ duration: 2, repeat: Infinity }} className="w-20 h-20 rounded-2xl bg-gradient-to-br from-red-500 to-rose-600 flex items-center justify-center shadow-2xl shadow-red-500/30"><Lock className="w-10 h-10 text-white" /></motion.div>
           </div>
-          <h2 className="text-center text-2xl font-bold text-white mb-2">Litsenziya bloklangan</h2>
-          <p className="text-center text-slate-300 text-sm mb-6">Hurmatli <span className="font-semibold text-white">{user.full_name}</span>, sizning bepul 10 kunlik sinov muddatingiz tugadi. Tizimda davom etish uchun aktivatsiya kodini kiriting.</p>
+          <h2 className="text-center text-2xl font-bold text-white mb-2">Tizim bloklangan</h2>
+          <p className="text-center text-slate-300 text-sm mb-6">Hurmatli <span className="font-semibold text-white">{user.full_name}</span>, aktivlik muddati tugagan. Tizimni davom ettirish uchun aktivatsiya kodini kiriting.</p>
+
+          {/* Holat ma'lumotlari */}
+          <div className="grid grid-cols-2 gap-2 mb-6">
+            <div className="rounded-xl bg-white/5 border border-white/10 p-3 text-center">
+              <div className="text-[10px] text-slate-400 uppercase">Holat</div>
+              <div className="text-sm font-bold text-red-400 mt-1">Bloklangan</div>
+            </div>
+            <div className="rounded-xl bg-white/5 border border-white/10 p-3 text-center">
+              <div className="text-[10px] text-slate-400 uppercase">Oxirgi aktivatsiya</div>
+              <div className="text-sm font-bold text-white mt-1">{user.last_activation_at ? formatDate(user.last_activation_at) : '—'}</div>
+            </div>
+          </div>
+
           <form onSubmit={handleActivate} className="space-y-4">
             <div>
               <label className="block text-xs font-semibold text-slate-300 mb-2">AKTIVATSIYA KODI</label>
-              <input value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} placeholder="XXXX-XXXX-XXXX-XXXX-XXXX-XXXX" className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white font-mono tracking-wider text-center focus:bg-white/10 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/30 outline-none transition" required />
+              <input value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} placeholder="XXXX-XXXX-XXXX-XXXX-XXXX-XXXX" className="w-full px-4 py-3 rounded-xl bg-white/5 border-2 border-white/10 text-white font-mono tracking-wider text-center focus:bg-white/10 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/30 outline-none transition" required />
             </div>
             {err && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="px-4 py-2.5 rounded-xl bg-red-500/20 border border-red-500/30 text-sm text-red-200">{err}</motion.div>}
             {success && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="px-4 py-2.5 rounded-xl bg-emerald-500/20 border border-emerald-500/30 text-sm text-emerald-200 flex items-center gap-2"><CheckCircle className="w-4 h-4" /> {success}</motion.div>}
@@ -377,12 +390,18 @@ function BlockedScreen({ user, onActivated, onLogout }: { user: PublicUser; onAc
               {loading ? 'Tekshirilmoqda...' : 'Aktivlashtirish'}
             </button>
           </form>
-          <div className="mt-6 pt-6 border-t border-white/10">
-            <div className="text-center text-xs text-slate-400 mb-3">AKTIVATSIYA KODINI OLISH UCHUN</div>
+
+          {/* Eslatma */}
+          <div className="mt-5 p-3 rounded-xl bg-blue-500/10 border border-blue-500/30">
+            <div className="text-xs text-blue-200 leading-relaxed">
+              <strong className="text-blue-100">Adminga murojaat qiling</strong> va aktivatsiya kodini sotib oling. Kod Telegram orqali yuboriladi. Kod kiritilgandan so'ng tizim 30 kunga aktiv bo'ladi.
+            </div>
+          </div>
+
+          <div className="mt-5 pt-5 border-t border-white/10">
             <a href={TELEGRAM_URL} target="_blank" rel="noreferrer" className="block w-full py-3 rounded-xl bg-[#229ED9] hover:bg-[#1d8bc4] text-white font-semibold shadow-lg transition-all hover:scale-[1.01] active:scale-[0.99] flex items-center justify-center gap-2">
-              <TelegramIcon className="w-5 h-5" />Telegram: @{TELEGRAM_HANDLE}
+              <TelegramIcon className="w-5 h-5" />Adminga murojaat: @{TELEGRAM_HANDLE}
             </a>
-            <p className="text-center text-xs text-slate-400 mt-3 leading-relaxed">To'lovni amalga oshiring va @<strong className="text-slate-200">{TELEGRAM_HANDLE}</strong> akkauntiga yozing. Sizga 30 kunlik aktivatsiya kodi yuboriladi.</p>
           </div>
           <button onClick={onLogout} className="mt-4 w-full text-center text-xs text-slate-500 hover:text-slate-300 transition">Tizimdan chiqish</button>
         </div>

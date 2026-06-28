@@ -59,6 +59,7 @@ export async function POST(req: NextRequest) {
       .update({
         status: 'active',
         active_until: newActiveUntil.toISOString(),
+        last_activation_at: now.toISOString(),
         updated_at: now.toISOString(),
       })
       .eq('id', sess.id)

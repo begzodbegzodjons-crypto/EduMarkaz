@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useState, useCallback } from 'react'
 import { motion } from 'framer-motion'
-import { apiFetch, formatDate, type PublicUser } from '@/lib/client'
+import { apiFetch, formatDate, formatDateTime, type PublicUser } from '@/lib/client'
 import {
   Plus, Trash2, Bell, Settings as SettingsIcon, TelegramIcon, KeyRound,
   CheckCircle, AlertTriangle, Copy, Sparkles, Crown, Phone, MapPin,
@@ -219,7 +219,7 @@ function FAQItem({ q, a }: { q: string; a: string }) {
 // ============================================================================
 //  LITSENZIYA PANEL
 // ============================================================================
-export function LicensePanel({ user }: { user: PublicUser }) {
+export function LicensePanel({ user, onActivated }: { user: PublicUser; onActivated?: () => void }) {
   const [code, setCode] = useState('')
   const [loading, setLoading] = useState(false)
   const [err, setErr] = useState<string | null>(null)
@@ -233,10 +233,9 @@ export function LicensePanel({ user }: { user: PublicUser }) {
     if (!ok) return setErr(error || 'Xatolik')
     setSuccess(`Tabriklaymiz! Sizning tizimga kirish huquqingiz ${data?.days_added || 30} kunga uzaytirildi.`)
     setCode('')
-    setTimeout(() => window.location.reload(), 2000)
+    setTimeout(() => onActivated?.() || window.location.reload(), 2000)
   }
 
-  const isAdmin = user.role === 'admin'
   const isTrial = user.status === 'trial'
   const isActive = user.status === 'active'
   const isBlocked = user.status === 'blocked'
@@ -245,99 +244,100 @@ export function LicensePanel({ user }: { user: PublicUser }) {
     <div className="space-y-5 max-w-2xl">
       <div><h1 className="text-2xl lg:text-3xl font-bold">Litsenziya</h1><p className="text-muted-foreground text-sm mt-1">Tizimga kirish huquqi</p></div>
 
-      {/* Hozirgi holat */}
+      {/* Hozirgi holat — batafsil */}
       <Card>
         <div className="p-6">
-          <div className="flex items-center gap-4 mb-4">
-            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center ${isAdmin ? 'bg-gradient-to-br from-amber-500 to-orange-600' : isActive ? 'bg-gradient-to-br from-emerald-500 to-teal-600' : isTrial ? 'bg-gradient-to-br from-amber-500 to-orange-600' : 'bg-gradient-to-br from-red-500 to-rose-600'}`}>
-              {isAdmin ? <Crown className="w-7 h-7 text-white" /> : isActive ? <CheckCircle className="w-7 h-7 text-white" /> : isTrial ? <Sparkles className="w-7 h-7 text-white" /> : <AlertTriangle className="w-7 h-7 text-white" />}
+          <div className="flex items-center gap-4 mb-5">
+            <div className={`w-16 h-16 rounded-2xl flex items-center justify-center ${isActive ? 'bg-gradient-to-br from-emerald-500 to-teal-600' : isTrial ? 'bg-gradient-to-br from-amber-500 to-orange-600' : 'bg-gradient-to-br from-red-500 to-rose-600'}`}>
+              {isActive ? <CheckCircle className="w-8 h-8 text-white" /> : isTrial ? <Sparkles className="w-8 h-8 text-white" /> : <AlertTriangle className="w-8 h-8 text-white" />}
             </div>
             <div>
-              <div className="text-xs text-muted-foreground">Joriy holat</div>
-              <div className="text-xl font-bold">
-                {isAdmin ? 'Administrator' : isActive ? 'Aktiv' : isTrial ? 'Bepul sinov' : 'Bloklangan'}
-              </div>
-              <div className="text-xs text-muted-foreground mt-1">
-                {isAdmin ? 'Cheksiz muddatga' : user.days_left > 0 ? `${user.days_left} kun qoldi` : 'Muddat tugagan'}
+              <div className="text-xs text-muted-foreground uppercase tracking-wide">Joriy holat</div>
+              <div className="text-2xl font-bold">
+                {isActive ? 'Aktiv' : isTrial ? 'Bepul sinov' : 'Bloklangan'}
               </div>
             </div>
           </div>
 
+          {/* Aktivlik ma'lumotlari */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {/* Qolgan kun */}
+            <div className={`rounded-xl p-4 ${isActive ? 'bg-emerald-50 border border-emerald-200' : isTrial ? 'bg-amber-50 border border-amber-200' : 'bg-red-50 border border-red-200'}`}>
+              <div className="text-xs text-muted-foreground">Aktivlik kunlari qoldi</div>
+              <div className={`text-2xl font-bold mt-1 ${isActive ? 'text-emerald-700' : isTrial ? 'text-amber-700' : 'text-red-700'}`}>
+                {user.days_left} kun
+              </div>
+              <div className="text-[10px] text-muted-foreground mt-1">
+                {isActive && user.active_until && `Tugaydi: ${formatDate(user.active_until)}`}
+                {isTrial && user.trial_ends_at && `Sinov tugaydi: ${formatDate(user.trial_ends_at)}`}
+                {isBlocked && 'Muddat tugagan'}
+              </div>
+            </div>
+
+            {/* Oxirgi aktivatsiya */}
+            <div className="rounded-xl p-4 bg-muted/40 border border-border/40">
+              <div className="text-xs text-muted-foreground">Oxirgi aktivatsiya</div>
+              <div className="text-base font-bold mt-1">
+                {user.last_activation_at ? formatDate(user.last_activation_at) : '—'}
+              </div>
+              <div className="text-[10px] text-muted-foreground mt-1">
+                {user.last_activation_at ? formatDateTime(user.last_activation_at) : 'Hali aktivlashtirilmagan'}
+              </div>
+            </div>
+          </div>
+
+          {/* Holat eslatmalari */}
           {isTrial && (
-            <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-sm">
-              <div className="font-semibold text-amber-700">Diqqat!</div>
-              <div className="text-amber-900 mt-1">Sinov muddati {user.days_left} kundan so'ng tugaydi. Tizimda davom etish uchun vaqtida aktivatsiya kodi oling.</div>
+            <div className="mt-4 bg-amber-50 border border-amber-200 rounded-xl p-3 text-sm">
+              <div className="font-semibold text-amber-700 flex items-center gap-2"><Sparkles className="w-4 h-4" /> Bepul sinov davom etmoqda</div>
+              <div className="text-amber-900 mt-1">Sinov muddati {user.days_left} kundan so'ng tugaydi. Tugagandan so'ng tizim bloklanadi.</div>
+            </div>
+          )}
+          {isActive && (
+            <div className="mt-4 bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-sm">
+              <div className="font-semibold text-emerald-700 flex items-center gap-2"><CheckCircle className="w-4 h-4" /> Tizim faol</div>
+              <div className="text-emerald-900 mt-1">Tizimga kirish huquqingiz aktiv. {user.days_left} kun qoldi.</div>
             </div>
           )}
           {isBlocked && (
-            <div className="bg-red-50 border border-red-200 rounded-xl p-3 text-sm">
-              <div className="font-semibold text-red-700">Tizim bloklangan!</div>
-              <div className="text-red-900 mt-1">Davom etish uchun aktivatsiya kodini kiriting yoki @{TELEGRAM_HANDLE} ga bog'laning.</div>
+            <div className="mt-4 bg-red-50 border border-red-200 rounded-xl p-3 text-sm">
+              <div className="font-semibold text-red-700 flex items-center gap-2"><AlertTriangle className="w-4 h-4" /> Tizim bloklangan</div>
+              <div className="text-red-900 mt-1">Aktivlik muddati tugagan. Davom etish uchun adminga murojaat qiling va aktivatsiya kodini oling.</div>
             </div>
           )}
         </div>
       </Card>
 
       {/* Aktivatsiya kodi kiritish */}
-      {!isAdmin && (
-        <Card>
-          <CardHeader title="Aktivatsiya kodi" subtitle="30 kunlik aktivlik uchun" />
-          <div className="p-5">
-            <form onSubmit={handleActivate} className="space-y-4">
-              <Field label="Kodni kiriting">
-                <input value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} placeholder="XXXX-XXXX-XXXX-XXXX-XXXX-XXXX" className="erp-input font-mono tracking-wider text-center" />
-              </Field>
-              {err && <div className="px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-sm text-red-700">{err}</div>}
-              {success && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="px-4 py-3 rounded-xl bg-emerald-50 border border-emerald-200 text-sm text-emerald-700 flex items-center gap-2"><CheckCircle className="w-4 h-4" /> {success}</motion.div>}
-              <PrimaryButton type="submit" disabled={loading || !code} className="w-full">
-                {loading ? 'Tekshirilmoqda...' : <><KeyRound className="w-4 h-4" /> Aktivlashtirish</>}
-              </PrimaryButton>
-            </form>
-          </div>
-        </Card>
-      )}
+      <Card>
+        <CardHeader title="Aktivatsiya kodi" subtitle="Sotib olingan kodni kiriting" />
+        <div className="p-5">
+          <form onSubmit={handleActivate} className="space-y-4">
+            <Field label="Aktivatsiya kodini kiriting">
+              <input value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} placeholder="XXXX-XXXX-XXXX-XXXX-XXXX-XXXX" className="erp-input font-mono tracking-wider text-center text-lg" />
+            </Field>
+            {err && <div className="px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-sm text-red-700">{err}</div>}
+            {success && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="px-4 py-3 rounded-xl bg-emerald-50 border border-emerald-200 text-sm text-emerald-700 flex items-center gap-2"><CheckCircle className="w-4 h-4" /> {success}</motion.div>}
+            <PrimaryButton type="submit" disabled={loading || !code} className="w-full">
+              {loading ? 'Tekshirilmoqda...' : <><KeyRound className="w-4 h-4" /> Aktivlashtirish</>}
+            </PrimaryButton>
+          </form>
 
-      {/* Kod olish yo'riqnoma */}
-      {!isAdmin && (
-        <Card>
-          <CardHeader title="Aktivatsiya kodini qanday olish mumkin?" />
-          <div className="p-5 space-y-3">
-            <div className="flex gap-3">
-              <div className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-sm shrink-0">1</div>
-              <div className="text-sm"><div className="font-semibold">To'lovni amalga oshiring</div><div className="text-muted-foreground mt-0.5">Narx va to'lov turlari haqida @{TELEGRAM_HANDLE} dan so'rang.</div></div>
+          {/* Eslatma */}
+          <div className="mt-5 p-4 rounded-xl bg-blue-50 border border-blue-200">
+            <div className="text-xs font-semibold text-blue-700 mb-2">ℹ Eslatma</div>
+            <div className="text-sm text-blue-900 leading-relaxed">
+              Aktivatsiya kodini sotib olish uchun adminga murojaat qiling. Kod Telegram orqali yuboriladi.
+              Aktivatsiya kodi kirgizilgandan so'ng tizimga kirish huquqi 30 kunga uzaytiriladi.
             </div>
-            <div className="flex gap-3">
-              <div className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-sm shrink-0">2</div>
-              <div className="text-sm"><div className="font-semibold">Telegramga yozing</div><div className="text-muted-foreground mt-0.5">@{TELEGRAM_HANDLE} akkauntiga to'lov chekini yuboring.</div></div>
-            </div>
-            <div className="flex gap-3">
-              <div className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-sm shrink-0">3</div>
-              <div className="text-sm"><div className="font-semibold">Kodni oling</div><div className="text-muted-foreground mt-0.5">Tez orada sizga 30 kunlik aktivatsiya kodi yuboriladi.</div></div>
-            </div>
-            <div className="flex gap-3">
-              <div className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-sm shrink-0">4</div>
-              <div className="text-sm"><div className="font-semibold">Kodni kiriting</div><div className="text-muted-foreground mt-0.5">Yuqoridagi maydonga kodni kiriting va "Aktivlashtirish" tugmasini bosing.</div></div>
-            </div>
-            <a href={TELEGRAM_URL} target="_blank" rel="noreferrer" className="block mt-4 px-4 py-3 rounded-xl bg-[#229ED9] hover:bg-[#1d8bc4] text-white text-center font-semibold transition">
-              <TelegramIcon className="w-5 h-5 inline mr-2" />@{TELEGRAM_HANDLE} ga yozish
-            </a>
           </div>
-        </Card>
-      )}
 
-      {/* Admin uchun eslatma */}
-      {isAdmin && (
-        <Card>
-          <div className="p-5 text-center">
-            <Crown className="w-10 h-10 text-amber-500 mx-auto mb-2" />
-            <div className="font-semibold text-sm">Administrator rejimi</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Aktivatsiya kodlari generatsiyasi alohida admin panelda amalga oshiriladi.
-              <br />URL: <code className="font-mono text-emerald-600">/?admin=norinkomp2024admin</code>
-            </p>
-          </div>
-        </Card>
-      )}
+          {/* Telegram murojaat */}
+          <a href={TELEGRAM_URL} target="_blank" rel="noreferrer" className="mt-4 block w-full py-3.5 rounded-xl bg-[#229ED9] hover:bg-[#1d8bc4] text-white text-center font-semibold transition-all hover:scale-[1.01] active:scale-[0.99] shadow-lg shadow-blue-500/25">
+            <TelegramIcon className="w-5 h-5 inline mr-2" />Adminga murojaat qiling: @{TELEGRAM_HANDLE}
+          </a>
+        </div>
+      </Card>
     </div>
   )
 }

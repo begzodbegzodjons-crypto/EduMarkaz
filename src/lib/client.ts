@@ -14,6 +14,7 @@ export interface PublicUser {
   trial_ends_at: string | null
   active_until: string | null
   last_login_at: string | null
+  last_activation_at: string | null
   days_left: number
 }
 

@@ -27,6 +27,7 @@ export interface PublicUser extends SessionUser {
   address: string | null
   trial_started_at: string | null
   last_login_at: string | null
+  last_activation_at: string | null
   days_left: number
 }
 
@@ -210,6 +211,7 @@ export function toPublicUser(u: DbUser): PublicUser {
     trial_ends_at: u.trial_ends_at,
     active_until: u.active_until,
     last_login_at: u.last_login_at,
+    last_activation_at: (u as any).last_activation_at || null,
     days_left: daysLeft(u),
   }
 }
