@@ -170,14 +170,16 @@ class QueryBuilder {
   }
 
   private resolveNested(row: Row, cols: string): Row {
-    // cols "*, student:students(id,full_name), group:groups(id,name)"
-    // demo'da faqat "field:table(columns)" formatini qo'llab-quvvatlaymiz
+    // cols: "*, student:students(id,full_name), group:groups(id,name,course:courses(id,name))"
+    // Nested relation'larni qo'llab-quvvatlaydi (recursive)
     if (cols === '*') return row
-    const parts = cols.split(',').map((p) => p.trim())
+    const parts = this.splitTopLevel(cols)
     const result: Row = { ...row }
     for (const p of parts) {
-      if (p === '*') continue
-      const m = p.match(/^(\w+):(\w+)\(([^)]*)\)$/)
+      const trimmed = p.trim()
+      if (trimmed === '*') continue
+      // field:table(columns)
+      const m = trimmed.match(/^(\w+):(\w+)\((.*)\)$/)
       if (m) {
         const [, alias, table, tableCols] = m
         const fkCol = `${alias}_id`
@@ -185,19 +187,34 @@ class QueryBuilder {
         if (fkVal) {
           const target = (demoDB[table] || []).find((x) => x.id === fkVal)
           if (target) {
-            if (tableCols === '*') result[alias] = target
-            else {
-              const picked: Row = {}
-              tableCols.split(',').forEach((c) => { const cc = c.trim(); picked[cc] = target[cc] })
-              result[alias] = picked
-            }
+            // Recursive nested resolution
+            result[alias] = this.resolveNested({ ...target }, tableCols)
           } else {
             result[alias] = null
           }
+        } else {
+          result[alias] = null
         }
+      } else {
+        // oddgina column nomi
+        result[trimmed] = row[trimmed]
       }
     }
     return result
+  }
+
+  // Vergul bo'yicha ajratadi, lekin qavslar ichidagi vergullarga tegmaydi
+  private splitTopLevel(s: string): string[] {
+    const parts: string[] = []
+    let depth = 0, current = ''
+    for (const ch of s) {
+      if (ch === '(') { depth++; current += ch }
+      else if (ch === ')') { depth--; current += ch }
+      else if (ch === ',' && depth === 0) { parts.push(current); current = '' }
+      else current += ch
+    }
+    if (current.trim()) parts.push(current)
+    return parts
   }
 
   private execute() {

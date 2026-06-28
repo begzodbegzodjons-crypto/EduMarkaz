@@ -9,7 +9,7 @@ export async function GET(req: NextRequest) {
   const url = new URL(req.url)
   const teacherId = url.searchParams.get('teacher_id')
   const date = url.searchParams.get('date')
-  let q = sb.from('teacher_attendance').select('*, teacher:teachers(id,full_name), group:groups(id,name)').eq('user_id', user.id).order('lesson_date', { ascending: false }).limit(1000)
+  let q = sb.from('teacher_attendance').select('*, teacher:teachers(id,full_name,subject), group:groups(id,name,course:courses(id,name))').eq('user_id', user.id).order('lesson_date', { ascending: false }).limit(1000)
   if (teacherId) q = q.eq('teacher_id', teacherId)
   if (date) q = q.eq('lesson_date', date)
   const { data, error } = await q
@@ -40,6 +40,18 @@ export async function POST(req: NextRequest) {
     user_id: user.id, teacher_id, group_id: group_id || null, lesson_date,
     status: status || 'present', notes: notes || null,
   }).select().single()
+  if (error) return NextResponse.json({ ok: false, error: error.message }, { status: 500 })
+  return NextResponse.json({ ok: true, attendance: data })
+}
+
+export async function PUT(req: NextRequest) {
+  const guard = await requireActiveUser()
+  if ('error' in guard) return guard.error
+  const { user, sb } = guard
+  const body = await req.json()
+  const { id, ...patch } = body || {}
+  if (!id) return NextResponse.json({ ok: false, error: 'id majburiy.' }, { status: 400 })
+  const { data, error } = await sb.from('teacher_attendance').update(patch).eq('id', id).eq('user_id', user.id).select().single()
   if (error) return NextResponse.json({ ok: false, error: error.message }, { status: 500 })
   return NextResponse.json({ ok: true, attendance: data })
 }

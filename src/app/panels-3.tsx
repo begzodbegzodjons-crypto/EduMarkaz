@@ -311,32 +311,96 @@ export function TeacherAttendancePanel() {
   const [items, setItems] = useState<any[]>([])
   const [teachers, setTeachers] = useState<any[]>([])
   const [groups, setGroups] = useState<any[]>([])
+  const [courses, setCourses] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
-  const [teacherId, setTeacherId] = useState('')
   const [groupId, setGroupId] = useState('')
   const [lessonDate, setLessonDate] = useState(new Date().toISOString().slice(0, 10))
-  const [status, setStatus] = useState('present')
+  const [records, setRecords] = useState<any[]>([])
   const [saving, setSaving] = useState(false)
 
   const load = useCallback(async () => {
     setLoading(true)
-    const [a, t, g] = await Promise.all([apiFetch('/api/teacher-attendance'), apiFetch('/api/teachers'), apiFetch('/api/groups')])
+    const [a, t, g, c] = await Promise.all([apiFetch('/api/teacher-attendance'), apiFetch('/api/teachers'), apiFetch('/api/groups'), apiFetch('/api/courses')])
     if (a.ok) setItems(a.data?.attendance || [])
     if (t.ok) setTeachers(t.data?.teachers || [])
     if (g.ok) setGroups(g.data?.groups || [])
+    if (c.ok) setCourses(c.data?.courses || [])
     setLoading(false)
   }, [])
 
   useEffect(() => { load() }, [load])
 
-  async function handleAdd() {
-    if (!teacherId) return alert('O\'qituvchi tanlang')
+  // O'qituvchi → biriktirilgan guruhlar → kurs nomi
+  const teachersWithCourse = useMemo(() => {
+    return teachers.map((t) => {
+      const teacherGroups = groups.filter((g) => g.teacher_id === t.id)
+      const courseNames = Array.from(new Set(teacherGroups.map((g) => g.course?.name).filter(Boolean)))
+      return {
+        ...t,
+        course_names: courseNames,
+        group_count: teacherGroups.length,
+      }
+    })
+  }, [teachers, groups])
+
+  // Sana tanlanganda — barcha o'qituvchilar uchun yozuv yaratamiz
+  useEffect(() => {
+    if (teachersWithCourse.length > 0) {
+      const existing = items.filter((a) => a.lesson_date === lessonDate)
+      const newRecs = teachersWithCourse.map((t) => {
+        const ex = existing.find((e) => e.teacher_id === t.id && (!groupId || e.group_id === groupId))
+        return {
+          id: ex?.id || null,
+          teacher_id: t.id,
+          teacher_name: t.full_name,
+          teacher_subject: t.subject,
+          course_names: t.course_names,
+          status: ex?.status || 'present',
+        }
+      })
+      // Guruh filter bo'lsa, shu guruhga biriktirilgan o'qituvchilarni ko'rsatamiz
+      const filtered = groupId ? newRecs.filter((r) => {
+        const t = teachers.find((x) => x.id === r.teacher_id)
+        return groups.some((g) => g.id === groupId && g.teacher_id === t?.id)
+      }) : newRecs
+      setRecords(filtered)
+    } else {
+      setRecords([])
+    }
+  }, [teachersWithCourse, lessonDate, items, groupId, groups, teachers])
+
+  function updateRecord(i: number, status: string) {
+    setRecords((prev) => {
+      const r = [...prev]
+      r[i] = { ...r[i], status }
+      return r
+    })
+  }
+
+  async function handleSave() {
+    if (records.length === 0) return alert('O\'qituvchilar yo\'q')
     setSaving(true)
-    const { ok, error } = await apiFetch('/api/teacher-attendance', { method: 'POST', body: JSON.stringify({ teacher_id: teacherId, group_id: groupId || null, lesson_date: lessonDate, status }) })
+    // Yangi yozuvlar
+    const newRecs = records.filter((r) => !r.id).map((r) => ({
+      teacher_id: r.teacher_id, group_id: groupId || null, lesson_date: lessonDate, status: r.status,
+    }))
+    // Yangilash
+    const updates = records.filter((r) => r.id)
+    let ok = true, errMsg = ''
+    if (newRecs.length > 0) {
+      const res = await apiFetch('/api/teacher-attendance', { method: 'POST', body: JSON.stringify({ records: newRecs }) })
+      if (!res.ok) { ok = false; errMsg = res.error || '' }
+    }
+    for (const u of updates) {
+      const res = await apiFetch('/api/teacher-attendance', { method: 'PUT', body: JSON.stringify({ id: u.id, status: u.status }) })
+      if (!res.ok) { ok = false; errMsg = res.error || '' }
+    }
     setSaving(false)
-    if (!ok) return alert(error)
+    if (!ok) return alert(errMsg || 'Xatolik')
+    alert('Ustozlar davomati saqlandi!')
     load()
   }
+
   async function handleDelete(id: string) { if (!confirm('O\'chirmoqchimisiz?')) return; const { ok, error } = await apiFetch(`/api/teacher-attendance?id=${id}`, { method: 'DELETE' }); if (!ok) return alert(error); load() }
 
   const recentByDate = useMemo(() => {
@@ -346,37 +410,67 @@ export function TeacherAttendancePanel() {
       if (!m[key]) m[key] = []
       m[key].push(a)
     })
-    return Object.entries(m).sort(([a], [b]) => b.localeCompare(a))
+    return Object.entries(m).sort(([a], [b]) => b.localeCompare(a)).slice(0, 5)
   }, [items])
 
   return (
     <div className="space-y-5">
-      <div><h1 className="text-2xl lg:text-3xl font-bold">Ustozlar davomati</h1><p className="text-muted-foreground text-sm mt-1">O'qituvchilar darsga kelishi</p></div>
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <div><h1 className="text-2xl lg:text-3xl font-bold">Ustozlar davomati</h1><p className="text-muted-foreground text-sm mt-1">O'qituvchilar darsga kelishi — kartochka ko'rinishida</p></div>
+      </div>
 
+      {/* Tanlovlar */}
       <Card>
-        <CardHeader title="Yangi yozuv qo'shish" />
-        <div className="p-4 grid sm:grid-cols-5 gap-3 items-end">
-          <Field label="O'qituvchi *"><select className="erp-input" value={teacherId} onChange={(e) => setTeacherId(e.target.value)}><option value="">— Tanlang —</option>{teachers.map((t) => <option key={t.id} value={t.id}>{t.full_name}</option>)}</select></Field>
-          <Field label="Guruh"><select className="erp-input" value={groupId} onChange={(e) => setGroupId(e.target.value)}><option value="">— Tanlang —</option>{groups.map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}</select></Field>
-          <Field label="Sana"><input type="date" className="erp-input" value={lessonDate} onChange={(e) => setLessonDate(e.target.value)} /></Field>
-          <Field label="Holat"><select className="erp-input" value={status} onChange={(e) => setStatus(e.target.value)}><option value="present">Keldi</option><option value="absent">Kelmadi</option><option value="late">Kechikdi</option><option value="excused">Sababli</option></select></Field>
-          <PrimaryButton onClick={handleAdd} disabled={saving}>{saving ? '...' : 'Qo\'shish'}</PrimaryButton>
+        <div className="p-4 grid sm:grid-cols-2 gap-3">
+          <Field label="Guruh (ixtiyoriy — bo'sh = barchasi)"><select className="erp-input" value={groupId} onChange={(e) => setGroupId(e.target.value)}><option value="">Barcha guruhlar</option>{groups.map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}</select></Field>
+          <Field label="Dars sanasi *"><input type="date" className="erp-input" value={lessonDate} onChange={(e) => setLessonDate(e.target.value)} /></Field>
         </div>
       </Card>
 
+      {/* O'qituvchilar ro'yxati kartochka ko'rinishida */}
       <Card>
-        <CardHeader title="Davomat tarixi" subtitle={`${items.length} yozuv`} />
-        {loading ? <PanelLoader /> : recentByDate.length === 0 ? <EmptyState title="Hozircha davomat yo'q" /> : (
-          <div className="p-4 pt-0 space-y-4">
+        <CardHeader title="O'qituvchilar" subtitle={`${records.length} murabbiy • ${formatDate(lessonDate)}`} action={<PrimaryButton onClick={handleSave} disabled={saving || records.length === 0}>{saving ? 'Saqlanmoqda...' : 'Saqlash'}</PrimaryButton>} />
+        {loading ? <PanelLoader /> : records.length === 0 ? <EmptyState title="O'qituvchilar yo'q" description="Avval O'qituvchilar bo'limidan murabbiy qo'shing." /> : (
+          <div className="p-4 pt-3 grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {records.map((r, i) => (
+              <motion.div key={r.teacher_id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }} className="p-3 rounded-xl bg-muted/30 border border-border/40">
+                <div className="flex items-center gap-2 mb-2">
+                  <Avatar name={r.teacher_name} color="cyan" />
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-semibold truncate">{r.teacher_name}</div>
+                    {r.teacher_subject && <div className="text-[10px] text-muted-foreground truncate">📚 {r.teacher_subject}</div>}
+                    {r.course_names?.length > 0 && <div className="text-[10px] text-emerald-600 truncate">🎯 {r.course_names.join(', ')}</div>}
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-1">
+                  {ATT_STATUS.map((opt) => (
+                    <button key={opt.v} type="button" onClick={() => updateRecord(i, opt.v)} className={`px-2 py-1.5 rounded-lg text-[10px] font-semibold transition ${r.status === opt.v ? opt.cls : 'bg-white text-muted-foreground border border-border/50 hover:bg-muted'}`}>{opt.label}</button>
+                  ))}
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        )}
+      </Card>
+
+      {/* So'nggi davomatlar */}
+      <Card>
+        <CardHeader title="So'nggi davomatlar" subtitle="Oxirgi 5 kun" />
+        {recentByDate.length === 0 ? <EmptyState title="Hozircha davomat yo'q" /> : (
+          <div className="p-4 pt-0 space-y-3">
             {recentByDate.map(([date, recs]) => (
               <div key={date}>
                 <div className="text-xs font-semibold text-muted-foreground mb-2">{formatDate(date)}</div>
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2">
                   {recs.map((a) => (
                     <div key={a.id} className="flex items-center justify-between px-3 py-2 rounded-lg bg-muted/40">
-                      <div className="min-w-0">
-                        <div className="text-sm font-medium truncate">{a.teacher?.full_name || '—'}</div>
-                        <div className="text-[10px] text-muted-foreground">{a.group?.name || '—'}</div>
+                      <div className="min-w-0 flex items-center gap-2">
+                        <Avatar name={a.teacher?.full_name || '?'} color="cyan" />
+                        <div className="min-w-0">
+                          <div className="text-sm font-medium truncate">{a.teacher?.full_name || '—'}</div>
+                          <div className="text-[10px] text-muted-foreground truncate">{a.teacher?.subject || '—'}</div>
+                          {a.group?.name && <div className="text-[10px] text-emerald-600 truncate">{a.group.name}</div>}
+                        </div>
                       </div>
                       <div className="flex items-center gap-1"><AttStatusChip status={a.status} /><IconButton danger onClick={() => handleDelete(a.id)}><Trash2 className="w-3 h-3" /></IconButton></div>
                     </div>
