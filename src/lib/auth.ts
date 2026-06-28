@@ -216,33 +216,38 @@ export function toPublicUser(u: DbUser): PublicUser {
   }
 }
 
-// ---------- ADMIN SECRET (sayt egasi uchun) ----------
-// Admin panelga kirish uchun maxfiy URL so'zi
-// ?admin=norinkomp2024admin bilan kiriladi
-const ADMIN_SECRET = process.env.ADMIN_SECRET || 'norinkomp2024admin'
+// ---------- ADMIN PANEL (sayt egasi uchun) ----------
+// URL: /?adminkod bilan kiriladi (maxfiy kalit so'z)
+// So'ng parol so'raladi: Balandtoglar1 (env'dan olinadi)
+const ADMIN_URL_KEYWORD = process.env.NEXT_PUBLIC_ADMIN_URL || 'adminkod'
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'Balandtoglar1'
 
-/**
- * Admin secret ni tekshiradi (admin panel uchun).
- * Header orqali keladi: x-admin-secret
- */
-export function verifyAdminSecret(secret: string | null | undefined): boolean {
-  if (!secret) return false
-  return secret === ADMIN_SECRET
+export function getAdminUrlKeyword(): string {
+  return ADMIN_URL_KEYWORD
 }
 
 /**
- * Admin huquqini tekshiradi — session admin bo'lsa YOKI secret to'g'ri bo'lsa.
+ * Admin parolini tekshiradi (admin panel uchun).
+ * Header orqali keladi: x-admin-password
  */
-export async function requireAdmin(req: any): Promise<{ ok: boolean; error?: string; isSecret?: boolean }> {
-  // 1. x-admin-secret header tekshirish
-  const secret = req.headers?.get?.('x-admin-secret') || req.headers?.['x-admin-secret']
-  if (verifyAdminSecret(secret)) {
-    return { ok: true, isSecret: true }
+export function verifyAdminPassword(password: string | null | undefined): boolean {
+  if (!password) return false
+  return password === ADMIN_PASSWORD
+}
+
+/**
+ * Admin huquqini tekshiradi — session admin bo'lsa YOKI parol to'g'ri bo'lsa.
+ */
+export async function requireAdmin(req: any): Promise<{ ok: boolean; error?: string }> {
+  // 1. x-admin-password header tekshirish
+  const password = req.headers?.get?.('x-admin-password') || req.headers?.['x-admin-password']
+  if (verifyAdminPassword(password)) {
+    return { ok: true }
   }
   // 2. Admin session tekshirish
   const sess = await getSession()
   if (sess && sess.role === 'admin') {
-    return { ok: true, isSecret: false }
+    return { ok: true }
   }
   return { ok: false, error: 'Admin huquqi kerak.' }
 }

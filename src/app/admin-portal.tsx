@@ -1,23 +1,146 @@
 'use client'
 import { useEffect, useState, useCallback } from 'react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { apiFetch, formatDate, formatDateTime } from '@/lib/client'
 import {
   GraduationCap, Plus, KeyRound, Crown, Copy, CheckCircle, Sparkles,
-  Users, Search, Spinner, Download, X, TelegramIcon,
+  Users, Search, Spinner, Download, X, TelegramIcon, Lock,
 } from '@/components/icons'
 
-const ADMIN_SECRET = process.env.NEXT_PUBLIC_ADMIN_SECRET || 'norinkomp2024admin'
 const TELEGRAM_HANDLE = process.env.NEXT_PUBLIC_TELEGRAM_HANDLE || 'norinkomp'
 const TELEGRAM_URL = process.env.NEXT_PUBLIC_TELEGRAM_URL || `https://t.me/${TELEGRAM_HANDLE}`
 
 /**
  * Admin Portal — faqat sayt egasi uchun.
- * URL: /?admin=norinkomp2024admin bilan kiriladi.
+ * URL: /?adminkod bilan kiriladi.
+ * Parol so'raladi (env'dagi ADMIN_PASSWORD).
  * Faqat aktivatsiya kodi generatsiyasi va mijozlar ro'yxati.
  */
 export function AdminPortal({ onExit }: { onExit: () => void }) {
+  const [authed, setAuthed] = useState(false)
+  const [password, setPassword] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [err, setErr] = useState<string | null>(null)
+
+  // sessionStorage'dan parolni tekshiramiz
+  useEffect(() => {
+    const stored = sessionStorage.getItem('admin_password')
+    if (stored) {
+      setAuthed(true)
+    }
+  }, [])
+
+  async function handleLogin(e: React.FormEvent) {
+    e.preventDefault()
+    setLoading(true); setErr(null)
+
+    // Admin parolini tekshirish uchun API'ga so'rov
+    const { ok, error } = await apiFetch('/api/admin/verify', {
+      method: 'POST',
+      body: JSON.stringify({ password }),
+      headers: { 'x-admin-password': password },
+    })
+
+    if (!ok) {
+      setErr(error || 'Parol noto\'g\'ri')
+      setLoading(false)
+      return
+    }
+
+    // Parolni sessionStorage'da saqlaymiz (browser yopilguncha)
+    sessionStorage.setItem('admin_password', password)
+    setAuthed(true)
+    setLoading(false)
+  }
+
+  function handleLogout() {
+    sessionStorage.removeItem('admin_password')
+    setAuthed(false)
+    setPassword('')
+    onExit()
+  }
+
+  // Parol kirish ekrani
+  if (!authed) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-950 relative overflow-hidden">
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="aurora-blob absolute -top-40 -left-40 w-[40rem] h-[40rem] rounded-full bg-amber-500/20 blur-3xl" />
+          <div className="aurora-blob absolute top-1/2 -right-40 w-[35rem] h-[35rem] rounded-full bg-orange-500/15 blur-3xl" style={{ animationDelay: '4s' }} />
+        </div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="relative z-10 w-full max-w-md"
+        >
+          <div className="glass rounded-3xl shadow-2xl border border-white/10 p-8 backdrop-blur-xl">
+            <div className="flex justify-center mb-6">
+              <motion.div
+                animate={{ scale: [1, 1.05, 1] }}
+                transition={{ duration: 2, repeat: Infinity }}
+                className="w-20 h-20 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-2xl shadow-amber-500/30"
+              >
+                <Lock className="w-10 h-10 text-white" />
+              </motion.div>
+            </div>
+
+            <h2 className="text-center text-2xl font-bold text-white mb-2">Admin Panel</h2>
+            <p className="text-center text-slate-300 text-sm mb-6">
+              Davom etish uchun parolni kiriting
+            </p>
+
+            <form onSubmit={handleLogin} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-2">PAROL</label>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="w-full px-4 py-3 rounded-xl bg-white/5 border-2 border-white/10 text-white text-center focus:bg-white/10 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/30 outline-none transition"
+                  required
+                  autoFocus
+                />
+              </div>
+              {err && (
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="px-4 py-2.5 rounded-xl bg-red-500/20 border border-red-500/30 text-sm text-red-200 text-center">
+                  {err}
+                </motion.div>
+              )}
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 text-white font-semibold shadow-lg shadow-amber-500/25 hover:shadow-amber-500/40 transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {loading ? <Spinner className="w-4 h-4" /> : <KeyRound className="w-4 h-4" />}
+                {loading ? 'Tekshirilmoqda...' : 'Kirish'}
+              </button>
+            </form>
+
+            <button
+              onClick={onExit}
+              className="mt-6 w-full text-center text-xs text-slate-500 hover:text-slate-300 transition"
+            >
+              ← Bosh sahifaga qaytish
+            </button>
+          </div>
+        </motion.div>
+      </div>
+    )
+  }
+
+  // Admin panel (parol tasdiqlanganidan keyin)
+  return <AdminDashboard onExit={handleLogout} />
+}
+
+// ============================================================================
+//  ADMIN DASHBOARD (parol tasdiqlanganidan keyin)
+// ============================================================================
+function AdminDashboard({ onExit }: { onExit: () => void }) {
   const [tab, setTab] = useState<'codes' | 'users'>('codes')
+  const password = sessionStorage.getItem('admin_password') || ''
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-950 relative overflow-hidden">
@@ -53,7 +176,7 @@ export function AdminPortal({ onExit }: { onExit: () => void }) {
           </button>
         </div>
 
-        {tab === 'codes' ? <CodesTab /> : <UsersTab />}
+        {tab === 'codes' ? <CodesTab password={password} /> : <UsersTab password={password} />}
       </div>
     </div>
   )
@@ -62,7 +185,7 @@ export function AdminPortal({ onExit }: { onExit: () => void }) {
 // ============================================================================
 //  KODLAR TAB
 // ============================================================================
-function CodesTab() {
+function CodesTab({ password }: { password: string }) {
   const [codes, setCodes] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [genCount, setGenCount] = useState(1)
@@ -74,11 +197,11 @@ function CodesTab() {
   const load = useCallback(async () => {
     setLoading(true)
     const { ok, data } = await apiFetch(`/api/admin/generate-code?status=${filterStatus}`, {
-      headers: { 'x-admin-secret': ADMIN_SECRET },
+      headers: { 'x-admin-password': password },
     })
     if (ok) setCodes(data?.codes || [])
     setLoading(false)
-  }, [filterStatus])
+  }, [filterStatus, password])
 
   useEffect(() => { load() }, [load])
 
@@ -87,7 +210,7 @@ function CodesTab() {
     const { ok, error } = await apiFetch('/api/admin/generate-code', {
       method: 'POST',
       body: JSON.stringify({ count: genCount, duration_days: genDays }),
-      headers: { 'x-admin-secret': ADMIN_SECRET },
+      headers: { 'x-admin-password': password },
     })
     setGenerating(false)
     if (!ok) return alert(error)
@@ -243,7 +366,7 @@ function CodeStatusChip({ status }: { status: string }) {
 // ============================================================================
 //  MIJOZLAR TAB
 // ============================================================================
-function UsersTab() {
+function UsersTab({ password }: { password: string }) {
   const [users, setUsers] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
@@ -251,12 +374,12 @@ function UsersTab() {
 
   useEffect(() => {
     apiFetch('/api/admin/users', {
-      headers: { 'x-admin-secret': ADMIN_SECRET },
+      headers: { 'x-admin-password': password },
     }).then(({ ok, data }) => {
       if (ok) setUsers(data?.users || [])
       setLoading(false)
     })
-  }, [])
+  }, [password])
 
   const filtered = users.filter((u) => {
     if (statusFilter !== 'all' && u.status !== statusFilter) return false

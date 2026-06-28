@@ -24,7 +24,7 @@ import { AdminPortal } from './admin-portal'
 
 const TELEGRAM_HANDLE = process.env.NEXT_PUBLIC_TELEGRAM_HANDLE || 'norinkomp'
 const TELEGRAM_URL = process.env.NEXT_PUBLIC_TELEGRAM_URL || `https://t.me/${TELEGRAM_HANDLE}`
-const ADMIN_SECRET = process.env.NEXT_PUBLIC_ADMIN_SECRET || 'norinkomp2024admin'
+const ADMIN_URL_KEYWORD = process.env.NEXT_PUBLIC_ADMIN_URL || 'adminkod'
 
 const NAV_SECTIONS = [
   { title: 'Boshqaruv', items: [{ id: 'dashboard', label: 'Boshqaruv paneli', icon: LayoutDashboard }] },
@@ -74,12 +74,14 @@ export default function Home() {
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login')
   const [adminMode, setAdminMode] = useState(false)
 
-  // Admin URL parametri: ?admin=norinkomp2024admin
+  // Admin URL parametri: ?adminkod (yoki env'dagi kalit so'z)
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search)
-      const adminParam = params.get('admin')
-      if (adminParam === ADMIN_SECRET) {
+      // Faqat kalit so'z mavjud bo'lsa admin rejimini yoqamiz
+      // params.get(ADMIN_URL_KEYWORD) emas — kalit so'z o'zi URL'da bo'lishi kerak
+      // URL: /?adminkod (qiymatsiz)
+      if (params.has(ADMIN_URL_KEYWORD)) {
         setAdminMode(true)
       }
     }
@@ -89,9 +91,10 @@ export default function Home() {
   if (adminMode) {
     return <AdminPortal onExit={() => {
       setAdminMode(false)
+      sessionStorage.removeItem('admin_password')
       // URL parametrini olib tashlash
       const url = new URL(window.location.href)
-      url.searchParams.delete('admin')
+      url.searchParams.delete(ADMIN_URL_KEYWORD)
       window.history.replaceState({}, '', url.toString())
     }} />
   }
