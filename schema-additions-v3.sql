@@ -162,16 +162,10 @@ begin
   ])
   loop
     execute format(
-      'drop policy if exists "service_role_all_%I" on public.%I;',
-      t, t
-    );
-
-    execute format(
-      'create policy "service_role_all_%I" on public.%I
-       for all
-       using (auth.role() = ''service_role'')
-       with check (auth.role() = ''service_role'');',
+      'create policy if not exists "service_role_all_%I" on public.%I for all using (auth.role() = ''service_role'') with check (auth.role() = ''service_role'');',
       t, t
     );
   end loop;
-end $$;
+end$$;
+
+-- =====================================================================

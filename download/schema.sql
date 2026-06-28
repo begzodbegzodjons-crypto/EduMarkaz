@@ -237,7 +237,7 @@ create table if not exists public.settings (
     center_name   text,
     center_phone  text,
     center_address text,
-    currency      text default 'so\'m',
+    currency      text default 'so''m',
     telegram_bot_token text,
     sms_api_key   text,
     monthly_payment_amount numeric(12,2) default 0,
@@ -295,11 +295,19 @@ begin
   ])
   loop
     execute format(
-      'create policy if not exists "service_role_all_%I" on public.%I for all using (auth.role() = ''service_role'') with check (auth.role() = ''service_role'');',
+      'drop policy if exists "service_role_all_%I" on public.%I;',
+      t, t
+    );
+
+    execute format(
+      'create policy "service_role_all_%I" on public.%I
+       for all
+       using (auth.role() = ''service_role'')
+       with check (auth.role() = ''service_role'');',
       t, t
     );
   end loop;
-end$$;
+end $$;
 
 -- ---------- ADMIN FOYDALANUVCHI ----------
 -- email: admin@erp.uz  parol: admin12345
@@ -481,11 +489,19 @@ begin
   ])
   loop
     execute format(
-      'create policy if not exists "service_role_all_%I" on public.%I for all using (auth.role() = ''service_role'') with check (auth.role() = ''service_role'');',
+      'drop policy if exists "service_role_all_%I" on public.%I;',
+      t, t
+    );
+
+    execute format(
+      'create policy "service_role_all_%I" on public.%I
+       for all
+       using (auth.role() = ''service_role'')
+       with check (auth.role() = ''service_role'');',
       t, t
     );
   end loop;
-end$$;
+end $$;
 
 -- =====================================================================
 
