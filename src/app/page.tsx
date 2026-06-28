@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useUser, apiFetch, type PublicUser } from '@/lib/client'
 import {
@@ -20,9 +20,11 @@ import {
   SchedulePanel, ExamsPanel, CertificatesPanel, DiscountsPanel, DebtsPanel,
   TeacherPayoutsPanel, NotificationsPanel, ReportsExportPanel,
 } from './panels-6'
+import { AdminPortal } from './admin-portal'
 
 const TELEGRAM_HANDLE = process.env.NEXT_PUBLIC_TELEGRAM_HANDLE || 'norinkomp'
 const TELEGRAM_URL = process.env.NEXT_PUBLIC_TELEGRAM_URL || `https://t.me/${TELEGRAM_HANDLE}`
+const ADMIN_SECRET = process.env.NEXT_PUBLIC_ADMIN_SECRET || 'norinkomp2024admin'
 
 const NAV_SECTIONS = [
   { title: 'Boshqaruv', items: [{ id: 'dashboard', label: 'Boshqaruv paneli', icon: LayoutDashboard }] },
@@ -70,6 +72,29 @@ const NAV_SECTIONS = [
 export default function Home() {
   const { user, loading, refresh } = useUser()
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login')
+  const [adminMode, setAdminMode] = useState(false)
+
+  // Admin URL parametri: ?admin=norinkomp2024admin
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search)
+      const adminParam = params.get('admin')
+      if (adminParam === ADMIN_SECRET) {
+        setAdminMode(true)
+      }
+    }
+  }, [])
+
+  // Admin portal — sayt egasi uchun
+  if (adminMode) {
+    return <AdminPortal onExit={() => {
+      setAdminMode(false)
+      // URL parametrini olib tashlash
+      const url = new URL(window.location.href)
+      url.searchParams.delete('admin')
+      window.history.replaceState({}, '', url.toString())
+    }} />
+  }
 
   if (loading) return <FullScreenLoader />
   if (!user) return <AuthScreen mode={authMode} onModeChange={setAuthMode} onSuccess={() => refresh()} />

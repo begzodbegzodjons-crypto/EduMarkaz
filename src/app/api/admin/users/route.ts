@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getSession } from '@/lib/auth'
+import { requireAdmin } from '@/lib/auth'
 import { isSupabaseConfigured } from '@/lib/supabase'
 import { getSupabase } from '@/lib/supabase'
 import { getDemoSupabase } from '@/lib/demo-db'
@@ -10,9 +10,8 @@ function getDB() {
 
 export async function GET(req: NextRequest) {
   try {
-    const sess = await getSession()
-    if (!sess) return NextResponse.json({ ok: false, error: 'Avval tizimga kiring.' }, { status: 401 })
-    if (sess.role !== 'admin') return NextResponse.json({ ok: false, error: 'Faqat admin.' }, { status: 403 })
+    const adminCheck = await requireAdmin(req)
+    if (!adminCheck.ok) return NextResponse.json({ ok: false, error: adminCheck.error }, { status: 403 })
 
     const sb = getDB()
     const { data, error } = await sb

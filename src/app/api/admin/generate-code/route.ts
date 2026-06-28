@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getSession, audit } from '@/lib/auth'
+import { requireAdmin } from '@/lib/auth'
+import { audit } from '@/lib/auth'
 import { isSupabaseConfigured } from '@/lib/supabase'
 import { getSupabase } from '@/lib/supabase'
 import { getDemoSupabase } from '@/lib/demo-db'
@@ -16,9 +17,8 @@ function generateCode(): string {
 
 export async function POST(req: NextRequest) {
   try {
-    const sess = await getSession()
-    if (!sess) return NextResponse.json({ ok: false, error: 'Avval tizimga kiring.' }, { status: 401 })
-    if (sess.role !== 'admin') return NextResponse.json({ ok: false, error: 'Faqat admin.' }, { status: 403 })
+    const adminCheck = await requireAdmin(req)
+    if (!adminCheck.ok) return NextResponse.json({ ok: false, error: adminCheck.error }, { status: 403 })
 
     const body = await req.json().catch(() => ({}))
     const count = Math.min(50, Math.max(1, Number(body.count) || 1))
@@ -35,7 +35,6 @@ export async function POST(req: NextRequest) {
         code,
         duration_days: durationDays,
         status: 'unused',
-        generated_by: sess.id,
         expires_at: expiresAt,
       })
     }
@@ -46,8 +45,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: false, error: error.message }, { status: 500 })
     }
 
-    await audit(sess.id, 'generate_codes', 'activation_codes', null, { count, duration_days: durationDays }, req.headers.get('x-forwarded-for') || '', req.headers.get('user-agent') || '')
-
     return NextResponse.json({ ok: true, codes: data })
   } catch (e: any) {
     console.error('generate-code crash:', e)
@@ -57,9 +54,8 @@ export async function POST(req: NextRequest) {
 
 export async function GET(req: NextRequest) {
   try {
-    const sess = await getSession()
-    if (!sess) return NextResponse.json({ ok: false, error: 'Avval tizimga kiring.' }, { status: 401 })
-    if (sess.role !== 'admin') return NextResponse.json({ ok: false, error: 'Faqat admin.' }, { status: 403 })
+    const adminCheck = await requireAdmin(req)
+    if (!adminCheck.ok) return NextResponse.json({ ok: false, error: adminCheck.error }, { status: 403 })
 
     const url = new URL(req.url)
     const status = url.searchParams.get('status') || 'all'

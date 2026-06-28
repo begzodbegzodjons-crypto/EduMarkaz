@@ -213,3 +213,34 @@ export function toPublicUser(u: DbUser): PublicUser {
     days_left: daysLeft(u),
   }
 }
+
+// ---------- ADMIN SECRET (sayt egasi uchun) ----------
+// Admin panelga kirish uchun maxfiy URL so'zi
+// ?admin=norinkomp2024admin bilan kiriladi
+const ADMIN_SECRET = process.env.ADMIN_SECRET || 'norinkomp2024admin'
+
+/**
+ * Admin secret ni tekshiradi (admin panel uchun).
+ * Header orqali keladi: x-admin-secret
+ */
+export function verifyAdminSecret(secret: string | null | undefined): boolean {
+  if (!secret) return false
+  return secret === ADMIN_SECRET
+}
+
+/**
+ * Admin huquqini tekshiradi — session admin bo'lsa YOKI secret to'g'ri bo'lsa.
+ */
+export async function requireAdmin(req: any): Promise<{ ok: boolean; error?: string; isSecret?: boolean }> {
+  // 1. x-admin-secret header tekshirish
+  const secret = req.headers?.get?.('x-admin-secret') || req.headers?.['x-admin-secret']
+  if (verifyAdminSecret(secret)) {
+    return { ok: true, isSecret: true }
+  }
+  // 2. Admin session tekshirish
+  const sess = await getSession()
+  if (sess && sess.role === 'admin') {
+    return { ok: true, isSecret: false }
+  }
+  return { ok: false, error: 'Admin huquqi kerak.' }
+}

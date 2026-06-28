@@ -325,83 +325,20 @@ export function LicensePanel({ user }: { user: PublicUser }) {
         </Card>
       )}
 
-      {/* Admin panel */}
-      {isAdmin && <AdminCodePanel />}
-    </div>
-  )
-}
-
-function AdminCodePanel() {
-  const [codes, setCodes] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
-  const [genCount, setGenCount] = useState(1)
-  const [genDays, setGenDays] = useState(30)
-  const [generating, setGenerating] = useState(false)
-  const [copied, setCopied] = useState<string | null>(null)
-  const [filterStatus, setFilterStatus] = useState<'all' | 'unused' | 'used' | 'expired'>('all')
-
-  const load = useCallback(async () => {
-    setLoading(true)
-    const { ok, data } = await apiFetch(`/api/admin/generate-code?status=${filterStatus}`)
-    if (ok) setCodes(data?.codes || [])
-    setLoading(false)
-  }, [filterStatus])
-
-  useEffect(() => { load() }, [load])
-
-  async function handleGenerate() {
-    setGenerating(true)
-    const { ok, error } = await apiFetch('/api/admin/generate-code', { method: 'POST', body: JSON.stringify({ count: genCount, duration_days: genDays }) })
-    setGenerating(false)
-    if (!ok) return alert(error)
-    load()
-  }
-
-  function copyCode(code: string) {
-    navigator.clipboard.writeText(code)
-    setCopied(code)
-    setTimeout(() => setCopied(null), 1500)
-  }
-
-  return (
-    <Card>
-      <CardHeader title="Admin: Kod generatsiyasi" subtitle="Aktivatsiya kodlari yaratish" />
-      <div className="p-5 space-y-4">
-        <div className="grid sm:grid-cols-3 gap-3 items-end">
-          <Field label="Miqdori"><input type="number" min={1} max={50} className="erp-input" value={genCount} onChange={(e) => setGenCount(Number(e.target.value))} /></Field>
-          <Field label="Muddati (kun)"><input type="number" min={1} max={365} className="erp-input" value={genDays} onChange={(e) => setGenDays(Number(e.target.value))} /></Field>
-          <PrimaryButton onClick={handleGenerate} disabled={generating}>{generating ? 'Yaratilmoqda...' : 'Generatsiya'}</PrimaryButton>
-        </div>
-
-        <div className="flex items-center justify-between">
-          <div className="text-sm font-semibold">Kodlar ro'yxati ({codes.length})</div>
-          <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value as any)} className="px-3 py-1.5 rounded-lg border border-border/50 text-xs bg-card">
-            <option value="all">Barchasi</option><option value="unused">Bo'sh</option><option value="used">Ishlatilgan</option><option value="expired">Muddati o'tgan</option>
-          </select>
-        </div>
-
-        {loading ? <div className="text-center py-6 text-muted-foreground">Yuklanmoqda...</div> : codes.length === 0 ? <div className="text-center py-6 text-muted-foreground text-sm">Kodlar yo'q</div> : (
-          <div className="space-y-2 max-h-96 overflow-y-auto">
-            {codes.map((c) => (
-              <div key={c.id} className="flex items-center justify-between px-3 py-2 rounded-lg bg-muted/40">
-                <div className="min-w-0">
-                  <div className="font-mono text-xs font-semibold tracking-wider">{c.code}</div>
-                  <div className="text-[10px] text-muted-foreground">{c.duration_days} kun • {formatDate(c.created_at)}</div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CodeStatusChip status={c.status} />
-                  {c.status === 'unused' && (
-                    <button onClick={() => copyCode(c.code)} className="p-1.5 rounded-lg hover:bg-muted transition" title="Nusxa">
-                      {copied === c.code ? <CheckCircle className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
-                    </button>
-                  )}
-                </div>
-              </div>
-            ))}
+      {/* Admin uchun eslatma */}
+      {isAdmin && (
+        <Card>
+          <div className="p-5 text-center">
+            <Crown className="w-10 h-10 text-amber-500 mx-auto mb-2" />
+            <div className="font-semibold text-sm">Administrator rejimi</div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Aktivatsiya kodlari generatsiyasi alohida admin panelda amalga oshiriladi.
+              <br />URL: <code className="font-mono text-emerald-600">/?admin=norinkomp2024admin</code>
+            </p>
           </div>
-        )}
-      </div>
-    </Card>
+        </Card>
+      )}
+    </div>
   )
 }
 
