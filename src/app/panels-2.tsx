@@ -178,7 +178,59 @@ export function GroupsPanel() {
             <Field label="Boshlanish sana"><input type="date" className="erp-input" value={form.start_date} onChange={(e) => setForm({ ...form, start_date: e.target.value })} /></Field>
             <Field label="Tugash sana"><input type="date" className="erp-input" value={form.end_date} onChange={(e) => setForm({ ...form, end_date: e.target.value })} /></Field>
           </div>
-          <Field label="Jadval (matn)"><input className="erp-input" value={form.schedule} onChange={(e) => setForm({ ...form, schedule: e.target.value })} placeholder="Du-Chor-Juma 14:00-16:00" /></Field>
+          <Field label="Jadval">
+            <div className="space-y-2">
+              {/* 3 ta variant tugmasi */}
+              <div className="flex gap-2 flex-wrap">
+                <button
+                  type="button"
+                  onClick={() => setForm({ ...form, schedule: form.schedule && form.schedule.startsWith('Du-Chor-Juma') ? form.schedule : 'Du-Chor-Juma ' })}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
+                    form.schedule?.startsWith('Du-Chor-Juma')
+                      ? 'bg-blue-600 text-white border-blue-600'
+                      : 'bg-card text-muted-foreground border-border/50 hover:bg-muted'
+                  }`}
+                >
+                  Du-Chor-Juma
+                  <div className="text-[9px] opacity-80">(toq kunlar)</div>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setForm({ ...form, schedule: form.schedule && form.schedule.startsWith('Se-Pay-Shan') ? form.schedule : 'Se-Pay-Shan ' })}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
+                    form.schedule?.startsWith('Se-Pay-Shan')
+                      ? 'bg-emerald-600 text-white border-emerald-600'
+                      : 'bg-card text-muted-foreground border-border/50 hover:bg-muted'
+                  }`}
+                >
+                  Se-Pay-Shan
+                  <div className="text-[9px] opacity-80">(juft kunlar)</div>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setForm({ ...form, schedule: form.schedule && !form.schedule.startsWith('Du-Chor-Juma') && !form.schedule.startsWith('Se-Pay-Shan') && form.schedule !== '' ? form.schedule : 'Boshqa: ' })}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
+                    form.schedule && !form.schedule.startsWith('Du-Chor-Juma') && !form.schedule.startsWith('Se-Pay-Shan') && form.schedule !== ''
+                      ? 'bg-amber-600 text-white border-amber-600'
+                      : 'bg-card text-muted-foreground border-border/50 hover:bg-muted'
+                  }`}
+                >
+                  Boshqa
+                  <div className="text-[9px] opacity-80">(qo'lda yozish)</div>
+                </button>
+              </div>
+              {/* Vaqt maydoni va jadval matni */}
+              <input
+                className="erp-input"
+                value={form.schedule}
+                onChange={(e) => setForm({ ...form, schedule: e.target.value })}
+                placeholder="Masalan: Du-Chor-Juma 14:00-16:00"
+              />
+              <p className="text-xs text-muted-foreground">
+                Variant tugmasini bosing, so'ng vaqtni qo'shib yozing (masalan: 14:00-16:00)
+              </p>
+            </div>
+          </Field>
           <Field label="Maks talabalar soni"><input type="number" className="erp-input" value={form.max_students} onChange={(e) => setForm({ ...form, max_students: Number(e.target.value) })} /></Field>
           <div className="flex gap-2 pt-2"><PrimaryButton onClick={handleSave} className="flex-1">Saqlash</PrimaryButton><GhostButton onClick={() => setOpenModal(false)}>Bekor</GhostButton></div>
         </div>
