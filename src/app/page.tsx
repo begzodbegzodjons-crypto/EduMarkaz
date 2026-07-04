@@ -474,8 +474,8 @@ function AppShell({ user, onRefresh, onLogout }: { user: PublicUser; onRefresh: 
               <div className="font-semibold text-sm">{user.center_name || user.full_name}</div>
             </div>
           </div>
-          {/* === Chiroyli animatsiyali soat (o'rtonda) === */}
-          <div className="hidden md:block flex-1 max-w-[520px]">
+          {/* === Zamonaviy soat (o'rtonda, kattaroq) === */}
+          <div className="hidden md:flex flex-1 justify-center">
             <ForestClock />
           </div>
           <div className="flex items-center gap-3 shrink-0">
@@ -484,7 +484,7 @@ function AppShell({ user, onRefresh, onLogout }: { user: PublicUser; onRefresh: 
           </div>
         </header>
         {/* Mobil versiyada soat header ostida */}
-        <div className="md:hidden px-4 pt-3">
+        <div className="md:hidden px-4 pt-3 flex justify-center">
           <ForestClock />
         </div>
         <div className="flex-1 p-4 lg:p-8">
