@@ -151,8 +151,24 @@ export function SettingsPanel({ user }: { user: PublicUser }) {
       <Card>
         <CardHeader title="Moliyaviy sozlamalar" subtitle="Oylik to'lov summasi" />
         <div className="p-5 space-y-3">
-          <Field label="Oylik to'lov summasi (avtomatik hisob uchun)"><input type="number" className="erp-input" value={form.monthly_payment_amount} onChange={(e) => setForm({ ...form, monthly_payment_amount: Number(e.target.value) })} /></Field>
-          <p className="text-xs text-muted-foreground">Bu summa yangi talaba qo'shganda avtomatik to'lov sifatida taklif qilinadi.</p>
+          <Field label="Oylik to'lov summasi (avtomatik hisob uchun)">
+            <input
+              type="number"
+              className="erp-input"
+              value={form.monthly_payment_amount}
+              onChange={(e) => setForm({ ...form, monthly_payment_amount: Number(e.target.value) })}
+              placeholder="Masalan: 250000"
+            />
+          </Field>
+          <p className="text-xs text-muted-foreground">
+            Bu summa yangi talaba qo'shganda avtomatik to'lov sifatida taklif qilinadi.
+            Masalan: 250000 so'm kiritsangiz, yangi talaba uchun 250000 so'mlik to'lov yozuvi avtomatik yaratiladi.
+          </p>
+          {form.monthly_payment_amount === 0 && (
+            <div className="rounded-lg bg-amber-50 border border-amber-200 p-2.5 text-xs text-amber-800">
+              <strong>Ogohlantirish:</strong> Oylik to'lov summasi 0 ga teng. Yangi talabalar uchun avtomatik to'lov yozuvi yaratilmaydi. Iltimos, markazingizning oylik to'lov summasini kiriting (masalan: 250000).
+            </div>
+          )}
         </div>
       </Card>
 
