@@ -17,6 +17,7 @@ interface Teacher {
   phone: string
   login: string
   subject: string
+  center_name?: string
 }
 
 interface Group {
@@ -94,7 +95,13 @@ export default function TeacherPanelPage() {
       setLoginError(error || 'Kirishda xatolik.')
       return
     }
-    if (data?.teacher) setTeacher(data.teacher)
+    if (data?.teacher) {
+      // center_name ham saqlaymiz (login javobidan yoki me'dan)
+      setTeacher({
+        ...data.teacher,
+        center_name: data.center?.center_name || '',
+      })
+    }
   }
 
   // Logout
@@ -331,7 +338,9 @@ export default function TeacherPanelPage() {
             </div>
             <div>
               <div className="font-bold text-slate-800">O'qituvchi paneli</div>
-              <div className="text-xs text-slate-500">{teacher.full_name} · {teacher.subject || 'Fan ko\'rsatilmagan'}</div>
+              <div className="text-xs text-slate-500">
+                {teacher.center_name ? `🏫 ${teacher.center_name} · ` : ''}{teacher.full_name} · {teacher.subject || 'Fan ko\'rsatilmagan'}
+              </div>
             </div>
           </div>
           <button
@@ -470,7 +479,6 @@ export default function TeacherPanelPage() {
                           </div>
                           <div className="min-w-0">
                             <div className="font-medium text-sm text-slate-800 truncate">{s.full_name}</div>
-                            {s.phone && <div className="text-[10px] text-slate-500">{s.phone}</div>}
                           </div>
                         </div>
                         <div className="flex gap-1 shrink-0">
