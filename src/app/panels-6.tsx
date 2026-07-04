@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useState, useCallback, useMemo } from 'react'
+import React, { useEffect, useState, useCallback, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { apiFetch, formatDate, formatMoney } from '@/lib/client'
 import {
@@ -653,6 +653,7 @@ export function DiscountsPanel() {
 
 // ============================================================================
 //  TALABA QARZLARI (Debts) — avtomatik hisob (To'lovlar bilan bir xil)
+//  + Oylik breakdown (qaysi oy to'langan, qaysi oy qarz)
 // ============================================================================
 export function DebtsPanel() {
   const [balances, setBalances] = useState<any[]>([])
@@ -665,6 +666,9 @@ export function DebtsPanel() {
   const [courseFilter, setCourseFilter] = useState('all')
   const [groupFilter, setGroupFilter] = useState('all')
   const [search, setSearch] = useState('')
+
+  // Oylik breakdown ko'rsatish uchun (expand/qisqartirish)
+  const [expandedStudent, setExpandedStudent] = useState<string | null>(null)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -792,7 +796,7 @@ export function DebtsPanel() {
       <Card>
         <CardHeader
           title="Qarzdor talabalar ro'yxati"
-          subtitle={`${filtered.length} ta qarzdor · Jami qarz: ${formatMoney(filteredTotalDebt)}`}
+          subtitle={`${filtered.length} ta qarzdor · Jami qarz: ${formatMoney(filteredTotalDebt)} · Batafsil uchun qatorni bosing`}
         />
         {filtered.length === 0 ? (
           <EmptyState
@@ -820,29 +824,118 @@ export function DebtsPanel() {
                 {filtered.map((b, idx) => {
                   // Qarz oylar sonini hisoblaymiz
                   const debtMonths = b.monthly_fee > 0 ? Math.floor(b.remaining / b.monthly_fee) : 0
+                  const isExpanded = expandedStudent === b.student_id
                   return (
-                    <tr key={b.student_id} className="border-b border-border/20 hover:bg-muted/40 bg-rose-50/30">
-                      <td className="px-4 py-3 text-muted-foreground text-xs">{idx + 1}</td>
-                      <td className="px-4 py-3">
-                        <div className="font-medium">{b.full_name}</div>
-                        {b.phone && <div className="text-[10px] text-muted-foreground">📞 {b.phone}</div>}
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="text-muted-foreground">{b.course_name || '—'}</div>
-                        <div className="text-[10px] text-muted-foreground">{b.group_name || '—'}</div>
-                      </td>
-                      <td className="px-4 py-3 text-muted-foreground text-xs">{formatDate(b.enrollment_date)}</td>
-                      <td className="px-4 py-3 text-right font-medium">{formatMoney(b.monthly_fee)}</td>
-                      <td className="px-4 py-3 text-center text-muted-foreground">{b.months_enrolled}</td>
-                      <td className="px-4 py-3 text-right font-semibold text-amber-600">{formatMoney(b.total_due)}</td>
-                      <td className="px-4 py-3 text-right font-semibold text-emerald-600">{formatMoney(b.total_paid)}</td>
-                      <td className="px-4 py-3 text-right font-bold text-rose-600">{formatMoney(Math.max(0, b.remaining))}</td>
-                      <td className="px-4 py-3 text-center">
-                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${debtMonths >= 2 ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>
-                          {debtMonths >= 2 ? `${debtMonths} oy qarz` : 'Qarz'}
-                        </span>
-                      </td>
-                    </tr>
+                    <React.Fragment key={b.student_id}>
+                      <tr
+                        className={`border-b border-border/20 hover:bg-muted/40 bg-rose-50/30 cursor-pointer ${isExpanded ? 'bg-rose-100/40' : ''}`}
+                        onClick={() => setExpandedStudent(isExpanded ? null : b.student_id)}
+                      >
+                        <td className="px-4 py-3 text-muted-foreground text-xs">
+                          <div className="flex items-center gap-1">
+                            {idx + 1}
+                            <svg className={`w-3 h-3 transition-transform ${isExpanded ? 'rotate-90' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><polyline points="9 18 15 12 9 6" /></svg>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="font-medium">{b.full_name}</div>
+                          {b.phone && <div className="text-[10px] text-muted-foreground">📞 {b.phone}</div>}
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="text-muted-foreground">{b.course_name || '—'}</div>
+                          <div className="text-[10px] text-muted-foreground">{b.group_name || '—'}</div>
+                        </td>
+                        <td className="px-4 py-3 text-muted-foreground text-xs">{formatDate(b.enrollment_date)}</td>
+                        <td className="px-4 py-3 text-right font-medium">{formatMoney(b.monthly_fee)}</td>
+                        <td className="px-4 py-3 text-center text-muted-foreground">{b.months_enrolled}</td>
+                        <td className="px-4 py-3 text-right font-semibold text-amber-600">{formatMoney(b.total_due)}</td>
+                        <td className="px-4 py-3 text-right font-semibold text-emerald-600">{formatMoney(b.total_paid)}</td>
+                        <td className="px-4 py-3 text-right font-bold text-rose-600">{formatMoney(Math.max(0, b.remaining))}</td>
+                        <td className="px-4 py-3 text-center">
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${debtMonths >= 2 ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>
+                            {debtMonths >= 2 ? `${debtMonths} oy qarz` : 'Qarz'}
+                          </span>
+                        </td>
+                      </tr>
+                      {/* === Oylik breakdown (expand qilinganda) === */}
+                      {isExpanded && (
+                        <tr className="bg-card">
+                          <td colSpan={10} className="px-4 py-4">
+                            <div className="rounded-xl border border-border/50 overflow-hidden">
+                              <div className="bg-muted/40 px-4 py-2 text-xs font-semibold text-muted-foreground flex items-center justify-between">
+                                <span>📅 Oylik hisob-kitob ({b.full_name})</span>
+                                <span className="text-[10px]">Qabul: {formatDate(b.enrollment_date)} · {b.months_enrolled} oy o'tgan</span>
+                              </div>
+                              {b.monthly_breakdown && b.monthly_breakdown.length > 0 ? (
+                                <div className="overflow-x-auto">
+                                  <table className="w-full text-xs">
+                                    <thead>
+                                      <tr className="border-b border-border/40 text-[10px] text-muted-foreground">
+                                        <th className="text-left px-3 py-2 font-medium">Oy</th>
+                                        <th className="text-right px-3 py-2 font-medium">To'lash kerak</th>
+                                        <th className="text-right px-3 py-2 font-medium">To'langan</th>
+                                        <th className="text-right px-3 py-2 font-medium">Qoldiq</th>
+                                        <th className="text-center px-3 py-2 font-medium">Holat</th>
+                                      </tr>
+                                    </thead>
+                                    <tbody>
+                                      {b.monthly_breakdown.map((m: any, mi: number) => {
+                                        // Bu oy uchun to'lov (for_month yoki payment_date bo'yicha)
+                                        const monthPaid = m.paid || 0
+                                        const monthRemaining = Math.max(0, m.due - monthPaid)
+                                        const status = m.status || (monthPaid >= m.due ? 'paid' : monthPaid > 0 ? 'partial' : 'unpaid')
+                                        const statusLabel = status === 'paid' ? '✓ To\'langan' : status === 'partial' ? 'Qisman' : '✗ To\'lanmagan'
+                                        const statusCls = status === 'paid'
+                                          ? 'bg-emerald-100 text-emerald-700'
+                                          : status === 'partial'
+                                          ? 'bg-amber-100 text-amber-700'
+                                          : 'bg-rose-100 text-rose-700'
+                                        return (
+                                          <tr key={mi} className="border-b border-border/20 last:border-b-0">
+                                            <td className="px-3 py-2 font-medium">
+                                              {m.month_label || m.month}
+                                              {m.is_partial && (
+                                                <span className="ml-1 px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 text-[9px] font-semibold">
+                                                  {Math.round(m.proportion * 100)}%
+                                                </span>
+                                              )}
+                                            </td>
+                                            <td className="px-3 py-2 text-right text-amber-600">{formatMoney(m.due)}</td>
+                                            <td className="px-3 py-2 text-right text-emerald-600 font-medium">{formatMoney(monthPaid)}</td>
+                                            <td className="px-3 py-2 text-right text-rose-600 font-bold">{formatMoney(monthRemaining)}</td>
+                                            <td className="px-3 py-2 text-center">
+                                              <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${statusCls}`}>
+                                                {statusLabel}
+                                              </span>
+                                            </td>
+                                          </tr>
+                                        )
+                                      })}
+                                    </tbody>
+                                    <tfoot>
+                                      <tr className="border-t-2 border-border/60 bg-muted/30 font-bold">
+                                        <td className="px-3 py-2">JAMI:</td>
+                                        <td className="px-3 py-2 text-right text-amber-700">{formatMoney(b.total_due)}</td>
+                                        <td className="px-3 py-2 text-right text-emerald-700">{formatMoney(b.total_paid)}</td>
+                                        <td className="px-3 py-2 text-right text-rose-700">{formatMoney(Math.max(0, b.remaining))}</td>
+                                        <td></td>
+                                      </tr>
+                                    </tfoot>
+                                  </table>
+                                </div>
+                              ) : (
+                                <div className="p-4 text-center text-xs text-muted-foreground">
+                                  Oylik breakdown mavjud emas
+                                </div>
+                              )}
+                              <div className="bg-muted/20 px-4 py-2 text-[10px] text-muted-foreground border-t border-border/40">
+                                💡 <strong>Birinchi oy</strong> proportional hisoblanadi (qabul qilingan kunga qarab). To'lov qilish uchun <strong>To'lovlar</strong> bo'limiga o'ting.
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
                   )
                 })}
               </tbody>
