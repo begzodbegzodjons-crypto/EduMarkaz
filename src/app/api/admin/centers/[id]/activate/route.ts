@@ -57,16 +57,34 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       : now
     const newActiveUntil = new Date(baseDate.getTime() + days * 24 * 60 * 60 * 1000)
 
-    const { data, error } = await sb.from('users')
+    // Update payload — last_activation_at ni xavfsiz qo'shamiz
+    // (agar ustun yo'q bo'lsa, xato bermaslik uchun alohida)
+    const updatePayload: any = {
+      status: 'active',
+      active_until: newActiveUntil.toISOString(),
+      updated_at: now.toISOString(),
+    }
+
+    // Avval last_activation_at bilan urinib ko'ramiz
+    let { data, error } = await sb.from('users')
       .update({
-        status: 'active',
-        active_until: newActiveUntil.toISOString(),
+        ...updatePayload,
         last_activation_at: now.toISOString(),
-        updated_at: now.toISOString(),
       })
       .eq('id', id)
       .select('id, full_name, center_name, status, active_until')
       .single()
+
+    // Agar last_activation_at ustuni yo'q bo'lsa, uning siz yangilaymiz
+    if (error && error.message && error.message.includes('last_activation_at')) {
+      const retry = await sb.from('users')
+        .update(updatePayload)
+        .eq('id', id)
+        .select('id, full_name, center_name, status, active_until')
+        .single()
+      data = retry.data
+      error = retry.error
+    }
 
     if (error) {
       return NextResponse.json({
