@@ -943,16 +943,50 @@ function CategoryChip({ cat }: { cat: string }) {
 export function ReportsPanel() {
   const [stats, setStats] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  // To'lovlar ro'yxati hisobot uchun
+  const [payments, setPayments] = useState<any[]>([])
+  const [courses, setCourses] = useState<any[]>([])
+  const [groups, setGroups] = useState<any[]>([])
+  const [pCourseFilter, setPCourseFilter] = useState('all')
+  const [pGroupFilter, setPGroupFilter] = useState('all')
+  const [pSearch, setPSearch] = useState('')
 
   useEffect(() => {
-    apiFetch('/api/dashboard').then(({ ok, data }) => {
-      if (ok && data) setStats(data.stats)
+    Promise.all([
+      apiFetch('/api/dashboard'),
+      apiFetch('/api/payments?limit=1000'),
+      apiFetch('/api/courses'),
+      apiFetch('/api/groups'),
+    ]).then(([d, p, c, g]) => {
+      if (d.ok && d.data) setStats(d.data.stats)
+      if (p.ok) setPayments(p.data?.payments || [])
+      if (c.ok) setCourses(c.data?.courses || [])
+      if (g.ok) setGroups(g.data?.groups || [])
       setLoading(false)
     })
   }, [])
 
   if (loading) return <PanelLoader />
   if (!stats) return <div className="text-center text-muted-foreground py-12">Ma'lumot yuklanmadi.</div>
+
+  // Filtrlangan guruhlar (kurs bo'yicha)
+  const reportFilteredGroups = pCourseFilter === 'all' ? groups : groups.filter((g) => g.course_id === pCourseFilter)
+
+  // Filtrlangan to'lovlar
+  const filteredPayments = payments.filter((p) => {
+    if (pSearch) {
+      const name = p.student?.full_name || ''
+      if (!name.toLowerCase().includes(pSearch.toLowerCase())) return false
+    }
+    if (pCourseFilter !== 'all') {
+      const courseId = p.student?.course_id || p.group?.course_id
+      if (courseId !== pCourseFilter) return false
+    }
+    if (pGroupFilter !== 'all' && p.group_id !== pGroupFilter) return false
+    return true
+  })
+
+  const paymentsTotal = filteredPayments.reduce((s, p) => s + Number(p.amount || 0), 0)
 
   return (
     <div className="space-y-5">
@@ -1029,6 +1063,88 @@ export function ReportsPanel() {
             <ReportRow label="Konversiya darajasi" value={`${stats.leads.total > 0 ? Math.round((stats.leads.enrolled / stats.leads.total) * 100) : 0}%`} color="text-violet-600" bold />
           </div>
         </div>
+      </Card>
+
+      {/* === YANGI: To'lovlar jadvali hisoboti === */}
+      <Card>
+        <CardHeader title="To'lovlar jadvali" subtitle={`${filteredPayments.length} ta to'lov · Jami: ${formatMoney(paymentsTotal)}`} />
+        {/* Filtrlar */}
+        <div className="p-4 pt-0 flex gap-2 flex-wrap mb-3">
+          <div className="flex items-center gap-2 px-3 py-2 bg-card rounded-xl border border-border/50 flex-1 min-w-[200px]">
+            <svg className="w-4 h-4 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></svg>
+            <input value={pSearch} onChange={(e) => setPSearch(e.target.value)} placeholder="Talaba ismi bo'yicha qidirish..." className="flex-1 bg-transparent outline-none text-sm" />
+          </div>
+          <select value={pCourseFilter} onChange={(e) => { setPCourseFilter(e.target.value); setPGroupFilter('all') }} className="px-3 py-2 rounded-xl border border-border/50 text-sm bg-card">
+            <option value="all">Barcha kurslar</option>
+            {courses.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+          </select>
+          <select value={pGroupFilter} onChange={(e) => setPGroupFilter(e.target.value)} className="px-3 py-2 rounded-xl border border-border/50 text-sm bg-card">
+            <option value="all">Barcha guruhlar</option>
+            {reportFilteredGroups.map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}
+          </select>
+        </div>
+
+        {/* Jadval */}
+        {filteredPayments.length === 0 ? (
+          <div className="p-8 text-center text-sm text-muted-foreground">
+            <svg className="w-10 h-10 mx-auto mb-2 text-muted-foreground/40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5"><rect x="3" y="4" width="18" height="18" rx="2" /><line x1="3" y1="10" x2="21" y2="10" /></svg>
+            Hozircha to'lovlar yo'q
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border/40 text-xs text-muted-foreground">
+                  <th className="text-left px-4 py-3 font-medium">#</th>
+                  <th className="text-left px-4 py-3 font-medium">Sana / Vaqt</th>
+                  <th className="text-left px-4 py-3 font-medium">Talaba</th>
+                  <th className="text-left px-4 py-3 font-medium">Kurs</th>
+                  <th className="text-left px-4 py-3 font-medium">Guruh</th>
+                  <th className="text-right px-4 py-3 font-medium">Summa</th>
+                  <th className="text-center px-4 py-3 font-medium">Turi</th>
+                  <th className="text-left px-4 py-3 font-medium">Oy</th>
+                  <th className="text-left px-4 py-3 font-medium">Izoh</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredPayments.slice(0, 200).map((p, idx) => {
+                  // Sana + soat
+                  const dt = p.created_at ? new Date(p.created_at) : new Date(p.payment_date)
+                  const dateStr = dt.toLocaleDateString('uz-UZ')
+                  const timeStr = dt.toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' })
+                  // Oy va kun alohida
+                  const monthNames = ['Yanvar', 'Fevral', 'Mart', 'Aprel', 'May', 'Iyun', 'Iyul', 'Avgust', 'Sentabr', 'Oktabr', 'Noyabr', 'Dekabr']
+                  const monthLabel = dt.getMonth() >= 0 ? `${monthNames[dt.getMonth()]} ${dt.getDate()}` : '—'
+                  return (
+                    <tr key={p.id} className="border-b border-border/20 hover:bg-muted/40">
+                      <td className="px-4 py-3 text-muted-foreground text-xs">{idx + 1}</td>
+                      <td className="px-4 py-3">
+                        <div className="font-medium text-xs">{dateStr}</div>
+                        <div className="text-[10px] text-muted-foreground">{timeStr}</div>
+                      </td>
+                      <td className="px-4 py-3 font-medium">{p.student?.full_name || '—'}</td>
+                      <td className="px-4 py-3 text-muted-foreground">
+                        {p.student?.course?.name || '—'}
+                      </td>
+                      <td className="px-4 py-3 text-muted-foreground">{p.group?.name || '—'}</td>
+                      <td className="px-4 py-3 text-right font-bold text-emerald-600">{formatMoney(p.amount)}</td>
+                      <td className="px-4 py-3 text-center"><PaymentTypeChip type={p.payment_type} /></td>
+                      <td className="px-4 py-3 text-muted-foreground text-xs">{p.for_month || monthLabel}</td>
+                      <td className="px-4 py-3 text-muted-foreground text-xs">{p.description || '—'}</td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+              <tfoot>
+                <tr className="border-t-2 border-border/60 bg-muted/30 font-semibold">
+                  <td colSpan={5} className="px-4 py-3 text-right">Jami ({filteredPayments.length} ta to'lov):</td>
+                  <td className="px-4 py-3 text-right text-emerald-600">{formatMoney(paymentsTotal)}</td>
+                  <td colSpan={3}></td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        )}
       </Card>
     </div>
   )
