@@ -250,17 +250,29 @@ function CentersTab({ password }: { password: string }) {
   }
 
   async function handleUnblock(center: any) {
-    const daysStr = prompt(`Blokdan olib, necha kun aktiv qilamiz?\n${center.center_name}`, '30')
+    const daysStr = prompt(
+      `Blokdan chiqarish - necha kunga aktiv qilamiz?\n\n🏫 ${center.center_name}\n📊 Holat: ${center.status}\n\nKun sonini kiriting:`,
+      '30'
+    )
     if (!daysStr) return
     const days = Number(daysStr)
-    if (!days || days < 1) return alert('Noto\'g\'ri kun')
-    const { ok, error } = await apiFetch(`/api/admin/centers/${center.id}/activate`, {
+    if (!days || days < 1) return alert('Noto\'g\'ri kun kiritildi. Musbat son bo\'lishi kerak.')
+
+    const { ok, error, data } = await apiFetch(`/api/admin/centers/${center.id}/activate`, {
       method: 'POST',
       body: JSON.stringify({ days }),
       headers: { 'x-admin-password': password },
     })
-    if (!ok) return alert(error)
-    alert(`${center.center_name} blokdan chiqarildi (${days} kun)`)
+
+    if (!ok) {
+      alert(`❌ Xatolik: ${error || 'Noma\'lum xato'}\n\nMarkaz: ${center.center_name}\nKun: ${days}`)
+      return
+    }
+
+    // Yangi active_until ni ko'rsatamiz
+    const newActiveUntil = data?.user?.active_until
+    const dateStr = newActiveUntil ? new Date(newActiveUntil).toLocaleDateString('uz-UZ') : ''
+    alert(`✅ ${center.center_name}\n\n🔓 Blokdan chiqarildi!\n📅 ${days} kun aktivlashtirildi\n🗓 Yangi muddat: ${dateStr}`)
     load()
   }
 
