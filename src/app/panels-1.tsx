@@ -162,38 +162,81 @@ function DualBarChart({ data }: { data: { label: string; income: number; expense
       </div>
     )
   }
+  // SVG bilan diagramma - barlar aniq ko'rinadi
+  const chartHeight = 160
+  const chartWidth = 480
+  const barWidth = 18
+  const groupGap = 12
+  const groupWidth = barWidth * 2 + 4
+  const totalWidth = data.length * (groupWidth + groupGap) - groupGap
+  const startX = 40
+
   return (
-    <div className="flex items-end gap-2 h-48">
-      <div className="flex flex-col justify-between text-[9px] text-muted-foreground/60 pr-1" style={{ height: '100%' }}>
-        <span>{Math.round(max / 1000)}k</span>
-        <span>{Math.round(max / 2000)}k</span>
-        <span>0</span>
-      </div>
-      <div className="flex-1 flex items-end gap-2" style={{ height: '100%' }}>
-        {data.map((d, i) => (
-          <div key={i} className="flex-1 flex flex-col items-center gap-1 h-full">
-            <div className="text-[10px] text-muted-foreground font-medium h-4">{d.income > 0 ? Math.round(d.income / 1000) + 'k' : ''}</div>
-            <div className="w-full flex items-end gap-0.5 flex-1 min-h-0">
-              <div className="flex-1 bg-muted/60 rounded-t-md overflow-hidden flex items-end h-full">
-                <motion.div
-                  initial={{ height: 0 }}
-                  animate={{ height: `${(d.income / max) * 100}%` }}
-                  transition={{ duration: 0.6, delay: i * 0.05 }}
-                  className="w-full bg-gradient-to-t from-emerald-500 to-teal-400 rounded-t-md min-h-[2px]"
-                />
-              </div>
-              <div className="flex-1 bg-muted/60 rounded-t-md overflow-hidden flex items-end h-full">
-                <motion.div
-                  initial={{ height: 0 }}
-                  animate={{ height: `${(d.expense / max) * 100}%` }}
-                  transition={{ duration: 0.6, delay: i * 0.05 + 0.1 }}
-                  className="w-full bg-gradient-to-t from-rose-500 to-pink-400 rounded-t-md min-h-[2px]"
-                />
-              </div>
-            </div>
-            <div className="text-[10px] text-muted-foreground">{d.label}</div>
-          </div>
-        ))}
+    <div className="w-full">
+      <svg viewBox={`0 0 ${startX + totalWidth + 20} ${chartHeight + 30}`} className="w-full" style={{ maxHeight: '220px' }}>
+        {/* Y o'qi belgilari */}
+        <text x="2" y="14" fontSize="9" fill="currentColor" opacity="0.6">{Math.round(max / 1000)}k</text>
+        <text x="2" y={chartHeight / 2 + 4} fontSize="9" fill="currentColor" opacity="0.6">{Math.round(max / 2000)}k</text>
+        <text x="8" y={chartHeight + 4} fontSize="9" fill="currentColor" opacity="0.6">0</text>
+
+        {/* Y o'qi chiziqlari */}
+        <line x1="35" y1="10" x2={startX + totalWidth} y2="10" stroke="currentColor" strokeWidth="0.5" opacity="0.1" />
+        <line x1="35" y1={chartHeight / 2} x2={startX + totalWidth} y2={chartHeight / 2} stroke="currentColor" strokeWidth="0.5" opacity="0.1" />
+        <line x1="35" y1={chartHeight} x2={startX + totalWidth} y2={chartHeight} stroke="currentColor" strokeWidth="1" opacity="0.3" />
+
+        {/* Barlar */}
+        {data.map((d, i) => {
+          const x = startX + i * (groupWidth + groupGap)
+          const incomeHeight = (d.income / max) * chartHeight
+          const expenseHeight = (d.expense / max) * chartHeight
+          return (
+            <g key={i}>
+              {/* Income bar */}
+              <rect
+                x={x}
+                y={chartHeight - incomeHeight}
+                width={barWidth}
+                height={incomeHeight}
+                fill="url(#incomeGrad)"
+                rx="2"
+              />
+              {/* Expense bar */}
+              <rect
+                x={x + barWidth + 4}
+                y={chartHeight - expenseHeight}
+                width={barWidth}
+                height={expenseHeight}
+                fill="url(#expenseGrad)"
+                rx="2"
+              />
+              {/* Label */}
+              <text x={x + groupWidth / 2} y={chartHeight + 15} fontSize="9" fill="currentColor" opacity="0.7" textAnchor="middle">{d.label}</text>
+            </g>
+          )
+        })}
+
+        {/* Gradient definitions */}
+        <defs>
+          <linearGradient id="incomeGrad" x1="0" y1="1" x2="0" y2="0">
+            <stop offset="0%" stopColor="#10b981" />
+            <stop offset="100%" stopColor="#2dd4bf" />
+          </linearGradient>
+          <linearGradient id="expenseGrad" x1="0" y1="1" x2="0" y2="0">
+            <stop offset="0%" stopColor="#f43f5e" />
+            <stop offset="100%" stopColor="#f472b6" />
+          </linearGradient>
+        </defs>
+      </svg>
+      {/* Legenda */}
+      <div className="flex items-center gap-4 justify-center mt-2 text-xs">
+        <div className="flex items-center gap-1.5">
+          <div className="w-3 h-3 rounded-sm bg-gradient-to-t from-emerald-500 to-teal-400" />
+          <span className="text-muted-foreground">Daromad</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <div className="w-3 h-3 rounded-sm bg-gradient-to-t from-rose-500 to-pink-400" />
+          <span className="text-muted-foreground">Xarajat</span>
+        </div>
       </div>
     </div>
   )
