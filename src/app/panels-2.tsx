@@ -131,7 +131,7 @@ export function TeachersPanel() {
 }
 
 // ============================================================================
-//  GURUHLAR PANEL — kursga bog'langan
+//  GURUHLAR PANEL — kursga bog'langan + guruh detallari (o'quvchilar + davomat)
 // ============================================================================
 export function GroupsPanel() {
   const [items, setItems] = useState<any[]>([])
@@ -143,6 +143,14 @@ export function GroupsPanel() {
   const [openModal, setOpenModal] = useState(false)
   const [editing, setEditing] = useState<any>(null)
   const [form, setForm] = useState<any>({ name: '', course_id: '', teacher_id: '', start_date: '', end_date: '', schedule: '', max_students: 12 })
+
+  // Guruh detallari uchun state
+  const [selectedGroup, setSelectedGroup] = useState<any>(null)
+  const [groupStudents, setGroupStudents] = useState<any[]>([])
+  const [groupAttendance, setGroupAttendance] = useState<any[]>([])
+  const [loadingDetail, setLoadingDetail] = useState(false)
+  // Tanlangan sana (davomatni ko'rish uchun)
+  const [detailDate, setDetailDate] = useState(new Date().toISOString().slice(0, 10))
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -158,6 +166,57 @@ export function GroupsPanel() {
 
   const filtered = courseFilter === 'all' ? items : items.filter((g) => g.course_id === courseFilter)
 
+  // === Guruh detallarini yuklash (o'quvchilar + davomat) ===
+  async function openGroupDetail(g: any) {
+    setSelectedGroup(g)
+    setLoadingDetail(true)
+    // Guruh o'quvchilari (students dan filter)
+    const groupStuds = students.filter((s) => s.group_id === g.id && (s.status === 'active' || s.status === 'paused'))
+    setGroupStudents(groupStuds)
+    // Davomatni yuklash (oxirgi 30 kun)
+    const { ok, data } = await apiFetch(`/api/attendance?group_id=${g.id}&limit=500`)
+    if (ok) setGroupAttendance(data?.attendance || [])
+    else setGroupAttendance([])
+    setLoadingDetail(false)
+  }
+
+  // Davomatni sana bo'yicha qayta yuklash
+  async function reloadAttendance(groupId: string, date?: string) {
+    const dateQuery = date ? `&date=${date}` : ''
+    const { ok, data } = await apiFetch(`/api/attendance?group_id=${groupId}${dateQuery}&limit=500`)
+    if (ok) setGroupAttendance(data?.attendance || [])
+  }
+
+  // Tanlangan sanadagi davomat (student_id -> status)
+  const todayAttendance = useMemo(() => {
+    const m: Record<string, any> = {}
+    groupAttendance.forEach((a) => {
+      if (a.lesson_date === detailDate) {
+        m[a.student_id] = a
+      }
+    })
+    return m
+  }, [groupAttendance, detailDate])
+
+  // Barcha noyob sanalar (oxirgi 30 kun)
+  const attendanceDates = useMemo(() => {
+    const dates = [...new Set(groupAttendance.map((a) => a.lesson_date))]
+    return dates.sort((a, b) => b.localeCompare(a)).slice(0, 30)
+  }, [groupAttendance])
+
+  // Sanalar bo'yicha davomat (har bir o'quvchi uchun)
+  const attendanceMatrix = useMemo(() => {
+    const matrix: Record<string, Record<string, string>> = {}
+    groupStudents.forEach((s) => {
+      matrix[s.id] = {}
+      attendanceDates.forEach((d) => {
+        const rec = groupAttendance.find((a) => a.student_id === s.id && a.lesson_date === d)
+        matrix[s.id][d] = rec?.status || '-'
+      })
+    })
+    return matrix
+  }, [groupStudents, groupAttendance, attendanceDates])
+
   async function handleSave() {
     if (editing) {
       const { ok, error } = await apiFetch('/api/groups', { method: 'PUT', body: JSON.stringify({ id: editing.id, ...form }) })
@@ -170,10 +229,200 @@ export function GroupsPanel() {
   }
   async function handleDelete(id: string) { if (!confirm('O\'chirmoqchimisiz?')) return; const { ok, error } = await apiFetch(`/api/groups?id=${id}`, { method: 'DELETE' }); if (!ok) return alert(error); load() }
 
+  // Status badge
+  function statusBadge(status: string) {
+    if (status === 'present') return <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[9px] font-bold">K</span>
+    if (status === 'absent') return <span className="px-1.5 py-0.5 rounded bg-red-100 text-red-700 text-[9px] font-bold">·</span>
+    if (status === 'late') return <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 text-[9px] font-bold">Kech</span>
+    return <span className="text-[9px] text-muted-foreground">—</span>
+  }
+
+  // === Guruh detallari ko'rinishi ===
+  if (selectedGroup) {
+    return (
+      <div className="space-y-5">
+        {/* Boshqaga qaytish */}
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => { setSelectedGroup(null); setGroupStudents([]); setGroupAttendance([]) }}
+            className="p-2 rounded-lg hover:bg-muted text-muted-foreground"
+            title="Guruhlarga qaytish"
+          >
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" /></svg>
+          </button>
+          <div>
+            <h1 className="text-2xl lg:text-3xl font-bold">{selectedGroup.name}</h1>
+            <p className="text-muted-foreground text-sm mt-1">
+              {selectedGroup.course?.name || 'Kurs yo\'q'} · {groupStudents.length} o'quvchi
+              {selectedGroup.teacher && ` · ${selectedGroup.teacher.full_name}`}
+            </p>
+          </div>
+        </div>
+
+        {/* Guruh ma'lumotlari */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="bg-card rounded-2xl border border-border/50 p-3">
+            <div className="text-[10px] text-muted-foreground">O'qituvchi</div>
+            <div className="text-sm font-semibold mt-0.5">{selectedGroup.teacher?.full_name || '—'}</div>
+          </div>
+          <div className="bg-card rounded-2xl border border-border/50 p-3">
+            <div className="text-[10px] text-muted-foreground">Jadval</div>
+            <div className="text-sm font-semibold mt-0.5">{selectedGroup.schedule || '—'}</div>
+          </div>
+          <div className="bg-card rounded-2xl border border-border/50 p-3">
+            <div className="text-[10px] text-muted-foreground">Boshlanish</div>
+            <div className="text-sm font-semibold mt-0.5">{formatDate(selectedGroup.start_date) || '—'}</div>
+          </div>
+          <div className="bg-card rounded-2xl border border-border/50 p-3">
+            <div className="text-[10px] text-muted-foreground">Talabalar</div>
+            <div className="text-sm font-semibold mt-0.5">{groupStudents.length}/{selectedGroup.max_students}</div>
+          </div>
+        </div>
+
+        {loadingDetail ? <PanelLoader /> : (
+          <div className="grid lg:grid-cols-2 gap-4">
+            {/* === CHAP TOMON: O'quvchilar ro'yxati === */}
+            <Card>
+              <CardHeader title="O'quvchilar ro'yxati" subtitle={`${groupStudents.length} ta o'quvchi`} />
+              {groupStudents.length === 0 ? (
+                <EmptyState title="O'quvchilar yo'q" description="Bu guruhga talaba qo'shing." />
+              ) : (
+                <div className="divide-y divide-border/20">
+                  {groupStudents.map((s, idx) => {
+                    const todayStatus = todayAttendance[s.id]?.status
+                    return (
+                      <div key={s.id} className="px-4 py-3 flex items-center justify-between hover:bg-muted/40">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="w-7 h-7 rounded-full bg-slate-200 flex items-center justify-center text-xs font-bold text-slate-600 shrink-0">
+                            {idx + 1}
+                          </div>
+                          <div className="min-w-0">
+                            <div className="font-medium text-sm truncate">{s.full_name}</div>
+                            {s.phone && <div className="text-[10px] text-muted-foreground">{s.phone}</div>}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          {/* Bugungi davomat holati */}
+                          {todayStatus ? (
+                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${
+                              todayStatus === 'present' ? 'bg-emerald-100 text-emerald-700' :
+                              todayStatus === 'absent' ? 'bg-red-100 text-red-700' :
+                              'bg-amber-100 text-amber-700'
+                            }`}>
+                              {todayStatus === 'present' ? '✓ Keldi' : todayStatus === 'absent' ? '✗ Kelmadi' : '⏰ Kechikdi'}
+                            </span>
+                          ) : (
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-500">
+                              Belgilanmagan
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </Card>
+
+            {/* === O'NG TOMON: Davomat jadvali === */}
+            <Card>
+              <CardHeader
+                title="Davomat jadvali"
+                subtitle={`${attendanceDates.length} ta dars kuni · O'qituvchi paneli bilan sinxron`}
+              />
+              <div className="p-4 pt-0">
+                {/* Sana tanlash */}
+                <div className="flex items-center gap-2 mb-3">
+                  <label className="text-xs text-muted-foreground">Sana:</label>
+                  <input
+                    type="date"
+                    value={detailDate}
+                    onChange={(e) => { setDetailDate(e.target.value); reloadAttendance(selectedGroup.id, e.target.value) }}
+                    className="px-3 py-1.5 rounded-lg border border-border/50 text-sm bg-card"
+                  />
+                  <button
+                    onClick={() => reloadAttendance(selectedGroup.id)}
+                    className="ml-auto px-2 py-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs"
+                    title="Davomatni qayta yuklash"
+                  >
+                    🔄 Yangilash
+                  </button>
+                </div>
+
+                {/* Davomat jadvali */}
+                {attendanceDates.length === 0 ? (
+                  <div className="py-8 text-center text-sm text-muted-foreground">
+                    <svg className="w-10 h-10 mx-auto mb-2 text-muted-foreground/40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5"><rect x="3" y="4" width="18" height="18" rx="2" /><line x1="3" y1="10" x2="21" y2="10" /></svg>
+                    Hozircha davomat yo'q
+                    <div className="text-[10px] mt-1">O'qituvchi panelidan davomat belgilang</div>
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-xs">
+                      <thead>
+                        <tr className="border-b border-border/40 text-[10px] text-muted-foreground">
+                          <th className="text-left px-2 py-2 font-medium sticky left-0 bg-card">O'quvchi</th>
+                          {attendanceDates.map((d) => (
+                            <th key={d} className="text-center px-1 py-2 font-medium whitespace-nowrap" title={d}>
+                              {new Date(d).toLocaleDateString('uz-UZ', { day: '2-digit', month: '2-digit' })}
+                            </th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {groupStudents.map((s) => (
+                          <tr key={s.id} className="border-b border-border/20 hover:bg-muted/40">
+                            <td className="px-2 py-2 font-medium sticky left-0 bg-card truncate max-w-[120px]">{s.full_name}</td>
+                            {attendanceDates.map((d) => {
+                              const status = attendanceMatrix[s.id]?.[d] || '-'
+                              return (
+                                <td key={d} className="text-center px-1 py-2">
+                                  {status !== '-' ? statusBadge(status) : <span className="text-[9px] text-muted-foreground">—</span>}
+                                </td>
+                              )
+                            })}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+
+                {/* Legenda */}
+                <div className="mt-3 pt-3 border-t border-border/40 flex items-center gap-3 text-[10px] text-muted-foreground flex-wrap">
+                  <span className="flex items-center gap-1">
+                    <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[9px] font-bold">K</span> Keldi
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <span className="px-1.5 py-0.5 rounded bg-red-100 text-red-700 text-[9px] font-bold">·</span> Kelmadi
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 text-[9px] font-bold">Kech</span> Kechikdi
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <span className="text-[9px]">—</span> Belgilanmagan
+                  </span>
+                </div>
+              </div>
+            </Card>
+
+            {/* Ma'lumot */}
+            <div className="lg:col-span-2 rounded-xl bg-blue-50 border border-blue-200 p-3 text-xs text-blue-800">
+              <strong>ℹ️ Davomat haqida:</strong> Bu yerda ko'rsatilgan davomat <strong>o'qituvchi paneli</strong> (/teacher) orqali belgilangan.
+              O'qituvchi o'z paroli bilan kirib, dars vaqtida davomat belgilaydi — bu ma'lumotlar shu yerda ham avtomatik ko'rinadi.
+              Hammasi bitta baza (attendance jadvali) dan olinadi.
+            </div>
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  // === Asosiy guruhlar ro'yxati ===
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between flex-wrap gap-3">
-        <div><h1 className="text-2xl lg:text-3xl font-bold">Guruhlar</h1><p className="text-muted-foreground text-sm mt-1">{filtered.length} guruh</p></div>
+        <div><h1 className="text-2xl lg:text-3xl font-bold">Guruhlar</h1><p className="text-muted-foreground text-sm mt-1">{filtered.length} guruh · batafsil uchun guruhni bosing</p></div>
         <PrimaryButton onClick={() => { setEditing(null); setForm({ name: '', course_id: '', teacher_id: '', start_date: '', end_date: '', schedule: '', max_students: 12 }); setOpenModal(true) }}><Plus className="w-4 h-4" /> Yangi guruh</PrimaryButton>
       </div>
       <div className="flex gap-2 flex-wrap">
@@ -188,25 +437,33 @@ export function GroupsPanel() {
             const count = students.filter((s) => s.group_id === g.id).length
             const isFull = count >= g.max_students
             return (
-              <Card key={g.id}><div className="p-4">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3"><Avatar name={g.name} color="amber" /><div><div className="font-semibold">{g.name}</div><div className="text-xs text-muted-foreground">{g.course?.name || 'Kurs yo\'q'}</div></div></div>
-                  <div className="flex gap-1">
-                    <IconButton title="Tahrirlash" onClick={() => { setEditing(g); setForm({ name: g.name, course_id: g.course_id || '', teacher_id: g.teacher_id || '', start_date: g.start_date || '', end_date: g.end_date || '', schedule: g.schedule || '', max_students: g.max_students || 12 }); setOpenModal(true) }}><Pencil className="w-3.5 h-3.5" /></IconButton>
-                    <IconButton title="O'chirish" danger onClick={() => handleDelete(g.id)}><Trash2 className="w-3.5 h-3.5" /></IconButton>
+              <Card key={g.id}>
+                <div
+                  className="p-4 cursor-pointer hover:bg-muted/30 transition-colors"
+                  onClick={() => openGroupDetail(g)}
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-3"><Avatar name={g.name} color="amber" /><div><div className="font-semibold">{g.name}</div><div className="text-xs text-muted-foreground">{g.course?.name || 'Kurs yo\'q'}</div></div></div>
+                    <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
+                      <IconButton title="Tahrirlash" onClick={() => { setEditing(g); setForm({ name: g.name, course_id: g.course_id || '', teacher_id: g.teacher_id || '', start_date: g.start_date || '', end_date: g.end_date || '', schedule: g.schedule || '', max_students: g.max_students || 12 }); setOpenModal(true) }}><Pencil className="w-3.5 h-3.5" /></IconButton>
+                      <IconButton title="O'chirish" danger onClick={() => handleDelete(g.id)}><Trash2 className="w-3.5 h-3.5" /></IconButton>
+                    </div>
+                  </div>
+                  <div className="mt-3 space-y-1.5 text-xs">
+                    {g.teacher && <Row label="O'qituvchi" value={g.teacher.full_name} />}
+                    <Row label="Jadval" value={g.schedule || '—'} />
+                    <Row label="Boshlanish" value={formatDate(g.start_date)} />
+                    <Row label="Tugash" value={formatDate(g.end_date)} />
+                  </div>
+                  <div className="mt-3 pt-3 border-t border-border/40 flex items-center justify-between">
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${isFull ? 'bg-red-100 text-red-700' : 'bg-emerald-100 text-emerald-700'}`}>{count}/{g.max_students} talaba</span>
+                    <span className="text-[10px] text-blue-600 font-medium flex items-center gap-1">
+                      Batafsil
+                      <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><polyline points="9 18 15 12 9 6" /></svg>
+                    </span>
                   </div>
                 </div>
-                <div className="mt-3 space-y-1.5 text-xs">
-                  {g.teacher && <Row label="O'qituvchi" value={g.teacher.full_name} />}
-                  <Row label="Jadval" value={g.schedule || '—'} />
-                  <Row label="Boshlanish" value={formatDate(g.start_date)} />
-                  <Row label="Tugash" value={formatDate(g.end_date)} />
-                </div>
-                <div className="mt-3 pt-3 border-t border-border/40 flex items-center justify-between">
-                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${isFull ? 'bg-red-100 text-red-700' : 'bg-emerald-100 text-emerald-700'}`}>{count}/{g.max_students} talaba</span>
-                  {isFull && <span className="text-[10px] text-red-600 font-medium">To'lgan</span>}
-                </div>
-              </div></Card>
+              </Card>
             )
           })}
         </div>
