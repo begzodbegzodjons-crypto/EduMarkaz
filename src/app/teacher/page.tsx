@@ -47,6 +47,7 @@ export default function TeacherPanelPage() {
   const [checkingAuth, setCheckingAuth] = useState(true)
 
   // Login state
+  const [centerInput, setCenterInput] = useState('')
   const [loginInput, setLoginInput] = useState('')
   const [passwordInput, setPasswordInput] = useState('')
   const [loginError, setLoginError] = useState('')
@@ -74,15 +75,19 @@ export default function TeacherPanelPage() {
 
   // Login funksiyasi
   async function handleLogin() {
-    if (!loginInput || !passwordInput) {
-      setLoginError('Login va parolni kiriting.')
+    if (!centerInput || !loginInput || !passwordInput) {
+      setLoginError('O\'quv markazi nomi, login va parolni kiriting.')
       return
     }
     setLoggingIn(true)
     setLoginError('')
     const { ok, error, data } = await apiFetch('/api/teacher-auth/login', {
       method: 'POST',
-      body: JSON.stringify({ login: loginInput, password: passwordInput }),
+      body: JSON.stringify({
+        center_name: centerInput,
+        login: loginInput,
+        password: passwordInput,
+      }),
     })
     setLoggingIn(false)
     if (!ok) {
@@ -237,6 +242,24 @@ export default function TeacherPanelPage() {
           </div>
 
           <div className="space-y-3">
+            {/* Markaz nomi — izolyatsiya uchun */}
+            <div>
+              <label className="text-xs font-semibold text-slate-600 block mb-1">
+                🏫 O'quv markazi nomi
+              </label>
+              <input
+                type="text"
+                value={centerInput}
+                onChange={(e) => setCenterInput(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
+                placeholder="Masalan: Anor (markaz nomi)"
+                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 outline-none text-sm"
+                autoFocus
+              />
+              <p className="text-[10px] text-slate-500 mt-1">
+                Faqat o'z markazingiz doirasida kirishingiz mumkin
+              </p>
+            </div>
             <div>
               <label className="text-xs font-semibold text-slate-600 block mb-1">Login / Telefon</label>
               <input
@@ -246,7 +269,6 @@ export default function TeacherPanelPage() {
                 onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
                 placeholder="Login yoki telefon raqami"
                 className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 outline-none text-sm"
-                autoFocus
               />
             </div>
             <div>
