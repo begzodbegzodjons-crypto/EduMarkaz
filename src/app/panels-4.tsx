@@ -93,11 +93,11 @@ export function PaymentsPanel() {
   })
   const [saving, setSaving] = useState(false)
 
-  // Tugma bosilganda modal ochiladi — to'lov darhol saqlanmaydi
-  function openPayModal(student: any, defaultAmount: number) {
+  // Tugma bosilganda modal ochiladi — summa BO'SH, foydalanuvchi qo'lda yozadi
+  function openPayModal(student: any, _defaultAmount?: number) {
     setPayingStudent(student)
     setPayForm({
-      amount: defaultAmount,
+      amount: 0, // BO'SH — foydalanuvchi qo'lda yozadi
       payment_date: new Date().toISOString().slice(0, 10),
       payment_type: 'cash',
       for_month: monthStr,
@@ -496,9 +496,9 @@ export function PaymentsPanel() {
                   <input
                     type="number"
                     className="erp-input"
-                    value={payForm.amount}
+                    value={payForm.amount === 0 ? '' : payForm.amount}
                     onChange={(e) => setPayForm({ ...payForm, amount: Number(e.target.value) })}
-                    placeholder="Masalan: 300000"
+                    placeholder="Summani qo'lda kiriting..."
                     autoFocus
                   />
                 </Field>
