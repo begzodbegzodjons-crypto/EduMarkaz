@@ -389,9 +389,27 @@ function CentersTab({ password }: { password: string }) {
                       <span className="px-1.5 py-0.5 rounded bg-white/5 border border-white/10">
                         🔑 Login: <span className="text-slate-300 font-mono">{c.email}</span>
                       </span>
-                      <span className="px-1.5 py-0.5 rounded bg-white/5 border border-white/10">
-                        🔒 Parol: <span className="text-slate-400">********</span> (hash saqlangan)
-                      </span>
+                      {c.plain_password ? (
+                        <span className="px-1.5 py-0.5 rounded bg-amber-500/10 border border-amber-500/30">
+                          🔒 Parol: <span className="text-amber-300 font-mono font-bold">{c.plain_password}</span>
+                        </span>
+                      ) : (
+                        <span className="px-1.5 py-0.5 rounded bg-white/5 border border-white/10">
+                          🔒 Parol: <span className="text-slate-400">eski (yangilanmagan)</span>
+                        </span>
+                      )}
+                      {c.plain_password && (
+                        <button
+                          onClick={() => {
+                            navigator.clipboard.writeText(c.plain_password)
+                            alert(`Parol nusxalandi:\n${c.plain_password}`)
+                          }}
+                          className="px-1.5 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/20 transition"
+                          title="Parolni nusxalash"
+                        >
+                          📋 Nusxalash
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>
