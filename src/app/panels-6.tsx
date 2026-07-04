@@ -652,83 +652,224 @@ export function DiscountsPanel() {
 }
 
 // ============================================================================
-//  TALABA QARZLARI (Debts) — avtomatik hisob
+//  TALABA QARZLARI (Debts) — avtomatik hisob (To'lovlar bilan bir xil)
 // ============================================================================
 export function DebtsPanel() {
-  const [data, setData] = useState<any>(null)
+  const [balances, setBalances] = useState<any[]>([])
+  const [totals, setTotals] = useState<any>(null)
+  const [courses, setCourses] = useState<any[]>([])
+  const [groups, setGroups] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
-  const [month, setMonth] = useState(new Date().toISOString().slice(0, 7))
+
+  // Filtrlar
+  const [courseFilter, setCourseFilter] = useState('all')
+  const [groupFilter, setGroupFilter] = useState('all')
+  const [search, setSearch] = useState('')
 
   const load = useCallback(async () => {
     setLoading(true)
-    const { ok, data } = await apiFetch(`/api/debts?month=${month}`)
-    if (ok && data) setData(data)
+    const [b, c, g] = await Promise.all([
+      apiFetch('/api/payments/balances'),
+      apiFetch('/api/courses'),
+      apiFetch('/api/groups'),
+    ])
+    if (b.ok && b.data) {
+      setBalances(b.data.balances || [])
+      setTotals(b.data.totals || null)
+    }
+    if (c.ok) setCourses(c.data?.courses || [])
+    if (g.ok) setGroups(g.data?.groups || [])
     setLoading(false)
-  }, [month])
+  }, [])
 
   useEffect(() => { load() }, [load])
 
+  // Filtrlangan guruhlar (kurs bo'yicha)
+  const filteredGroups = useMemo(
+    () => courseFilter === 'all' ? groups : groups.filter((g) => g.course_id === courseFilter),
+    [groups, courseFilter]
+  )
+
+  // FAQAT QARZDOR talabalar ko'rinadi (remaining > 0)
+  const filtered = useMemo(() => {
+    return balances.filter((b) => {
+      if (b.remaining <= 0) return false // faqat qarzdorlar
+      if (search) {
+        const name = (b.full_name || '').toLowerCase()
+        const phone = (b.phone || '').toLowerCase()
+        if (!name.includes(search.toLowerCase()) && !phone.includes(search.toLowerCase())) return false
+      }
+      if (courseFilter !== 'all' && b.course_id !== courseFilter) return false
+      if (groupFilter !== 'all' && b.group_id !== groupFilter) return false
+      return true
+    })
+  }, [balances, search, courseFilter, groupFilter])
+
+  // Filtrlangan qarzdorlar umumiy summasi
+  const filteredTotalDebt = filtered.reduce((s, b) => s + Math.max(0, b.remaining), 0)
+
   function exportCSV() {
-    if (!data?.debts?.length) return alert('Eksport qilish uchun ma\'lumot yo\'q')
-    const headers = ['Talaba', 'Telefon', 'Ota-ona telefoni', 'Guruh', 'Kurs narxi', 'To\'lagan', 'Qarz']
-    const rows = data.debts.map((d: any) => [d.full_name, d.phone || '', d.parent_phone || '', d.group_name || '', d.expected_amount, d.paid_amount, d.debt_amount])
+    if (filtered.length === 0) return alert('Eksport qilish uchun ma\'lumot yo\'q')
+    const headers = ['#', 'Talaba', 'Telefon', 'Kurs', 'Guruh', 'Qabul sanasi', 'Oylik to\'lov', 'O\'tgan oylar', 'To\'lash kerak', 'To\'langan', 'Qarz']
+    const rows = filtered.map((b, idx) => [
+      idx + 1,
+      b.full_name,
+      b.phone || '',
+      b.course_name || '',
+      b.group_name || '',
+      b.enrollment_date || '',
+      b.monthly_fee,
+      b.months_enrolled,
+      b.total_due,
+      b.total_paid,
+      Math.max(0, b.remaining),
+    ])
     const csv = [headers, ...rows].map((r) => r.map((c: any) => `"${c}"`).join(',')).join('\n')
     const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
-    a.href = url; a.download = `qarzlar-${month}.csv`; a.click()
+    a.href = url; a.download = `qarzlar-${new Date().toISOString().slice(0, 10)}.csv`; a.click()
     URL.revokeObjectURL(url)
   }
 
   if (loading) return <PanelLoader />
-  const s = data?.summary || {}
+
+  const debtorsCount = balances.filter((b) => b.remaining > 0).length
 
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between flex-wrap gap-3">
-        <div><h1 className="text-2xl lg:text-3xl font-bold">Talaba qarzlari</h1><p className="text-muted-foreground text-sm mt-1">Avtomatik hisob — {month}</p></div>
-        <div className="flex gap-2">
-          <input type="month" className="px-3 py-2 rounded-xl border border-border/50 text-sm bg-card" value={month} onChange={(e) => setMonth(e.target.value)} />
-          <GhostButton onClick={exportCSV}><Download className="w-4 h-4" /> CSV</GhostButton>
+        <div>
+          <h1 className="text-2xl lg:text-3xl font-bold">Talaba qarzlari</h1>
+          <p className="text-muted-foreground text-sm mt-1">Avtomatik hisob-kitob — {debtorsCount} qarzdor talaba</p>
         </div>
+        <GhostButton onClick={exportCSV}><Download className="w-4 h-4" /> CSV eksport</GhostButton>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="Jami talabalar" value={s.total_students || 0} sub="shu oy" icon={Calendar} color="blue" />
-        <StatCard label="To'laganlar" value={s.paid_count || 0} sub="to'liq" icon={CheckCircle} color="emerald" />
-        <StatCard label="Qarzdorlar" value={s.debt_count || 0} sub="qarz bor" icon={AlertTriangle} color="rose" />
-        <StatCard label="Umumiy qarz" value={formatMoney(s.total_debt || 0)} sub={`Kutilgan: ${formatMoney(s.total_expected || 0)}`} icon={Wallet} color="amber" />
+      {/* === Statistika kartochkalari === */}
+      {totals && (
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <StatCard label="Jami talabalar" value={totals.students_count || 0} sub={`${totals.active_students || 0} faol`} icon={Calendar} color="blue" />
+          <StatCard label="To'laganlar" value={(totals.students_count || 0) - debtorsCount} sub="to'liq to'lagan" icon={CheckCircle} color="emerald" />
+          <StatCard label="Qarzdorlar" value={debtorsCount} sub="qarz bor" icon={AlertTriangle} color="rose" />
+          <StatCard label="Umumiy qarz" value={formatMoney(totals.total_remaining || 0)} sub={`To'lash kerak: ${formatMoney(totals.total_due || 0)}`} icon={Wallet} color="amber" />
+        </div>
+      )}
+
+      {/* === Qizil ogohlantirish (qarzdorlar bor bo'lsa) === */}
+      {debtorsCount > 0 && (
+        <div className="rounded-xl bg-rose-50 border border-rose-200 p-4 flex items-start gap-3">
+          <div className="w-9 h-9 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center shrink-0">
+            <AlertTriangle className="w-5 h-5" />
+          </div>
+          <div className="flex-1">
+            <div className="font-semibold text-rose-900">{debtorsCount} ta talaba to'lov qilmagan</div>
+            <div className="text-xs text-rose-700 mt-0.5">
+              Jami qarz: <strong>{formatMoney(totals?.total_remaining || 0)}</strong> · Avtomatik hisob-kitob: talabaning qabul sanasidan boshlab har oy uchun oylik to'lov (kurs narxi) hisoblanadi.
+              To'lov qabul qilish uchun <strong>To'lovlar</strong> bo'limiga o'ting.
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* === Filtrlar === */}
+      <div className="flex gap-2 flex-wrap">
+        <div className="flex items-center gap-2 px-3 py-2 bg-card rounded-xl border border-border/50 flex-1 min-w-[200px]">
+          <svg className="w-4 h-4 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></svg>
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Ism yoki telefon bo'yicha qidirish..." className="flex-1 bg-transparent outline-none text-sm" />
+        </div>
+        <select value={courseFilter} onChange={(e) => { setCourseFilter(e.target.value); setGroupFilter('all') }} className="px-3 py-2 rounded-xl border border-border/50 text-sm bg-card">
+          <option value="all">Barcha kurslar</option>
+          {courses.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+        </select>
+        <select value={groupFilter} onChange={(e) => setGroupFilter(e.target.value)} className="px-3 py-2 rounded-xl border border-border/50 text-sm bg-card">
+          <option value="all">Barcha guruhlar</option>
+          {filteredGroups.map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}
+        </select>
       </div>
 
+      {/* === Qarzdor talabalar jadvali === */}
       <Card>
-        <CardHeader title="Qarzdor talabalar ro'yxati" subtitle={`${data?.debts?.length || 0} talaba`} />
-        {data?.debts?.length === 0 ? <EmptyState title="Bu oyga ma'lumot yo'q" /> : (
+        <CardHeader
+          title="Qarzdor talabalar ro'yxati"
+          subtitle={`${filtered.length} ta qarzdor · Jami qarz: ${formatMoney(filteredTotalDebt)}`}
+        />
+        {filtered.length === 0 ? (
+          <EmptyState
+            title="Qarzdor talabalar yo'q"
+            description="Barcha talabalar to'lovlarini to'liq qilgan! 🎉"
+          />
+        ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead><tr className="border-b border-border/40 text-xs text-muted-foreground">
-                <th className="text-left px-4 py-3 font-medium">Talaba</th>
-                <th className="text-left px-4 py-3 font-medium">Guruh</th>
-                <th className="text-right px-4 py-3 font-medium">Kurs narxi</th>
-                <th className="text-right px-4 py-3 font-medium">To'lagan</th>
-                <th className="text-right px-4 py-3 font-medium">Qarz</th>
-                <th className="text-center px-4 py-3 font-medium">Holat</th>
-              </tr></thead>
+              <thead>
+                <tr className="border-b border-border/40 text-xs text-muted-foreground">
+                  <th className="text-left px-4 py-3 font-medium">#</th>
+                  <th className="text-left px-4 py-3 font-medium">Talaba</th>
+                  <th className="text-left px-4 py-3 font-medium">Kurs / Guruh</th>
+                  <th className="text-left px-4 py-3 font-medium">Qabul sana</th>
+                  <th className="text-right px-4 py-3 font-medium">Oylik</th>
+                  <th className="text-center px-4 py-3 font-medium">Oylar</th>
+                  <th className="text-right px-4 py-3 font-medium">To'lash kerak</th>
+                  <th className="text-right px-4 py-3 font-medium">To'langan</th>
+                  <th className="text-right px-4 py-3 font-medium">Qarz</th>
+                  <th className="text-center px-4 py-3 font-medium">Holat</th>
+                </tr>
+              </thead>
               <tbody>
-                {data?.debts?.map((d: any) => (
-                  <tr key={d.student_id} className={`border-b border-border/20 hover:bg-muted/40 ${d.debt_amount > 0 ? 'bg-red-50/30' : ''}`}>
-                    <td className="px-4 py-3"><div className="font-medium">{d.full_name}</div>{d.parent_phone && <div className="text-[10px] text-muted-foreground">👤 {d.parent_phone}</div>}</td>
-                    <td className="px-4 py-3 text-muted-foreground">{d.group_name || '—'}</td>
-                    <td className="px-4 py-3 text-right">{formatMoney(d.expected_amount)}</td>
-                    <td className="px-4 py-3 text-right text-emerald-600 font-medium">{formatMoney(d.paid_amount)}</td>
-                    <td className="px-4 py-3 text-right font-bold text-red-600">{formatMoney(d.debt_amount)}</td>
-                    <td className="px-4 py-3 text-center">{d.is_paid ? <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 text-emerald-700">To'langan</span> : <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-red-100 text-red-700">Qarz</span>}</td>
-                  </tr>
-                ))}
+                {filtered.map((b, idx) => {
+                  // Qarz oylar sonini hisoblaymiz
+                  const debtMonths = b.monthly_fee > 0 ? Math.floor(b.remaining / b.monthly_fee) : 0
+                  return (
+                    <tr key={b.student_id} className="border-b border-border/20 hover:bg-muted/40 bg-rose-50/30">
+                      <td className="px-4 py-3 text-muted-foreground text-xs">{idx + 1}</td>
+                      <td className="px-4 py-3">
+                        <div className="font-medium">{b.full_name}</div>
+                        {b.phone && <div className="text-[10px] text-muted-foreground">📞 {b.phone}</div>}
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="text-muted-foreground">{b.course_name || '—'}</div>
+                        <div className="text-[10px] text-muted-foreground">{b.group_name || '—'}</div>
+                      </td>
+                      <td className="px-4 py-3 text-muted-foreground text-xs">{formatDate(b.enrollment_date)}</td>
+                      <td className="px-4 py-3 text-right font-medium">{formatMoney(b.monthly_fee)}</td>
+                      <td className="px-4 py-3 text-center text-muted-foreground">{b.months_enrolled}</td>
+                      <td className="px-4 py-3 text-right font-semibold text-amber-600">{formatMoney(b.total_due)}</td>
+                      <td className="px-4 py-3 text-right font-semibold text-emerald-600">{formatMoney(b.total_paid)}</td>
+                      <td className="px-4 py-3 text-right font-bold text-rose-600">{formatMoney(Math.max(0, b.remaining))}</td>
+                      <td className="px-4 py-3 text-center">
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${debtMonths >= 2 ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>
+                          {debtMonths >= 2 ? `${debtMonths} oy qarz` : 'Qarz'}
+                        </span>
+                      </td>
+                    </tr>
+                  )
+                })}
               </tbody>
+              <tfoot>
+                <tr className="border-t-2 border-border/60 bg-muted/30 font-semibold">
+                  <td colSpan={8} className="px-4 py-3 text-right">Jami ({filtered.length} ta qarzdor):</td>
+                  <td className="px-4 py-3 text-right text-rose-600">{formatMoney(filteredTotalDebt)}</td>
+                  <td></td>
+                </tr>
+              </tfoot>
             </table>
           </div>
         )}
       </Card>
+
+      {/* === Ma'lumot kartochkasi === */}
+      <div className="rounded-xl bg-blue-50 border border-blue-200 p-4 text-sm text-blue-800">
+        <div className="font-semibold mb-1">ℹ️ Qarz qanday hisoblanadi?</div>
+        <ul className="text-xs space-y-1 text-blue-700">
+          <li>• Talabaning <strong>qabul sanasidan</strong> boshlab har oy uchun <strong>oylik to'lov</strong> (kurs narxi) avtomatik hisoblanadi</li>
+          <li>• Birinchi oy uchun <strong>proportional hisob</strong> (qabul qilingan kunga qarab)</li>
+          <li>• <strong>To'lash kerak</strong> = o'tgan oylar soni × oylik to'lov summasi</li>
+          <li>• <strong>Qarz</strong> = to'lash kerak − to'langan summa</li>
+          <li>• To'lov qabul qilish uchun <strong>To'lovlar</strong> bo'limiga o'ting</li>
+          <li>• Bu ro'yxat To'lovlar bo'limidagi avtomatik hisob-kitobga to'liq mos keladi</li>
+        </ul>
+      </div>
     </div>
   )
 }
