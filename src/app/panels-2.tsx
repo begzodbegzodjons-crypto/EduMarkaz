@@ -11,23 +11,58 @@ import {
 } from './panels-common'
 
 // ============================================================================
-//  O'QITUVCHILAR PANEL
+//  O'QITUVCHILAR PANEL — kartochka bosilganda to'liq ma'lumot
 // ============================================================================
 export function TeachersPanel() {
   const [items, setItems] = useState<any[]>([])
+  const [groups, setGroups] = useState<any[]>([])
+  const [students, setStudents] = useState<any[]>([])
+  const [rooms, setRooms] = useState<any[]>([])
+  const [schedule, setSchedule] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [openModal, setOpenModal] = useState(false)
   const [editing, setEditing] = useState<any>(null)
   const [form, setForm] = useState<any>({ full_name: '', phone: '', login: '', subject: '', salary_amount: 0, hire_date: '', notes: '', password: '' })
 
+  // Detallar uchun state
+  const [selectedTeacher, setSelectedTeacher] = useState<any>(null)
+  const [teacherAttendance, setTeacherAttendance] = useState<any[]>([])
+  const [teacherPayouts, setTeacherPayouts] = useState<any[]>([])
+  const [loadingDetail, setLoadingDetail] = useState(false)
+
   const load = useCallback(async () => {
     setLoading(true)
-    const { ok, data } = await apiFetch('/api/teachers')
-    if (ok) setItems(data?.teachers || [])
+    const [tch, g, s, r, sch] = await Promise.all([
+      apiFetch('/api/teachers'),
+      apiFetch('/api/groups'),
+      apiFetch('/api/students'),
+      apiFetch('/api/rooms'),
+      apiFetch('/api/schedule'),
+    ])
+    if (tch.ok) setItems(tch.data?.teachers || [])
+    if (g.ok) setGroups(g.data?.groups || [])
+    if (s.ok) setStudents(s.data?.students || [])
+    if (r.ok) setRooms(r.data?.rooms || [])
+    if (sch.ok) setSchedule(sch.data?.schedule || [])
     setLoading(false)
   }, [])
 
   useEffect(() => { load() }, [load])
+
+  // O'qituvchi detallarini yuklash
+  async function openTeacherDetail(t: any) {
+    setSelectedTeacher(t)
+    setLoadingDetail(true)
+    setTeacherAttendance([])
+    setTeacherPayouts([])
+    const [att, pay] = await Promise.all([
+      apiFetch(`/api/teacher-attendance?teacher_id=${t.id}`),
+      apiFetch(`/api/teacher-payouts?teacher_id=${t.id}`),
+    ])
+    if (att.ok) setTeacherAttendance(att.data?.attendance || [])
+    if (pay.ok) setTeacherPayouts(pay.data?.payouts || [])
+    setLoadingDetail(false)
+  }
 
   async function handleSave() {
     if (editing) {
@@ -41,12 +76,309 @@ export function TeachersPanel() {
   }
   async function handleDelete(id: string) { if (!confirm('O\'chirmoqchimisiz?')) return; const { ok, error } = await apiFetch(`/api/teachers?id=${id}`, { method: 'DELETE' }); if (!ok) return alert(error); load() }
 
+  const WEEKDAYS = ['Dushanba', 'Seshanba', 'Chorshanba', 'Payshanba', 'Juma', 'Shanba', 'Yakshanba']
+
+  // Status badge (davomat)
+  function attBadge(status: string) {
+    if (status === 'present') return <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[9px] font-bold">Keldi</span>
+    if (status === 'absent') return <span className="px-1.5 py-0.5 rounded bg-red-100 text-red-700 text-[9px] font-bold">Kelmadi</span>
+    if (status === 'late') return <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 text-[9px] font-bold">Kechikdi</span>
+    if (status === 'sick') return <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 text-[9px] font-bold">Kasal</span>
+    if (status === 'vacation') return <span className="px-1.5 py-0.5 rounded bg-violet-100 text-violet-700 text-[9px] font-bold">Ta'til</span>
+    return <span className="text-[9px] text-muted-foreground">—</span>
+  }
+
+  // === DETAL KO'RINISHI ===
+  if (selectedTeacher) {
+    const t = selectedTeacher
+    // O'qituvchining guruhlari
+    const teacherGroups = groups.filter((g) => g.teacher_id === t.id)
+    // O'qituvchining dars jadvali
+    const teacherSchedule = schedule.filter((s) => s.teacher_id === t.id)
+    // Har bir guruh uchun talabalar soni
+    const groupsWithCounts = teacherGroups.map((g) => ({
+      ...g,
+      students_count: students.filter((s) => s.group_id === g.id && (s.status === 'active' || s.status === 'paused')).length,
+    }))
+    // Jami talabalar
+    const totalStudents = groupsWithCounts.reduce((s, g) => s + g.students_count, 0)
+    // Davomat statistikasi (oxirgi 30 kun)
+    const recentAttendance = teacherAttendance.slice(0, 30)
+    const presentCount = recentAttendance.filter((a) => a.status === 'present').length
+    const absentCount = recentAttendance.filter((a) => a.status === 'absent').length
+    const lateCount = recentAttendance.filter((a) => a.status === 'late').length
+    // Maosh statistikasi
+    const totalPaid = teacherPayouts.filter((p) => p.status === 'paid').reduce((s, p) => s + Number(p.amount || 0) + Number(p.bonus || 0) - Number(p.deduction || 0), 0)
+    const totalPending = teacherPayouts.filter((p) => p.status === 'pending').reduce((s, p) => s + Number(p.amount || 0) + Number(p.bonus || 0) - Number(p.deduction || 0), 0)
+
+    return (
+      <div className="space-y-5">
+        {/* Orqaga qaytish */}
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => { setSelectedTeacher(null); setTeacherAttendance([]); setTeacherPayouts([]) }}
+            className="p-2 rounded-lg hover:bg-muted text-muted-foreground"
+            title="O'qituvchilarga qaytish"
+          >
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" /></svg>
+          </button>
+          <div className="flex items-center gap-3">
+            <Avatar name={t.full_name} color="cyan" />
+            <div>
+              <h1 className="text-2xl lg:text-3xl font-bold">{t.full_name}</h1>
+              <p className="text-muted-foreground text-sm mt-0.5">{t.subject || 'Fan ko\'rsatilmagan'} · {teacherGroups.length} guruh · {totalStudents} talaba</p>
+            </div>
+          </div>
+        </div>
+
+        {loadingDetail ? <PanelLoader /> : (
+          <>
+            {/* === 1. Asosiy ma'lumotlar === */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+              <div className="bg-card rounded-2xl border border-border/50 p-3">
+                <div className="text-[10px] text-muted-foreground">Telefon</div>
+                <div className="text-sm font-semibold mt-0.5">{t.phone || '—'}</div>
+              </div>
+              <div className="bg-card rounded-2xl border border-border/50 p-3">
+                <div className="text-[10px] text-muted-foreground">Ish boshlagan</div>
+                <div className="text-sm font-semibold mt-0.5">{formatDate(t.hire_date) || '—'}</div>
+              </div>
+              <div className="bg-card rounded-2xl border border-border/50 p-3">
+                <div className="text-[10px] text-muted-foreground">Oylik maosh</div>
+                <div className="text-sm font-semibold mt-0.5 text-emerald-600">{formatMoney(t.salary_amount)}</div>
+              </div>
+              <div className="bg-card rounded-2xl border border-border/50 p-3">
+                <div className="text-[10px] text-muted-foreground">O'qituvchi paneli</div>
+                <div className="text-sm font-semibold mt-0.5">
+                  {t.has_password ? (
+                    <span className="text-emerald-600">✓ Parol bor</span>
+                  ) : (
+                    <span className="text-amber-600">⚠ Parol yo'q</span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* === 2. Statistik kartochkalar === */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+              <div className="bg-blue-50 rounded-2xl border border-blue-200 p-3">
+                <div className="text-[10px] text-blue-700">Guruhlar</div>
+                <div className="text-2xl font-bold mt-0.5 text-blue-900">{teacherGroups.length}</div>
+              </div>
+              <div className="bg-emerald-50 rounded-2xl border border-emerald-200 p-3">
+                <div className="text-[10px] text-emerald-700">Jami talabalar</div>
+                <div className="text-2xl font-bold mt-0.5 text-emerald-900">{totalStudents}</div>
+              </div>
+              <div className="bg-violet-50 rounded-2xl border border-violet-200 p-3">
+                <div className="text-[10px] text-violet-700">Darslar (jadvalda)</div>
+                <div className="text-2xl font-bold mt-0.5 text-violet-900">{teacherSchedule.length}</div>
+              </div>
+              <div className="bg-amber-50 rounded-2xl border border-amber-200 p-3">
+                <div className="text-[10px] text-amber-700">Ishga kelgan (30 kun)</div>
+                <div className="text-2xl font-bold mt-0.5 text-amber-900">{presentCount}</div>
+              </div>
+            </div>
+
+            {/* === 3. Guruhlar va talabalar === */}
+            <Card>
+              <CardHeader title="Guruhlar va talabalar" subtitle={`${teacherGroups.length} guruh · ${totalStudents} talaba`} />
+              {teacherGroups.length === 0 ? (
+                <EmptyState title="Guruhlar yo'q" description="Bu o'qituvchiga guruh biriktirilmagan." />
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-border/40 text-xs text-muted-foreground">
+                        <th className="text-left px-4 py-3 font-medium">#</th>
+                        <th className="text-left px-4 py-3 font-medium">Guruh</th>
+                        <th className="text-left px-4 py-3 font-medium">Kurs</th>
+                        <th className="text-center px-4 py-3 font-medium">Talabalar</th>
+                        <th className="text-left px-4 py-3 font-medium">Jadval</th>
+                        <th className="text-left px-4 py-3 font-medium">Boshlanish</th>
+                        <th className="text-left px-4 py-3 font-medium">Tugash</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {groupsWithCounts.map((g, idx) => (
+                        <tr key={g.id} className="border-b border-border/20 hover:bg-muted/40">
+                          <td className="px-4 py-3 text-muted-foreground text-xs">{idx + 1}</td>
+                          <td className="px-4 py-3 font-medium">{g.name}</td>
+                          <td className="px-4 py-3 text-muted-foreground">{g.course?.name || '—'}</td>
+                          <td className="px-4 py-3 text-center">
+                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${g.students_count >= g.max_students ? 'bg-red-100 text-red-700' : 'bg-emerald-100 text-emerald-700'}`}>
+                              {g.students_count}/{g.max_students}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-muted-foreground text-xs">{g.schedule || '—'}</td>
+                          <td className="px-4 py-3 text-muted-foreground text-xs">{formatDate(g.start_date) || '—'}</td>
+                          <td className="px-4 py-3 text-muted-foreground text-xs">{formatDate(g.end_date) || '—'}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </Card>
+
+            {/* === 4. Dars jadvali === */}
+            <Card>
+              <CardHeader title="Dars jadvali" subtitle={`${teacherSchedule.length} ta dars · haftalik`} />
+              {teacherSchedule.length === 0 ? (
+                <EmptyState title="Dars jadvali yo'q" description="Dars jadvali bo'limidan dars qo'shing." />
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-border/40 text-xs text-muted-foreground">
+                        <th className="text-left px-4 py-3 font-medium">Kun</th>
+                        <th className="text-left px-4 py-3 font-medium">Guruh</th>
+                        <th className="text-left px-4 py-3 font-medium">Xona</th>
+                        <th className="text-left px-4 py-3 font-medium">Vaqt</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {teacherSchedule.sort((a, b) => a.weekday - b.weekday || a.start_time.localeCompare(b.start_time)).map((s) => {
+                        const room = rooms.find((r) => r.id === s.room_id)
+                        const grp = groups.find((g) => g.id === s.group_id)
+                        return (
+                          <tr key={s.id} className="border-b border-border/20 hover:bg-muted/40">
+                            <td className="px-4 py-3 font-medium">{WEEKDAYS[s.weekday] || '—'}</td>
+                            <td className="px-4 py-3 text-muted-foreground">{grp?.name || '—'}</td>
+                            <td className="px-4 py-3 text-muted-foreground">
+                              {room ? (
+                                <span className="flex items-center gap-1">
+                                  📍 {room.name}
+                                  {room.capacity && <span className="text-[10px] text-muted-foreground">({room.capacity} o'rin)</span>}
+                                </span>
+                              ) : '—'}
+                            </td>
+                            <td className="px-4 py-3">
+                              <span className="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 text-xs font-semibold">
+                                {s.start_time?.slice(0, 5)} - {s.end_time?.slice(0, 5)}
+                              </span>
+                            </td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </Card>
+
+            {/* === 5. Davomat (ishga kelgan/kelmagan) === */}
+            <Card>
+              <CardHeader
+                title="Ish davomati"
+                subtitle={`Oxirgi 30 yozuv · Keldi: ${presentCount} · Kelmadi: ${absentCount} · Kechikdi: ${lateCount}`}
+              />
+              {teacherAttendance.length === 0 ? (
+                <EmptyState title="Davomat yo'q" description="Hozircha ish davomati yozuvi yo'q." />
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-border/40 text-xs text-muted-foreground">
+                        <th className="text-left px-4 py-3 font-medium">#</th>
+                        <th className="text-left px-4 py-3 font-medium">Sana</th>
+                        <th className="text-left px-4 py-3 font-medium">Guruh</th>
+                        <th className="text-center px-4 py-3 font-medium">Holat</th>
+                        <th className="text-left px-4 py-3 font-medium">Izoh</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {teacherAttendance.slice(0, 30).map((a, idx) => {
+                        const grp = groups.find((g) => g.id === a.group_id)
+                        return (
+                          <tr key={a.id} className="border-b border-border/20 hover:bg-muted/40">
+                            <td className="px-4 py-3 text-muted-foreground text-xs">{idx + 1}</td>
+                            <td className="px-4 py-3 font-medium">{formatDate(a.lesson_date)}</td>
+                            <td className="px-4 py-3 text-muted-foreground">{grp?.name || '—'}</td>
+                            <td className="px-4 py-3 text-center">{attBadge(a.status)}</td>
+                            <td className="px-4 py-3 text-muted-foreground text-xs">{a.notes || '—'}</td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </Card>
+
+            {/* === 6. Maoshlar === */}
+            <Card>
+              <CardHeader
+                title="Maoshlar tarixi"
+                subtitle={`To'langan: ${formatMoney(totalPaid)} · Kutilmoqda: ${formatMoney(totalPending)}`}
+              />
+              {teacherPayouts.length === 0 ? (
+                <EmptyState title="Maosh yozuvlari yo'q" description="O'qituvchi maoshlari bo'limidan maosh qo'shing." />
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-border/40 text-xs text-muted-foreground">
+                        <th className="text-left px-4 py-3 font-medium">#</th>
+                        <th className="text-left px-4 py-3 font-medium">Oy</th>
+                        <th className="text-right px-4 py-3 font-medium">Summa</th>
+                        <th className="text-right px-4 py-3 font-medium">Bonus</th>
+                        <th className="text-right px-4 py-3 font-medium">Ayirma</th>
+                        <th className="text-right px-4 py-3 font-medium">Jami</th>
+                        <th className="text-center px-4 py-3 font-medium">Holat</th>
+                        <th className="text-left px-4 py-3 font-medium">Izoh</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {teacherPayouts.map((p, idx) => {
+                        const total = Number(p.amount || 0) + Number(p.bonus || 0) - Number(p.deduction || 0)
+                        return (
+                          <tr key={p.id} className="border-b border-border/20 hover:bg-muted/40">
+                            <td className="px-4 py-3 text-muted-foreground text-xs">{idx + 1}</td>
+                            <td className="px-4 py-3 font-medium">{p.period_month}</td>
+                            <td className="px-4 py-3 text-right">{formatMoney(p.amount)}</td>
+                            <td className="px-4 py-3 text-right text-emerald-600">{p.bonus > 0 ? `+${formatMoney(p.bonus)}` : '—'}</td>
+                            <td className="px-4 py-3 text-right text-rose-600">{p.deduction > 0 ? `-${formatMoney(p.deduction)}` : '—'}</td>
+                            <td className="px-4 py-3 text-right font-bold text-emerald-600">{formatMoney(total)}</td>
+                            <td className="px-4 py-3 text-center">
+                              <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${p.status === 'paid' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
+                                {p.status === 'paid' ? '✓ To\'langan' : '⏳ Kutilmoqda'}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 text-muted-foreground text-xs">{p.notes || '—'}</td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                    <tfoot>
+                      <tr className="border-t-2 border-border/60 bg-muted/30 font-bold">
+                        <td colSpan={5} className="px-4 py-3 text-right">JAMI:</td>
+                        <td className="px-4 py-3 text-right text-emerald-600">{formatMoney(totalPaid + totalPending)}</td>
+                        <td colSpan={2}></td>
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
+              )}
+            </Card>
+
+            {/* === Ma'lumot === */}
+            <div className="rounded-xl bg-blue-50 border border-blue-200 p-3 text-xs text-blue-800">
+              <strong>ℹ️ O'qituvchi haqida:</strong> Bu yerda o'qituvchining barcha ma'lumotlari — guruhlari, talabalari, dars jadvali, ish davomati va maoshlari bitta sahifada ko'rinadi.
+              O'qituvchi paneli (<code className="px-1 bg-blue-100 rounded">/teacher</code>) orqali u o'z guruhlarining davomatini belgilaydi.
+            </div>
+          </>
+        )}
+      </div>
+    )
+  }
+
+  // === ASOSIY RO'YXAT ===
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-2xl lg:text-3xl font-bold">O'qituvchilar</h1>
-          <p className="text-muted-foreground text-sm mt-1">{items.length} murabbiy</p>
+          <p className="text-muted-foreground text-sm mt-1">{items.length} murabbiy · batafsil uchun o'qituvchini bosing</p>
         </div>
         <div className="flex gap-2">
           <a
@@ -64,36 +396,57 @@ export function TeachersPanel() {
       {/* O'qituvchi paneli haqida ma'lumot */}
       <div className="rounded-xl bg-blue-50 border border-blue-200 p-3 text-xs text-blue-800">
         <strong>ℹ️ O'qituvchi paneli:</strong> O'qituvchilar <code className="px-1 py-0.5 bg-blue-100 rounded">/teacher</code> manzilidan kirib, o'z guruhlaridagi o'quvchilarning davomatini belgilashlari mumkin.
-        Har bir o'qituvchi uchun <strong>login (telefon)</strong> va <strong>parol</strong> kiriting.
+        Har bir o'qituvchi uchun <strong>login (telefon)</strong> va <strong>parol</strong> kiriting. Batafsil ma'lumot uchun o'qituvchi kartochkasini bosing.
       </div>
 
       {loading ? <PanelLoader /> : items.length === 0 ? <Card><EmptyState title="O'qituvchilar yo'q" description="Birinchi murabbiyingizni qo'shing." /></Card> : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {items.map((t) => (
-            <Card key={t.id}><div className="p-4">
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-3"><Avatar name={t.full_name} color="cyan" /><div><div className="font-semibold">{t.full_name}</div><div className="text-xs text-muted-foreground">{t.subject || 'Fan ko\'rsatilmagan'}</div></div></div>
-                <div className="flex gap-1">
-                  <IconButton title="Tahrirlash" onClick={() => { setEditing(t); setForm({ full_name: t.full_name, phone: t.phone || '', login: t.login || '', subject: t.subject || '', salary_amount: t.salary_amount || 0, hire_date: t.hire_date || '', notes: t.notes || '', password: '' }); setOpenModal(true) }}><Pencil className="w-3.5 h-3.5" /></IconButton>
-                  <IconButton title="O'chirish" danger onClick={() => handleDelete(t.id)}><Trash2 className="w-3.5 h-3.5" /></IconButton>
+          {items.map((t) => {
+            // O'qituvchining guruhlari soni
+            const teacherGroupsCount = groups.filter((g) => g.teacher_id === t.id).length
+            const teacherStudentsCount = students.filter((s) =>
+              s.status === 'active' && groups.some((g) => g.id === s.group_id && g.teacher_id === t.id)
+            ).length
+            return (
+              <Card key={t.id}>
+                <div
+                  className="p-4 cursor-pointer hover:bg-muted/30 transition-colors"
+                  onClick={() => openTeacherDetail(t)}
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-3"><Avatar name={t.full_name} color="cyan" /><div><div className="font-semibold">{t.full_name}</div><div className="text-xs text-muted-foreground">{t.subject || 'Fan ko\'rsatilmagan'}</div></div></div>
+                    <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
+                      <IconButton title="Tahrirlash" onClick={() => { setEditing(t); setForm({ full_name: t.full_name, phone: t.phone || '', login: t.login || '', subject: t.subject || '', salary_amount: t.salary_amount || 0, hire_date: t.hire_date || '', notes: t.notes || '', password: '' }); setOpenModal(true) }}><Pencil className="w-3.5 h-3.5" /></IconButton>
+                      <IconButton title="O'chirish" danger onClick={() => handleDelete(t.id)}><Trash2 className="w-3.5 h-3.5" /></IconButton>
+                    </div>
+                  </div>
+                  <div className="mt-3 space-y-1.5 text-xs">
+                    {t.phone && <Row label="Telefon" value={t.phone} />}
+                    <Row label="Guruhlar" value={`${teacherGroupsCount} ta · ${teacherStudentsCount} talaba`} />
+                    <Row label="Maosh" value={formatMoney(t.salary_amount)} />
+                    <Row label="Ish boshlagan" value={formatDate(t.hire_date)} />
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-muted-foreground">Panel:</span>
+                      {t.has_password ? (
+                        <span className="px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-semibold">✓ Parol bor</span>
+                      ) : (
+                        <span className="px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[10px] font-semibold">⚠ Parol yo'q</span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="mt-3 pt-3 border-t border-border/40 flex items-center justify-between">
+                    <span className="px-2 py-0.5 rounded-full bg-cyan-100 text-cyan-700 text-[10px] font-semibold">
+                      {teacherGroupsCount} guruh · {teacherStudentsCount} talaba
+                    </span>
+                    <span className="text-[10px] text-blue-600 font-medium flex items-center gap-1">
+                      Batafsil
+                      <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><polyline points="9 18 15 12 9 6" /></svg>
+                    </span>
+                  </div>
                 </div>
-              </div>
-              <div className="mt-3 space-y-1.5 text-xs">
-                {t.phone && <Row label="Telefon" value={t.phone} />}
-                {t.login && <Row label="Login" value={t.login} />}
-                <Row label="Maosh" value={formatMoney(t.salary_amount)} />
-                <Row label="Ish boshlagan" value={formatDate(t.hire_date)} />
-                <div className="flex items-center gap-1.5">
-                  <span className="text-muted-foreground">O'qituvchi paneli:</span>
-                  {t.has_password ? (
-                    <span className="px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-semibold">✓ Parol o'rnatilgan</span>
-                  ) : (
-                    <span className="px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[10px] font-semibold">⚠ Parol yo'q</span>
-                  )}
-                </div>
-              </div>
-            </div></Card>
-          ))}
+              </Card>
+            )
+          })}
         </div>
       )}
       <Modal open={openModal} onClose={() => setOpenModal(false)} title={editing ? 'O\'qituvchini tahrirlash' : 'Yangi o\'qituvchi'} size="lg">
