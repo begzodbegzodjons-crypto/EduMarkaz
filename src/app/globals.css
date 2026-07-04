@@ -246,3 +246,361 @@ textarea.erp-input {
   line-height: 1.5;
 }
 
+
+/* =====================================================================
+   FOREST CLOCK — chiroyli animatsiyali soat
+   ===================================================================== */
+
+.forest-clock-container {
+  position: relative;
+  width: 100%;
+  min-width: 320px;
+  max-width: 520px;
+  height: 90px;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  box-shadow: 0 4px 20px -8px rgba(16, 185, 129, 0.3);
+  background: linear-gradient(180deg, #bfdbfe 0%, #ddd6fe 40%, #d1fae5 100%);
+}
+
+/* === O'rmon sahna === */
+.forest-scene {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+/* Quyosh */
+.forest-sun {
+  position: absolute;
+  top: 8px;
+  right: 20px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fde047 0%, #facc15 60%, #f59e0b 100%);
+  box-shadow: 0 0 20px rgba(250, 204, 21, 0.6), 0 0 40px rgba(250, 204, 21, 0.3);
+  animation: sun-glow 3s ease-in-out infinite;
+}
+
+@keyframes sun-glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(250, 204, 21, 0.6), 0 0 40px rgba(250, 204, 21, 0.3); }
+  50% { box-shadow: 0 0 28px rgba(250, 204, 21, 0.8), 0 0 55px rgba(250, 204, 21, 0.4); }
+}
+
+/* Bulutlar */
+.forest-cloud {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 50px;
+  filter: blur(1px);
+}
+.forest-cloud::before,
+.forest-cloud::after {
+  content: '';
+  position: absolute;
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 50%;
+}
+.forest-cloud-1 {
+  top: 12px; left: -40px;
+  width: 50px; height: 14px;
+  animation: cloud-move-1 25s linear infinite;
+}
+.forest-cloud-1::before { width: 18px; height: 18px; top: -8px; left: 8px; }
+.forest-cloud-1::after { width: 14px; height: 14px; top: -6px; left: 26px; }
+
+.forest-cloud-2 {
+  top: 22px; left: -50px;
+  width: 40px; height: 12px;
+  opacity: 0.7;
+  animation: cloud-move-2 35s linear infinite;
+  animation-delay: -10s;
+}
+.forest-cloud-2::before { width: 14px; height: 14px; top: -6px; left: 6px; }
+.forest-cloud-2::after { width: 12px; height: 12px; top: -4px; left: 22px; }
+
+.forest-cloud-3 {
+  top: 6px; left: -60px;
+  width: 35px; height: 10px;
+  opacity: 0.6;
+  animation: cloud-move-3 45s linear infinite;
+  animation-delay: -25s;
+}
+.forest-cloud-3::before { width: 12px; height: 12px; top: -5px; left: 5px; }
+.forest-cloud-3::after { width: 10px; height: 10px; top: -4px; left: 18px; }
+
+@keyframes cloud-move-1 { from { transform: translateX(0); } to { transform: translateX(600px); } }
+@keyframes cloud-move-2 { from { transform: translateX(0); } to { transform: translateX(600px); } }
+@keyframes cloud-move-3 { from { transform: translateX(0); } to { transform: translateX(600px); } }
+
+/* Tog'lar */
+.forest-mountains {
+  position: absolute;
+  bottom: 28px;
+  left: 0;
+  width: 100%;
+  height: 50px;
+}
+
+/* Daraxtlar - uzoq (kichik) */
+.forest-trees-far,
+.forest-trees-near {
+  position: absolute;
+  bottom: 22px;
+  left: 0;
+  width: 100%;
+  height: 0;
+}
+.forest-trees-near {
+  bottom: 14px;
+}
+
+.forest-tree-small,
+.forest-tree-big {
+  position: absolute;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transform-origin: bottom center;
+  animation: tree-sway 4s ease-in-out infinite;
+}
+
+.tree-top {
+  width: 14px;
+  height: 18px;
+  background: linear-gradient(180deg, #047857 0%, #065f46 100%);
+  clip-path: polygon(50% 0%, 100% 50%, 80% 50%, 100% 100%, 0% 100%, 20% 50%, 0% 50%);
+}
+.tree-trunk {
+  width: 3px;
+  height: 6px;
+  background: #78350f;
+}
+
+.tree-top-big {
+  width: 22px;
+  height: 28px;
+  background: linear-gradient(180deg, #059669 0%, #047857 100%);
+  clip-path: polygon(50% 0%, 100% 50%, 80% 50%, 100% 100%, 0% 100%, 20% 50%, 0% 50%);
+}
+.tree-trunk-big {
+  width: 5px;
+  height: 8px;
+  background: #5b3010;
+}
+
+@keyframes tree-sway {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(1.5deg); }
+}
+
+/* Yer (o't) */
+.forest-ground {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 20px;
+  background: linear-gradient(180deg, #84cc16 0%, #65a30d 100%);
+  box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.1) inset;
+}
+
+/* === Kiyik bolasi (yugurayotgan) === */
+.forest-deer {
+  position: absolute;
+  bottom: 16px;
+  left: -80px;
+  width: 60px;
+  height: 45px;
+  animation: deer-run 12s linear infinite;
+  z-index: 3;
+}
+
+.deer-svg {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.2));
+}
+
+@keyframes deer-run {
+  0% { left: -80px; transform: translateY(0); }
+  20% { transform: translateY(-3px); }
+  25% { transform: translateY(0); }
+  45% { transform: translateY(-3px); }
+  50% { transform: translateY(0); }
+  70% { transform: translateY(-3px); }
+  75% { transform: translateY(0); }
+  100% { left: 110%; transform: translateY(0); }
+}
+
+/* Kiyik oyoqlari (yugurish animatsiyasi) */
+.deer-legs line {
+  transform-origin: top center;
+  animation: leg-run 0.4s ease-in-out infinite;
+}
+.deer-legs .leg-1, .deer-legs .leg-3 { animation-delay: 0s; }
+.deer-legs .leg-2, .deer-legs .leg-4 { animation-delay: 0.2s; }
+
+@keyframes leg-run {
+  0%, 100% { transform: rotate(15deg); }
+  50% { transform: rotate(-15deg); }
+}
+
+/* Dumi (harakat) */
+.deer-tail {
+  animation: tail-wag 0.5s ease-in-out infinite;
+  transform-origin: center;
+}
+
+@keyframes tail-wag {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(20deg); }
+}
+
+/* Chang zarralari (yugurish izlari) */
+.forest-dust {
+  position: absolute;
+  bottom: 14px;
+  left: 30%;
+  width: 100px;
+  height: 8px;
+  z-index: 2;
+}
+
+.dust-particle {
+  position: absolute;
+  bottom: 0;
+  width: 4px;
+  height: 4px;
+  background: rgba(180, 140, 80, 0.5);
+  border-radius: 50%;
+  animation: dust-rise 1.5s ease-out infinite;
+}
+
+@keyframes dust-rise {
+  0% { transform: translate(0, 0) scale(1); opacity: 0.7; }
+  100% { transform: translate(20px, -15px) scale(0.3); opacity: 0; }
+}
+
+/* === Soat va sana overlay === */
+.clock-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  z-index: 10;
+  background: linear-gradient(180deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.1) 100%);
+  backdrop-filter: blur(0.5px);
+}
+
+.clock-time {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  font-family: 'Courier New', monospace;
+  font-size: 26px;
+  font-weight: 800;
+  color: #1f2937;
+  text-shadow: 0 2px 8px rgba(255, 255, 255, 0.8), 0 0 12px rgba(255, 255, 255, 0.5);
+  letter-spacing: 1px;
+  line-height: 1;
+}
+
+.clock-time .digit {
+  display: inline-block;
+  min-width: 30px;
+  text-align: center;
+  background: linear-gradient(180deg, #1f2937 0%, #374151 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: digit-pulse 2s ease-in-out infinite;
+}
+
+.clock-time .digit.second {
+  font-size: 18px;
+  min-width: 24px;
+  color: #059669;
+  -webkit-text-fill-color: #059669;
+  animation: second-tick 1s steps(1) infinite;
+}
+
+@keyframes digit-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.85; }
+}
+
+@keyframes second-tick {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+.clock-time .colon {
+  color: #f59e0b;
+  animation: colon-blink 1s ease-in-out infinite;
+  text-shadow: 0 0 8px rgba(245, 158, 11, 0.6);
+}
+
+@keyframes colon-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+.clock-date {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #374151;
+  text-shadow: 0 1px 4px rgba(255, 255, 255, 0.8);
+}
+
+.clock-date .weekday {
+  color: #7c3aed;
+  font-weight: 700;
+}
+
+.clock-date .separator {
+  color: #9ca3af;
+}
+
+.clock-date .date {
+  color: #4b5563;
+}
+
+/* === Responsive === */
+@media (max-width: 768px) {
+  .forest-clock-container {
+    height: 70px;
+    min-width: 240px;
+  }
+  .clock-time {
+    font-size: 20px;
+  }
+  .clock-time .digit {
+    min-width: 22px;
+  }
+  .clock-time .digit.second {
+    font-size: 14px;
+    min-width: 18px;
+  }
+  .clock-date {
+    font-size: 9px;
+  }
+  .forest-deer {
+    width: 45px;
+    height: 35px;
+  }
+}
