@@ -3,11 +3,10 @@
 import { useEffect, useState } from 'react'
 
 // =====================================================================
-//  LCD Clock — rasmga o'xshash LCD/segmentli ko'k raqamli soat
-//  - Katta ko'k segmentli raqamlar (soat:daqiqa:soniya)
-//  - Yashil LCD fon
-//  - Sana (hafta kuni, kun-oy-yil)
-//  - Minimalistik, retro elektron soat uslubi
+//  ModernClock — zamonaviy soat + aylanuvchi globus
+//  - Chiroyli raqamlar (soat:daqiqa:sekund)
+//  - Sana (oy, kun, yil, hafta kuni)
+//  - 3D globus aylanish animatsiyasi (meridianlar, qit'alar, graduslar)
 // =====================================================================
 
 const MONTHS = ['Yanvar', 'Fevral', 'Mart', 'Aprel', 'May', 'Iyun', 'Iyul', 'Avgust', 'Sentabr', 'Oktabr', 'Noyabr', 'Dekabr']
@@ -30,26 +29,58 @@ export function ForestClock() {
   const weekday = WEEKDAYS[now.getDay()]
 
   return (
-    <div className="lcd-clock-container">
-      {/* LCD "off" segmentlar (yorug' bo'lmagan, lekin ko'rinadigan) */}
-      <div className="lcd-segments-bg" aria-hidden="true">
-        <span className="seg-bg">88:88:88</span>
+    <div className="modern-clock-container">
+      {/* === Globus (o'ng tomonda) === */}
+      <div className="globe-wrapper">
+        <div className="globe">
+          {/* Globus sferasi */}
+          <div className="globe-sphere" />
+          {/* Meridianlar (vertikal chiziqlar) */}
+          <div className="globe-meridians">
+            <div className="meridian m1" />
+            <div className="meridian m2" />
+            <div className="meridian m3" />
+            <div className="meridian m4" />
+            <div className="meridian m5" />
+          </div>
+          {/* Parallellar (gorizontal chiziqlar) */}
+          <div className="globe-parallels">
+            <div className="parallel p1" />
+            <div className="parallel p2" />
+            <div className="parallel p3" />
+            <div className="parallel p4" />
+            <div className="parallel p5" />
+          </div>
+          {/* Qit'alar (soddalashtirilgan) */}
+          <div className="continents">
+            <div className="continent c1" />
+            <div className="continent c2" />
+            <div className="continent c3" />
+            <div className="continent c4" />
+          </div>
+          {/* Ekvator chizig'i */}
+          <div className="equator" />
+          {/* Yorug'lik refleksi */}
+          <div className="globe-shine" />
+        </div>
+        {/* Globus orbitasi (halqa) */}
+        <div className="globe-orbit" />
       </div>
 
-      {/* Asosiy soat (ko'k segmentli raqamlar) */}
-      <div className="lcd-time">
-        <span className="lcd-digit">{hh}</span>
-        <span className="lcd-colon">:</span>
-        <span className="lcd-digit">{mm}</span>
-        <span className="lcd-colon">:</span>
-        <span className="lcd-digit lcd-second">{ss}</span>
-      </div>
-
-      {/* Sana pastda */}
-      <div className="lcd-date">
-        <span className="lcd-weekday">{weekday}</span>
-        <span className="lcd-separator">•</span>
-        <span className="lcd-dmy">{day} {month} {year}</span>
+      {/* === Soat va sana (chap tomonda) === */}
+      <div className="clock-section">
+        <div className="modern-time">
+          <span className="time-digit">{hh}</span>
+          <span className="time-colon">:</span>
+          <span className="time-digit">{mm}</span>
+          <span className="time-colon">:</span>
+          <span className="time-digit time-second">{ss}</span>
+        </div>
+        <div className="modern-date">
+          <span className="modern-weekday">{weekday}</span>
+          <span className="date-separator">•</span>
+          <span className="modern-dmy">{day} {month} {year}</span>
+        </div>
       </div>
     </div>
   )
