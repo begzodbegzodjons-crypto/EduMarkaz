@@ -199,6 +199,9 @@ export function AttendanceReportPanel() {
   const [from, setFrom] = useState('')
   const [to, setTo] = useState('')
 
+  // Davomat sessiyalari uchun (kim, qachon, qaysi guruhda davomat qildi)
+  const [sessions, setSessions] = useState<any[]>([])
+
   const load = useCallback(async () => {
     setLoading(true)
     const params = new URLSearchParams()
@@ -231,6 +234,45 @@ export function AttendanceReportPanel() {
       m[id].total++
     })
     return Object.values(m).sort((a, b) => b.total - a.total)
+  }, [items])
+
+  // === YANGI: Davomat sessiyalari ===
+  // Har bir sessiya = bitta o'qituvchi, bitta guruh, bitta sanada davomat belgilashi
+  const sessionList = useMemo(() => {
+    const m: Record<string, any> = {}
+    items.forEach((a) => {
+      // Sessiya kaliti: teacher_id + group_id + lesson_date
+      const teacherId = a.teacher_id || 'unknown'
+      const key = `${teacherId}_${a.group_id}_${a.lesson_date}`
+      if (!m[key]) {
+        m[key] = {
+          teacher_id: teacherId,
+          teacher_name: a.teacher?.full_name || (teacherId === 'unknown' ? 'Admin tomonidan' : '—'),
+          teacher_subject: a.teacher?.subject || '',
+          group_id: a.group_id,
+          group_name: a.group?.name || '—',
+          course_name: a.group?.course?.name || '—',
+          lesson_date: a.lesson_date,
+          created_at: a.created_at,
+          present: 0,
+          absent: 0,
+          late: 0,
+          excused: 0,
+          total: 0,
+        }
+      }
+      m[key][a.status as 'present' | 'absent' | 'late' | 'excused'] = (m[key][a.status as 'present' | 'absent' | 'late' | 'excused'] || 0) + 1
+      m[key].total++
+      // Eng birinchi created_at ni saqlaymiz (eng erta vaqt)
+      if (a.created_at && (!m[key].created_at || a.created_at < m[key].created_at)) {
+        m[key].created_at = a.created_at
+      }
+    })
+    return Object.values(m).sort((a: any, b: any) => {
+      // Sanaga ko'ra (eng yangi yuqorida)
+      if (a.lesson_date !== b.lesson_date) return b.lesson_date.localeCompare(a.lesson_date)
+      return (b.created_at || '').localeCompare(a.created_at || '')
+    })
   }, [items])
 
   const totals = useMemo(() => {
@@ -297,6 +339,89 @@ export function AttendanceReportPanel() {
           </div>
         )}
       </Card>
+
+      {/* === YANGI: Davomat sessiyalari jadvali === */}
+      <Card>
+        <CardHeader
+          title="Davomat sessiyalari (o'qituvchilar tomonidan)"
+          subtitle={`${sessionList.length} ta sessiya · kim, qachon, qaysi guruhda davomat qildi`}
+        />
+        {sessionList.length === 0 ? (
+          <EmptyState title="Sessiyalar yo'q" description="Hozircha davomat belgilanmagan." />
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border/40 text-xs text-muted-foreground">
+                  <th className="text-left px-4 py-3 font-medium">#</th>
+                  <th className="text-left px-4 py-3 font-medium">O'qituvchi</th>
+                  <th className="text-left px-4 py-3 font-medium">Kurs</th>
+                  <th className="text-left px-4 py-3 font-medium">Guruh</th>
+                  <th className="text-left px-4 py-3 font-medium">Dars sanasi</th>
+                  <th className="text-left px-4 py-3 font-medium">Belgilangan vaqt</th>
+                  <th className="text-center px-4 py-3 font-medium">Keldi</th>
+                  <th className="text-center px-4 py-3 font-medium">Kelmadi</th>
+                  <th className="text-center px-4 py-3 font-medium">Kechikdi</th>
+                  <th className="text-center px-4 py-3 font-medium">Jami</th>
+                </tr>
+              </thead>
+              <tbody>
+                {sessionList.slice(0, 100).map((s: any, idx: number) => {
+                  // Sana va vaqt alohida
+                  const dt = s.created_at ? new Date(s.created_at) : null
+                  const dateStr = s.lesson_date || '—'
+                  const timeStr = dt ? dt.toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' }) : '—'
+                  const fullDateStr = dt ? dt.toLocaleDateString('uz-UZ') : '—'
+                  return (
+                    <tr key={idx} className="border-b border-border/20 hover:bg-muted/40">
+                      <td className="px-4 py-3 text-muted-foreground text-xs">{idx + 1}</td>
+                      <td className="px-4 py-3">
+                        <div className="font-medium flex items-center gap-1">
+                          👤 {s.teacher_name}
+                        </div>
+                        {s.teacher_subject && (
+                          <div className="text-[10px] text-muted-foreground">{s.teacher_subject}</div>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-muted-foreground text-xs">{s.course_name}</td>
+                      <td className="px-4 py-3 font-medium text-xs">{s.group_name}</td>
+                      <td className="px-4 py-3">
+                        <div className="font-medium text-xs">{dateStr}</div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="text-xs text-muted-foreground">
+                          <div className="font-medium">{fullDateStr}</div>
+                          <div className="text-[10px]">🕐 {timeStr}</div>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-center text-emerald-600 font-medium">{s.present}</td>
+                      <td className="px-4 py-3 text-center text-red-600 font-medium">{s.absent}</td>
+                      <td className="px-4 py-3 text-center text-amber-600 font-medium">{s.late}</td>
+                      <td className="px-4 py-3 text-center font-bold">{s.total}</td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+              <tfoot>
+                <tr className="border-t-2 border-border/60 bg-muted/30 font-bold">
+                  <td colSpan={6} className="px-4 py-3 text-right">Jami:</td>
+                  <td className="px-4 py-3 text-center text-emerald-600">{sessionList.reduce((s: number, x: any) => s + x.present, 0)}</td>
+                  <td className="px-4 py-3 text-center text-red-600">{sessionList.reduce((s: number, x: any) => s + x.absent, 0)}</td>
+                  <td className="px-4 py-3 text-center text-amber-600">{sessionList.reduce((s: number, x: any) => s + x.late, 0)}</td>
+                  <td className="px-4 py-3 text-center">{sessionList.reduce((s: number, x: any) => s + x.total, 0)}</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        )}
+      </Card>
+
+      {/* Ma'lumot */}
+      <div className="rounded-xl bg-blue-50 border border-blue-200 p-3 text-xs text-blue-800">
+        <strong>ℹ️ Davomat sessiyalari haqida:</strong> Bu jadval har bir davomat belgilash sessiyasini ko'rsatadi —
+        qaysi <strong>o'qituvchi</strong>, qaysi <strong>sana</strong> va <strong>vaqtda</strong>, qaysi <strong>guruhda</strong> davomat belgilagan.
+        Ma'lumotlar o'qituvchi panelidan (<code className="px-1 bg-blue-100 rounded">/teacher</code>) avtomatik keladi va bitta baza (attendance jadvali) dan olinadi.
+      </div>
     </div>
   )
 }

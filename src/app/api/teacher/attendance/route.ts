@@ -89,11 +89,18 @@ export async function POST(req: NextRequest) {
     lesson_date,
     status: r.status || 'present',
     notes: r.notes || null,
+    teacher_id: teacher.id, // QAYSIsi o'qituvchi belgilaganini saqlaymiz
   }))
 
   const { data, error } = await sb.from('attendance').insert(rows).select()
 
   if (error) return NextResponse.json({ ok: false, error: error.message }, { status: 500 })
 
-  return NextResponse.json({ ok: true, attendance: data, count: data.length })
+  return NextResponse.json({
+    ok: true,
+    attendance: data,
+    count: data.length,
+    teacher_id: teacher.id,
+    teacher_name: teacher.full_name,
+  })
 }
