@@ -37,9 +37,6 @@ export function PaymentsPanel() {
   const [showHistory, setShowHistory] = useState(false)
   const [historyStudent, setHistoryStudent] = useState<any>(null)
 
-  // Quick pay (inline)
-  const [quickPaying, setQuickPaying] = useState<string | null>(null) // student_id
-
   const load = useCallback(async () => {
     setLoading(true)
     const [b, c, g, p] = await Promise.all([
@@ -84,26 +81,69 @@ export function PaymentsPanel() {
   const debtorsCount = balances.filter((b) => b.remaining > 0).length
 
   // Tezkor to'lov — bitta tugma bilan, modal yo'q
-  async function quickPay(student: any, amount: number, type: 'cash' | 'card' | 'transfer' = 'cash') {
-    setQuickPaying(student.student_id)
+  // To'lov modali — qo'lda summa kiritiladi, tasdiqlash kerak
+  const [payModal, setPayModal] = useState(false)
+  const [payingStudent, setPayingStudent] = useState<any>(null)
+  const [payForm, setPayForm] = useState<any>({
+    amount: 0,
+    payment_date: new Date().toISOString().slice(0, 10),
+    payment_type: 'cash',
+    for_month: new Date().toISOString().slice(0, 7),
+    description: '',
+  })
+  const [saving, setSaving] = useState(false)
+
+  // Tugma bosilganda modal ochiladi — to'lov darhol saqlanmaydi
+  function openPayModal(student: any, defaultAmount: number) {
+    setPayingStudent(student)
+    setPayForm({
+      amount: defaultAmount,
+      payment_date: new Date().toISOString().slice(0, 10),
+      payment_type: 'cash',
+      for_month: monthStr,
+      description: '',
+    })
+    setPayModal(true)
+  }
+
+  // Faqat "Tasdiqlash" tugmasi bosilganda to'lov saqlanadi
+  async function handleConfirmPay() {
+    if (!payingStudent) return
+    if (!payForm.amount || payForm.amount <= 0) {
+      alert('Iltimos, to\'lov summasini kiriting.')
+      return
+    }
+
+    setSaving(true)
     const { ok, error } = await apiFetch('/api/payments', {
       method: 'POST',
       body: JSON.stringify({
-        student_id: student.student_id,
-        group_id: student.group_id || null,
-        amount,
-        payment_date: new Date().toISOString().slice(0, 10),
-        payment_type: type,
-        for_month: monthStr,
-        description: 'Tezkor to\'lov',
+        student_id: payingStudent.student_id,
+        group_id: payingStudent.group_id || null,
+        amount: payForm.amount,
+        payment_date: payForm.payment_date,
+        payment_type: payForm.payment_type,
+        for_month: payForm.for_month || null,
+        description: payForm.description || null,
       }),
     })
-    setQuickPaying(null)
+    setSaving(false)
+
     if (!ok) {
       alert(error || 'To\'lov saqlashda xatolik.')
       return
     }
+
+    alert(`${payingStudent.full_name} uchun ${formatMoney(payForm.amount)} to\'lov saqlandi!`)
+    setPayModal(false)
+    setPayingStudent(null)
     load()
+  }
+
+  function closePayModal() {
+    if (saving) return
+    setPayModal(false)
+    setPayingStudent(null)
   }
 
   // To'lov tarixini ochish
@@ -111,6 +151,9 @@ export function PaymentsPanel() {
     setHistoryStudent(student)
     setShowHistory(true)
   }
+
+  // Eski quickPaying state — endi kerak emas
+  // (asosiy state yuqorida e'lon qilingan)
 
   const studentHistory = useMemo(() => {
     if (!historyStudent) return []
@@ -265,12 +308,11 @@ export function PaymentsPanel() {
                   <th className="text-right px-4 py-3 font-medium">To'langan</th>
                   <th className="text-right px-4 py-3 font-medium">Qoldiq</th>
                   <th className="text-center px-4 py-3 font-medium">Holat</th>
-                  <th className="px-4 py-3 font-medium text-center">Tezkor amallar</th>
+                  <th className="px-4 py-3 font-medium text-center">Amallar</th>
                 </tr>
               </thead>
               <tbody>
                 {filtered.map((b) => {
-                  const isQuickPaying = quickPaying === b.student_id
                   // Qarz oylar sonini hisoblaymiz
                   const debtMonths = b.monthly_fee > 0 ? Math.floor(b.remaining / b.monthly_fee) : 0
                   return (
@@ -311,30 +353,24 @@ export function PaymentsPanel() {
                             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
                           </button>
 
-                          {/* Tezkor to'lov — bitta bosish bilan */}
+                          {/* To'lov tugmasi — modal ochadi, tasdiqlash kerak */}
                           {b.remaining > 0 && (
                             <button
-                              onClick={() => quickPay(b, b.remaining)}
-                              disabled={isQuickPaying}
-                              title="To'liq qoldiqni to'lash (naqd)"
-                              className="px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white text-xs font-semibold flex items-center gap-1"
+                              onClick={() => openPayModal(b, b.remaining)}
+                              title="To'lov qilish — modal ochiladi"
+                              className="px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold flex items-center gap-1"
                             >
-                              {isQuickPaying ? (
-                                <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M21 12a9 9 0 1 1-6.219-8.56" /></svg>
-                              ) : (
-                                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><polyline points="20 6 9 17 4 12" /></svg>
-                              )}
-                              {formatMoney(b.remaining)}
+                              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" /></svg>
+                              To'lov
                             </button>
                           )}
 
                           {/* Bitta oylik to'lov tugmasi */}
                           {b.remaining > b.monthly_fee && b.monthly_fee > 0 && (
                             <button
-                              onClick={() => quickPay(b, b.monthly_fee)}
-                              disabled={isQuickPaying}
-                              title="Bitta oylik to'lash (naqd)"
-                              className="px-2 py-1 rounded-lg bg-amber-100 hover:bg-amber-200 disabled:opacity-50 text-amber-700 text-[10px] font-semibold"
+                              onClick={() => openPayModal(b, b.monthly_fee)}
+                              title="Bitta oylik to'lash — modal ochiladi"
+                              className="px-2 py-1 rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-700 text-[10px] font-semibold"
                             >
                               +1 oy
                             </button>
@@ -372,6 +408,131 @@ export function PaymentsPanel() {
           <li>• Oylik to'lov summasini o'zgartirish uchun — <strong>Kurslar</strong> bo'limiga kiring</li>
         </ul>
       </div>
+
+      {/* === To'lov qilish modali (tasdiqlash bilan) === */}
+      <Modal
+        open={payModal}
+        onClose={closePayModal}
+        title={payingStudent ? `To'lov qilish: ${payingStudent.full_name}` : 'To\'lov qilish'}
+        size="lg"
+      >
+        {payingStudent && (
+          <div className="space-y-4">
+            {/* Talaba holati */}
+            <div className="rounded-xl bg-muted/40 border border-border/50 p-4 space-y-2">
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div><div className="text-xs text-muted-foreground">Kurs</div><div className="font-medium">{payingStudent.course_name}</div></div>
+                <div><div className="text-xs text-muted-foreground">Guruh</div><div className="font-medium">{payingStudent.group_name}</div></div>
+                <div><div className="text-xs text-muted-foreground">Qabul sanasi</div><div className="font-medium">{formatDate(payingStudent.enrollment_date)}</div></div>
+                <div><div className="text-xs text-muted-foreground">O'tgan oylar</div><div className="font-medium">{payingStudent.months_enrolled} oy</div></div>
+                <div><div className="text-xs text-muted-foreground">Oylik to'lov</div><div className="font-medium">{formatMoney(payingStudent.monthly_fee)}</div></div>
+                <div><div className="text-xs text-muted-foreground">To'lash kerak</div><div className="font-semibold text-amber-600">{formatMoney(payingStudent.total_due)}</div></div>
+                <div><div className="text-xs text-muted-foreground">To'langan</div><div className="font-semibold text-emerald-600">{formatMoney(payingStudent.total_paid)}</div></div>
+                <div><div className="text-xs text-muted-foreground">Qoldiq (qarz)</div><div className={`font-bold ${payingStudent.remaining > 0 ? 'text-rose-600' : 'text-emerald-600'}`}>{formatMoney(Math.max(0, payingStudent.remaining))}</div></div>
+              </div>
+            </div>
+
+            {/* To'lov formasi — qo'lda kiritiladi */}
+            <div className="space-y-3">
+              <div className="grid sm:grid-cols-2 gap-3">
+                <Field label="To'lov summasi (so'm) *">
+                  <input
+                    type="number"
+                    className="erp-input"
+                    value={payForm.amount}
+                    onChange={(e) => setPayForm({ ...payForm, amount: Number(e.target.value) })}
+                    placeholder="Masalan: 300000"
+                    autoFocus
+                  />
+                </Field>
+                <Field label="To'lov sanasi">
+                  <input
+                    type="date"
+                    className="erp-input"
+                    value={payForm.payment_date}
+                    onChange={(e) => setPayForm({ ...payForm, payment_date: e.target.value })}
+                  />
+                </Field>
+              </div>
+
+              <div className="grid sm:grid-cols-2 gap-3">
+                <Field label="To'lov turi">
+                  <select
+                    className="erp-input"
+                    value={payForm.payment_type}
+                    onChange={(e) => setPayForm({ ...payForm, payment_type: e.target.value })}
+                  >
+                    <option value="cash">Naqd</option>
+                    <option value="card">Karta</option>
+                    <option value="transfer">O'tkazma</option>
+                    <option value="other">Boshqa</option>
+                  </select>
+                </Field>
+                <Field label="Qaysi oy uchun (YYYY-MM)">
+                  <input
+                    className="erp-input"
+                    value={payForm.for_month}
+                    onChange={(e) => setPayForm({ ...payForm, for_month: e.target.value })}
+                    placeholder={monthStr}
+                  />
+                </Field>
+              </div>
+
+              <Field label="Izoh">
+                <input
+                  className="erp-input"
+                  value={payForm.description}
+                  onChange={(e) => setPayForm({ ...payForm, description: e.target.value })}
+                  placeholder="Qo'shimcha ma'lumot..."
+                />
+              </Field>
+
+              {/* Tezkor tugmalar — summani avtomatik to'ldirish uchun */}
+              {payingStudent.remaining > 0 && (
+                <div className="flex gap-2 flex-wrap">
+                  <button
+                    type="button"
+                    onClick={() => setPayForm({ ...payForm, amount: payingStudent.remaining })}
+                    className="px-3 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-semibold"
+                  >
+                    To'liq qoldiq: {formatMoney(payingStudent.remaining)}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPayForm({ ...payForm, amount: payingStudent.monthly_fee })}
+                    className="px-3 py-1.5 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-700 text-xs font-semibold"
+                  >
+                    Bitta oy: {formatMoney(payingStudent.monthly_fee)}
+                  </button>
+                </div>
+              )}
+            </div>
+
+            <div className="rounded-lg bg-amber-50 border border-amber-200 p-3 text-xs text-amber-800">
+              ⚠️ <strong>Eslatma:</strong> «Tasdiqlash» tugmasini bosgandan keyingina to'lov saqlanadi.
+            </div>
+
+            <div className="flex gap-2 pt-2">
+              <PrimaryButton onClick={handleConfirmPay} className="flex-1" disabled={saving || !payForm.amount}>
+                {saving ? (
+                  <span className="flex items-center gap-2 justify-center">
+                    <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M21 12a9 9 0 1 1-6.219-8.56" /></svg>
+                    Saqlanmoqda...
+                  </span>
+                ) : (
+                  <>
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><polyline points="20 6 9 17 4 12" /></svg>
+                    Tasdiqlash
+                  </>
+                )}
+              </PrimaryButton>
+              <GhostButton onClick={closePayModal} disabled={saving}>
+                Bekor
+              </GhostButton>
+            </div>
+          </div>
+        )}
+      </Modal>
 
       {/* === To'lov tarixi modali === */}
       <Modal
