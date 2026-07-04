@@ -409,17 +409,17 @@ export function PaymentsPanel() {
         </ul>
       </div>
 
-      {/* === To'lov qilish modali (tasdiqlash bilan) === */}
+      {/* === To'lov kalkulyatori modali (avtomatik + qo'lda + tasdiqlash) === */}
       <Modal
         open={payModal}
         onClose={closePayModal}
-        title={payingStudent ? `To'lov qilish: ${payingStudent.full_name}` : 'To\'lov qilish'}
+        title={payingStudent ? `To'lov kalkulyatori: ${payingStudent.full_name}` : 'To\'lov kalkulyatori'}
         size="lg"
       >
         {payingStudent && (
           <div className="space-y-4">
-            {/* Talaba holati */}
-            <div className="rounded-xl bg-muted/40 border border-border/50 p-4 space-y-2">
+            {/* === 1. Talaba holati === */}
+            <div className="rounded-xl bg-muted/40 border border-border/50 p-4">
               <div className="grid grid-cols-2 gap-3 text-sm">
                 <div><div className="text-xs text-muted-foreground">Kurs</div><div className="font-medium">{payingStudent.course_name}</div></div>
                 <div><div className="text-xs text-muted-foreground">Guruh</div><div className="font-medium">{payingStudent.group_name}</div></div>
@@ -432,7 +432,64 @@ export function PaymentsPanel() {
               </div>
             </div>
 
-            {/* To'lov formasi — qo'lda kiritiladi */}
+            {/* === 2. Avtomatik kalkulyator (proportional hisob) === */}
+            {payingStudent.first_month_proportion < 1 && (
+              <div className="rounded-xl bg-blue-50 border border-blue-200 p-4">
+                <div className="flex items-start gap-2 mb-3">
+                  <div className="w-6 h-6 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center shrink-0 text-xs font-bold">🧮</div>
+                  <div>
+                    <div className="font-semibold text-blue-900 text-sm">Avtomatik kalkulyator</div>
+                    <div className="text-xs text-blue-700">Talaba {payingStudent.enroll_day}-{payingStudent.enroll_month}-kunida qabul qilingan</div>
+                  </div>
+                </div>
+                <div className="space-y-2 text-xs">
+                  <div className="flex justify-between">
+                    <span className="text-blue-700">Birinchi oy ({payingStudent.first_month_days}/{payingStudent.first_month_full_days} kun):</span>
+                    <span className="font-semibold text-blue-900">
+                      {Math.round(payingStudent.first_month_proportion * 100)}% = {formatMoney(payingStudent.first_month_due)}
+                    </span>
+                  </div>
+                  {payingStudent.months_enrolled > 1 && (
+                    <div className="flex justify-between">
+                      <span className="text-blue-700">Keyingi {payingStudent.months_enrolled - 1} oy (to'liq):</span>
+                      <span className="font-semibold text-blue-900">
+                        {formatMoney((payingStudent.months_enrolled - 1) * payingStudent.monthly_fee)}
+                      </span>
+                    </div>
+                  )}
+                  <div className="border-t border-blue-200 pt-2 flex justify-between">
+                    <span className="font-semibold text-blue-900">Jami to'lash kerak:</span>
+                    <span className="font-bold text-blue-900">{formatMoney(payingStudent.total_due)}</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* === 3. Oylik breakdown (agar 1 dan ko'p oy bo'lsa) === */}
+            {payingStudent.months_enrolled > 1 && payingStudent.monthly_breakdown && (
+              <div className="rounded-xl border border-border/50 overflow-hidden">
+                <div className="bg-muted/40 px-3 py-2 text-xs font-semibold text-muted-foreground">
+                  Oylik hisob-kitob ({payingStudent.months_enrolled} oy)
+                </div>
+                <div className="max-h-32 overflow-y-auto">
+                  {payingStudent.monthly_breakdown.map((m: any, i: number) => (
+                    <div key={i} className="flex justify-between items-center px-3 py-1.5 text-xs border-b border-border/20 last:border-b-0">
+                      <span className="text-muted-foreground">{m.month_label}</span>
+                      <div className="flex items-center gap-2">
+                        {m.is_partial && (
+                          <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 text-[9px] font-semibold">
+                            {Math.round(m.proportion * 100)}%
+                          </span>
+                        )}
+                        <span className="font-medium">{formatMoney(m.due)}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* === 4. To'lov formasi (qo'lda summa kiritiladi) === */}
             <div className="space-y-3">
               <div className="grid sm:grid-cols-2 gap-3">
                 <Field label="To'lov summasi (so'm) *">
@@ -445,7 +502,7 @@ export function PaymentsPanel() {
                     autoFocus
                   />
                 </Field>
-                <Field label="To'lov sanasi">
+                <Field label="To'lov sanasi *">
                   <input
                     type="date"
                     className="erp-input"
@@ -478,38 +535,77 @@ export function PaymentsPanel() {
                 </Field>
               </div>
 
-              <Field label="Izoh">
+              <Field label="Izoh (ixtiyoriy)">
                 <input
                   className="erp-input"
                   value={payForm.description}
                   onChange={(e) => setPayForm({ ...payForm, description: e.target.value })}
-                  placeholder="Qo'shimcha ma'lumot..."
+                  placeholder="Masalan: Naqd, oylik to'lov"
                 />
               </Field>
 
-              {/* Tezkor tugmalar — summani avtomatik to'ldirish uchun */}
-              {payingStudent.remaining > 0 && (
-                <div className="flex gap-2 flex-wrap">
+              {/* === Tezkor tugmalar — summani avtomatik to'ldirish === */}
+              <div className="flex gap-2 flex-wrap">
+                {payingStudent.remaining > 0 && (
                   <button
                     type="button"
                     onClick={() => setPayForm({ ...payForm, amount: payingStudent.remaining })}
-                    className="px-3 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-semibold"
+                    className="px-3 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-semibold border border-rose-200"
                   >
                     To'liq qoldiq: {formatMoney(payingStudent.remaining)}
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => setPayForm({ ...payForm, amount: payingStudent.monthly_fee })}
-                    className="px-3 py-1.5 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-700 text-xs font-semibold"
-                  >
-                    Bitta oy: {formatMoney(payingStudent.monthly_fee)}
-                  </button>
-                </div>
-              )}
+                )}
+                <button
+                  type="button"
+                  onClick={() => setPayForm({ ...payForm, amount: payingStudent.monthly_fee })}
+                  className="px-3 py-1.5 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-700 text-xs font-semibold border border-amber-200"
+                >
+                  Bitta oy: {formatMoney(payingStudent.monthly_fee)}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPayForm({ ...payForm, amount: payingStudent.first_month_due })}
+                  className="px-3 py-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-semibold border border-blue-200"
+                >
+                  Birinchi oy: {formatMoney(payingStudent.first_month_due)}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPayForm({ ...payForm, amount: Math.round(payingStudent.monthly_fee / 2) })}
+                  className="px-3 py-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-semibold border border-slate-200"
+                >
+                  Yarim oy: {formatMoney(Math.round(payingStudent.monthly_fee / 2))}
+                </button>
+              </div>
             </div>
+
+            {/* === 5. Hisob-kitob ko'rinishi (real-time) === */}
+            {payForm.amount > 0 && (
+              <div className="rounded-xl bg-emerald-50 border border-emerald-200 p-3">
+                <div className="grid grid-cols-3 gap-3 text-sm text-center">
+                  <div>
+                    <div className="text-[10px] text-emerald-700">To'layapti</div>
+                    <div className="font-bold text-emerald-700">{formatMoney(payForm.amount)}</div>
+                  </div>
+                  <div>
+                    <div className="text-[10px] text-emerald-700">Yangi qoldiq</div>
+                    <div className={`font-bold ${Math.max(0, payingStudent.remaining - payForm.amount) > 0 ? 'text-rose-600' : 'text-emerald-700'}`}>
+                      {formatMoney(Math.max(0, payingStudent.remaining - payForm.amount))}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-[10px] text-emerald-700">Holat</div>
+                    <div className="font-bold text-emerald-700">
+                      {payForm.amount >= payingStudent.remaining ? '✓ To\'liq' : 'Qisman'}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
 
             <div className="rounded-lg bg-amber-50 border border-amber-200 p-3 text-xs text-amber-800">
               ⚠️ <strong>Eslatma:</strong> «Tasdiqlash» tugmasini bosgandan keyingina to'lov saqlanadi.
+              To'lov summasini qo'lda o'zgartirishingiz mumkin.
             </div>
 
             <div className="flex gap-2 pt-2">
@@ -578,9 +674,17 @@ export function PaymentsPanel() {
                   </tr>
                 </thead>
                 <tbody>
-                  {studentHistory.map((p) => (
+                  {studentHistory.map((p) => {
+                    // Sana + soat (created_at dan)
+                    const dt = p.created_at ? new Date(p.created_at) : new Date(p.payment_date)
+                    const dateStr = dt.toLocaleDateString('uz-UZ')
+                    const timeStr = dt.toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' })
+                    return (
                     <tr key={p.id} className="border-b border-border/20 hover:bg-muted/40">
-                      <td className="px-3 py-2">{formatDate(p.payment_date)}</td>
+                      <td className="px-3 py-2">
+                        <div className="font-medium">{formatDate(p.payment_date)}</div>
+                        <div className="text-[10px] text-muted-foreground">{dateStr} · {timeStr}</div>
+                      </td>
                       <td className="px-3 py-2 text-right font-semibold text-emerald-600">{formatMoney(p.amount)}</td>
                       <td className="px-3 py-2"><PaymentTypeChip type={p.payment_type} /></td>
                       <td className="px-3 py-2 text-muted-foreground">{p.for_month || '—'}</td>
@@ -591,7 +695,8 @@ export function PaymentsPanel() {
                         </IconButton>
                       </td>
                     </tr>
-                  ))}
+                    )
+                  })}
                 </tbody>
                 <tfoot>
                   <tr className="border-t-2 border-border/60 bg-muted/30 font-semibold">
