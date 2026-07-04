@@ -259,8 +259,9 @@ export function CoursesPanel() {
           <Field label="Tavsif"><textarea className="erp-input" rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></Field>
           <div className="grid sm:grid-cols-2 gap-3">
             <Field label="Davomiyligi (oy)"><input type="number" className="erp-input" value={form.duration_months} onChange={(e) => setForm({ ...form, duration_months: Number(e.target.value) })} /></Field>
-            <Field label="Narxi (so'm)"><input type="number" className="erp-input" value={form.price} onChange={(e) => setForm({ ...form, price: Number(e.target.value) })} /></Field>
+            <Field label="Oylik to'lov summasi (so'm)"><input type="number" className="erp-input" value={form.price} onChange={(e) => setForm({ ...form, price: Number(e.target.value) })} placeholder="Masalan: 300000" /></Field>
           </div>
+          <p className="text-xs text-muted-foreground">Bu summa To'lovlar bo'limida avtomatik hisob-kitob uchun ishlatiladi. Talaba qabul qilingan kundan boshlab har oy shu summa hisoblanadi.</p>
           <div className="flex gap-2 pt-2"><PrimaryButton onClick={handleSave} className="flex-1">Saqlash</PrimaryButton><GhostButton onClick={() => setOpenModal(false)}>Bekor</GhostButton></div>
         </div>
       </Modal>

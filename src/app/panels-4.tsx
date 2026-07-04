@@ -11,147 +11,401 @@ import {
 } from './panels-common'
 
 // ============================================================================
-//  TO'RLOVLAR PANEL — kurs → guruh → talabalar
+//  TO'RLOVLAR PANEL — avtomatik hisob-kitob (qoldiqlar bilan)
 // ============================================================================
 export function PaymentsPanel() {
-  const [items, setItems] = useState<any[]>([])
-  const [students, setStudents] = useState<any[]>([])
-  const [groups, setGroups] = useState<any[]>([])
-  const [courses, setCourses] = useState<any[]>([])
+  const [balances, setBalances] = useState<any[]>([])
+  const [totals, setTotals] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [search, setSearch] = useState('')
   const [courseFilter, setCourseFilter] = useState('all')
-  const [groupFilter, setGroupFilter] = useState('all')
-  const [openModal, setOpenModal] = useState(false)
-  const [editing, setEditing] = useState<any>(null)
-  const [form, setForm] = useState<any>({ student_id: '', group_id: '', amount: 0, payment_date: new Date().toISOString().slice(0, 10), payment_type: 'cash', for_month: '', description: '' })
+  const [debtFilter, setDebtFilter] = useState('all') // all | debt | paid
+  const [payModal, setPayModal] = useState(false)
+  const [payingStudent, setPayingStudent] = useState<any>(null)
+  const [payForm, setPayForm] = useState<any>({
+    amount: 0,
+    payment_date: new Date().toISOString().slice(0, 10),
+    payment_type: 'cash',
+    for_month: new Date().toISOString().slice(0, 7),
+    description: '',
+  })
+  const [paying, setPaying] = useState(false)
+
+  // To'lovlar tarixi (alohida ko'rish uchun)
+  const [history, setHistory] = useState<any[]>([])
+  const [showHistory, setShowHistory] = useState(false)
+  const [historyStudent, setHistoryStudent] = useState<any>(null)
+
+  // Kurslar — filter uchun
+  const [courses, setCourses] = useState<any[]>([])
 
   const load = useCallback(async () => {
     setLoading(true)
-    const [p, s, g, c] = await Promise.all([apiFetch('/api/payments'), apiFetch('/api/students'), apiFetch('/api/groups'), apiFetch('/api/courses')])
-    if (p.ok) setItems(p.data?.payments || [])
-    if (s.ok) setStudents(s.data?.students || [])
-    if (g.ok) setGroups(g.data?.groups || [])
+    const [b, c, p] = await Promise.all([
+      apiFetch('/api/payments/balances'),
+      apiFetch('/api/courses'),
+      apiFetch('/api/payments?limit=1000'),
+    ])
+    if (b.ok && b.data) {
+      setBalances(b.data.balances || [])
+      setTotals(b.data.totals || null)
+    }
     if (c.ok) setCourses(c.data?.courses || [])
+    if (p.ok) setHistory(p.data?.payments || [])
     setLoading(false)
   }, [])
 
   useEffect(() => { load() }, [load])
 
-  const filteredGroups = useMemo(() => courseFilter !== 'all' ? groups.filter((g) => g.course_id === courseFilter) : groups, [groups, courseFilter])
-  const filtered = useMemo(() => items.filter((p) => {
-    if (courseFilter !== 'all' && p.group?.course_id !== courseFilter) return false
-    if (groupFilter !== 'all' && p.group_id !== groupFilter) return false
-    return true
-  }), [items, courseFilter, groupFilter])
-
-  const total = filtered.reduce((sum, p) => sum + Number(p.amount || 0), 0)
-  const monthStr = new Date().toISOString().slice(0, 7)
-  const monthTotal = filtered.filter((p) => String(p.payment_date).startsWith(monthStr)).reduce((sum, p) => sum + Number(p.amount || 0), 0)
-
-  // To'lamagan talabalar (shu guruhda, shu oyda to'lovi yo'q)
-  const unpaidStudents = useMemo(() => {
-    if (courseFilter === 'all' && groupFilter === 'all') return []
-    return students.filter((s) => {
-      if (s.status !== 'active') return false
-      if (courseFilter !== 'all' && s.course_id !== courseFilter) return false
-      if (groupFilter !== 'all' && s.group_id !== groupFilter) return false
-      // Bu oy to'lov qilganmi?
-      const paid = items.find((p) => p.student_id === s.id && p.for_month === monthStr)
-      return !paid
+  // Filtrlangan talabalar ro'yxati
+  const filtered = useMemo(() => {
+    return balances.filter((b) => {
+      // Qidiruv
+      if (search && !b.full_name?.toLowerCase().includes(search.toLowerCase()) && !b.phone?.includes(search)) return false
+      // Kurs bo'yicha
+      if (courseFilter !== 'all' && b.course_id !== courseFilter) return false
+      // Qarz bo'yicha
+      if (debtFilter === 'debt' && b.remaining <= 0) return false
+      if (debtFilter === 'paid' && b.remaining > 0) return false
+      return true
     })
-  }, [students, items, courseFilter, groupFilter, monthStr])
+  }, [balances, search, courseFilter, debtFilter])
 
-  async function handleSave() {
-    if (editing) {
-      const { ok, error } = await apiFetch('/api/payments', { method: 'PUT', body: JSON.stringify({ id: editing.id, ...form }) })
-      if (!ok) return alert(error)
-    } else {
-      const { ok, error } = await apiFetch('/api/payments', { method: 'POST', body: JSON.stringify(form) })
-      if (!ok) return alert(error)
-    }
-    setOpenModal(false); setEditing(null); load()
+  const monthStr = new Date().toISOString().slice(0, 7)
+
+  function openPayModal(student: any) {
+    setPayingStudent(student)
+    // Standart amount = qoldiq (agar qoldiq bo'lsa) yoki oylik to'lov
+    const defaultAmount = student.remaining > 0 ? student.remaining : student.monthly_fee
+    setPayForm({
+      amount: defaultAmount,
+      payment_date: new Date().toISOString().slice(0, 10),
+      payment_type: 'cash',
+      for_month: monthStr,
+      description: '',
+    })
+    setPayModal(true)
   }
-  async function handleDelete(id: string) { if (!confirm('O\'chirmoqchimisiz?')) return; const { ok, error } = await apiFetch(`/api/payments?id=${id}`, { method: 'DELETE' }); if (!ok) return alert(error); load() }
+
+  async function handlePay() {
+    if (!payingStudent) return
+    if (!payForm.amount || payForm.amount <= 0) return alert('Iltimos, summani kiriting.')
+
+    setPaying(true)
+    const { ok, error } = await apiFetch('/api/payments', {
+      method: 'POST',
+      body: JSON.stringify({
+        student_id: payingStudent.student_id,
+        group_id: payingStudent.group_id || null,
+        amount: payForm.amount,
+        payment_date: payForm.payment_date,
+        payment_type: payForm.payment_type,
+        for_month: payForm.for_month || null,
+        description: payForm.description || null,
+      }),
+    })
+    setPaying(false)
+    if (!ok) return alert(error || 'To\'lov saqlashda xatolik.')
+
+    alert('To\'lov muvaffaqiyatli saqlandi!')
+    setPayModal(false)
+    setPayingStudent(null)
+    load()
+  }
+
+  async function handleDeletePayment(id: string) {
+    if (!confirm('To\'lovni o\'chirmoqchimisiz?')) return
+    const { ok, error } = await apiFetch(`/api/payments?id=${id}`, { method: 'DELETE' })
+    if (!ok) return alert(error)
+    load()
+  }
+
+  function openHistory(student: any) {
+    setHistoryStudent(student)
+    setShowHistory(true)
+  }
+
+  const studentHistory = useMemo(() => {
+    if (!historyStudent) return []
+    return history.filter((p) => p.student_id === historyStudent.student_id).sort((a, b) => String(b.payment_date).localeCompare(String(a.payment_date)))
+  }, [history, historyStudent])
 
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between flex-wrap gap-3">
-        <div><h1 className="text-2xl lg:text-3xl font-bold">To'lovlar</h1><p className="text-muted-foreground text-sm mt-1">{filtered.length} yozuv</p></div>
-        <PrimaryButton onClick={() => { setEditing(null); setForm({ student_id: '', group_id: '', amount: 0, payment_date: new Date().toISOString().slice(0, 10), payment_type: 'cash', for_month: '', description: '' }); setOpenModal(true) }}><Plus className="w-4 h-4" /> Yangi to'lov</PrimaryButton>
+        <div>
+          <h1 className="text-2xl lg:text-3xl font-bold">To'lovlar</h1>
+          <p className="text-muted-foreground text-sm mt-1">
+            Avtomatik hisob-kitob — {balances.length} talaba
+          </p>
+        </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div className="bg-card rounded-2xl border border-border/50 p-4"><div className="text-xs text-muted-foreground">Jami to'lovlar</div><div className="text-xl lg:text-2xl font-bold mt-1 text-emerald-600">{formatMoney(total)}</div><div className="text-[10px] text-muted-foreground mt-0.5">{filtered.length} ta yozuv</div></div>
-        <div className="bg-card rounded-2xl border border-border/50 p-4"><div className="text-xs text-muted-foreground">Shu oygi</div><div className="text-xl lg:text-2xl font-bold mt-1 text-emerald-600">{formatMoney(monthTotal)}</div><div className="text-[10px] text-muted-foreground mt-0.5">{new Date().toLocaleDateString('uz-UZ', { month: 'long' })}</div></div>
-      </div>
-
-      <div className="flex gap-2 flex-wrap">
-        <select value={courseFilter} onChange={(e) => { setCourseFilter(e.target.value); setGroupFilter('all') }} className="px-3 py-2 rounded-xl border border-border/50 text-sm bg-card">
-          <option value="all">Barcha kurslar</option>{courses.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-        </select>
-        <select value={groupFilter} onChange={(e) => setGroupFilter(e.target.value)} className="px-3 py-2 rounded-xl border border-border/50 text-sm bg-card">
-          <option value="all">Barcha guruhlar</option>{filteredGroups.map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}
-        </select>
-      </div>
-
-      {/* To'lamagan talabalar */}
-      {unpaidStudents.length > 0 && (
-        <Card>
-          <CardHeader title="To'lamagan talabalar" subtitle={`${unpaidStudents.length} ta — ${monthStr} oyi uchun`} />
-          <div className="p-4 pt-0 grid sm:grid-cols-2 lg:grid-cols-3 gap-2">
-            {unpaidStudents.map((s) => (
-              <div key={s.id} className="flex items-center gap-3 px-3 py-2 rounded-lg bg-red-50 border border-red-100">
-                <Avatar name={s.full_name} color="rose" />
-                <div className="flex-1 min-w-0"><div className="text-sm font-medium truncate">{s.full_name}</div><div className="text-[10px] text-red-600">{s.group?.name || s.course?.name || '—'}</div></div>
-                <IconButton title="To'lov qo'shish" onClick={() => { setEditing(null); setForm({ student_id: s.id, group_id: s.group_id || '', amount: 0, payment_date: new Date().toISOString().slice(0, 10), payment_type: 'cash', for_month: monthStr, description: '' }); setOpenModal(true) }}><Plus className="w-4 h-4 text-emerald-600" /></IconButton>
-              </div>
-            ))}
+      {/* === Umumiy statistika === */}
+      {totals && (
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="bg-card rounded-2xl border border-border/50 p-4">
+            <div className="text-xs text-muted-foreground">Jami talabalar</div>
+            <div className="text-xl lg:text-2xl font-bold mt-1">{totals.students_count}</div>
+            <div className="text-[10px] text-muted-foreground mt-0.5">{totals.active_students} faol</div>
           </div>
-        </Card>
+          <div className="bg-card rounded-2xl border border-border/50 p-4">
+            <div className="text-xs text-muted-foreground">To'lash kerak</div>
+            <div className="text-xl lg:text-2xl font-bold mt-1 text-amber-600">{formatMoney(totals.total_due)}</div>
+            <div className="text-[10px] text-muted-foreground mt-0.5">umumiy majburiyat</div>
+          </div>
+          <div className="bg-card rounded-2xl border border-border/50 p-4">
+            <div className="text-xs text-muted-foreground">To'langan</div>
+            <div className="text-xl lg:text-2xl font-bold mt-1 text-emerald-600">{formatMoney(totals.total_paid)}</div>
+            <div className="text-[10px] text-muted-foreground mt-0.5">jami to'lovlar</div>
+          </div>
+          <div className="bg-card rounded-2xl border border-border/50 p-4">
+            <div className="text-xs text-muted-foreground">Qoldiq (qarz)</div>
+            <div className={`text-xl lg:text-2xl font-bold mt-1 ${totals.total_remaining > 0 ? 'text-rose-600' : 'text-emerald-600'}`}>{formatMoney(totals.total_remaining)}</div>
+            <div className="text-[10px] text-muted-foreground mt-0.5">{totals.students_with_debt} ta qarzdor talaba</div>
+          </div>
+        </div>
       )}
 
-      {/* To'lovlar tarixi */}
+      {/* === Filtrlar === */}
+      <div className="flex gap-2 flex-wrap">
+        <div className="flex items-center gap-2 px-3 py-2 bg-card rounded-xl border border-border/50 flex-1 min-w-[200px]">
+          <svg className="w-4 h-4 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></svg>
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Ism yoki telefon bo'yicha..." className="flex-1 bg-transparent outline-none text-sm" />
+        </div>
+        <select value={courseFilter} onChange={(e) => setCourseFilter(e.target.value)} className="px-3 py-2 rounded-xl border border-border/50 text-sm bg-card">
+          <option value="all">Barcha kurslar</option>
+          {courses.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+        </select>
+        <select value={debtFilter} onChange={(e) => setDebtFilter(e.target.value)} className="px-3 py-2 rounded-xl border border-border/50 text-sm bg-card">
+          <option value="all">Barchasi</option>
+          <option value="debt">Qarzdorlar</option>
+          <option value="paid">To'laganlar</option>
+        </select>
+      </div>
+
+      {/* === Talabalar balans jadvali === */}
       <Card>
-        <CardHeader title="To'lovlar tarixi" subtitle={`${filtered.length} yozuv`} />
-        {loading ? <PanelLoader /> : filtered.length === 0 ? <EmptyState title="To'lovlar yo'q" /> : (
+        <CardHeader title="Talabalar balansi" subtitle={`${filtered.length} ta talaba — avtomatik hisob-kitob`} />
+        {loading ? <PanelLoader /> : filtered.length === 0 ? <EmptyState title="Talabalar topilmadi" description="Filtrlarni o'zgartiring yoki talaba qo'shing." /> : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead><tr className="border-b border-border/40 text-xs text-muted-foreground">
-                <th className="text-left px-4 py-3 font-medium">Talaba</th><th className="text-left px-4 py-3 font-medium">Guruh</th>
-                <th className="text-right px-4 py-3 font-medium">Summa</th><th className="text-left px-4 py-3 font-medium">Sana</th>
-                <th className="text-left px-4 py-3 font-medium">Turi</th><th className="text-left px-4 py-3 font-medium">Oy</th><th className="px-4 py-3"></th>
-              </tr></thead>
+              <thead>
+                <tr className="border-b border-border/40 text-xs text-muted-foreground">
+                  <th className="text-left px-4 py-3 font-medium">Talaba</th>
+                  <th className="text-left px-4 py-3 font-medium">Kurs</th>
+                  <th className="text-left px-4 py-3 font-medium">Qabul sana</th>
+                  <th className="text-right px-4 py-3 font-medium">Oylik</th>
+                  <th className="text-center px-4 py-3 font-medium">Oylar</th>
+                  <th className="text-right px-4 py-3 font-medium">To'lash kerak</th>
+                  <th className="text-right px-4 py-3 font-medium">To'langan</th>
+                  <th className="text-right px-4 py-3 font-medium">Qoldiq</th>
+                  <th className="text-center px-4 py-3 font-medium">Holat</th>
+                  <th className="px-4 py-3"></th>
+                </tr>
+              </thead>
               <tbody>
-                {filtered.slice(0, 100).map((p) => (
-                  <tr key={p.id} className="border-b border-border/20 hover:bg-muted/40">
-                    <td className="px-4 py-3 font-medium">{p.student?.full_name || '—'}</td>
-                    <td className="px-4 py-3 text-muted-foreground">{p.group?.name || '—'}</td>
-                    <td className="px-4 py-3 text-right font-bold text-emerald-600">{formatMoney(p.amount)}</td>
-                    <td className="px-4 py-3">{formatDate(p.payment_date)}</td>
-                    <td className="px-4 py-3"><PaymentTypeChip type={p.payment_type} /></td>
-                    <td className="px-4 py-3 text-muted-foreground">{p.for_month || '—'}</td>
-                    <td className="px-4 py-3 text-right"><div className="flex gap-1"><IconButton title="Tahrirlash" onClick={() => { setEditing(p); setForm({ student_id: p.student_id, group_id: p.group_id || '', amount: p.amount, payment_date: p.payment_date, payment_type: p.payment_type, for_month: p.for_month || '', description: p.description || '' }); setOpenModal(true) }}><Pencil className="w-3.5 h-3.5" /></IconButton><IconButton title="O'chirish" danger onClick={() => handleDelete(p.id)}><Trash2 className="w-3.5 h-3.5" /></IconButton></div></td>
+                {filtered.map((b) => (
+                  <tr key={b.student_id} className="border-b border-border/20 hover:bg-muted/40">
+                    <td className="px-4 py-3 font-medium">{b.full_name}<div className="text-[10px] text-muted-foreground">{b.phone || '—'}</div></td>
+                    <td className="px-4 py-3 text-muted-foreground">{b.course_name}<div className="text-[10px]">{b.group_name}</div></td>
+                    <td className="px-4 py-3 text-muted-foreground">{formatDate(b.enrollment_date)}</td>
+                    <td className="px-4 py-3 text-right font-medium">{formatMoney(b.monthly_fee)}</td>
+                    <td className="px-4 py-3 text-center text-muted-foreground">{b.months_enrolled}</td>
+                    <td className="px-4 py-3 text-right font-semibold text-amber-600">{formatMoney(b.total_due)}</td>
+                    <td className="px-4 py-3 text-right font-semibold text-emerald-600">{formatMoney(b.total_paid)}</td>
+                    <td className={`px-4 py-3 text-right font-bold ${b.remaining > 0 ? 'text-rose-600' : 'text-emerald-600'}`}>{formatMoney(Math.max(0, b.remaining))}</td>
+                    <td className="px-4 py-3 text-center">
+                      {b.remaining > 0 ? (
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-rose-100 text-rose-700">Qarz</span>
+                      ) : (
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 text-emerald-700">To'langan</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <div className="flex gap-1 justify-end">
+                        <button
+                          onClick={() => openHistory(b)}
+                          title="To'lov tarixi"
+                          className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground"
+                        >
+                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
+                        </button>
+                        <button
+                          onClick={() => openPayModal(b)}
+                          title="To'lov qilish"
+                          className="p-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700"
+                        >
+                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" /></svg>
+                        </button>
+                      </div>
+                    </td>
                   </tr>
                 ))}
               </tbody>
+              <tfoot>
+                <tr className="border-t-2 border-border/60 bg-muted/30 font-semibold">
+                  <td colSpan={5} className="px-4 py-3 text-right">Jami:</td>
+                  <td className="px-4 py-3 text-right text-amber-600">{formatMoney(filtered.reduce((s, b) => s + b.total_due, 0))}</td>
+                  <td className="px-4 py-3 text-right text-emerald-600">{formatMoney(filtered.reduce((s, b) => s + b.total_paid, 0))}</td>
+                  <td className="px-4 py-3 text-right text-rose-600">{formatMoney(filtered.reduce((s, b) => s + Math.max(0, b.remaining), 0))}</td>
+                  <td colSpan={2}></td>
+                </tr>
+              </tfoot>
             </table>
           </div>
         )}
       </Card>
 
-      <Modal open={openModal} onClose={() => setOpenModal(false)} title={editing ? 'To\'lovni tahrirlash' : 'Yangi to\'lov'}>
+      {/* === Ma'lumot kartochkasi === */}
+      <div className="rounded-xl bg-blue-50 border border-blue-200 p-4 text-sm text-blue-800">
+        <div className="font-semibold mb-1">ℹ️ Avtomatik hisob-kitob qanday ishlaydi?</div>
+        <ul className="text-xs space-y-1 text-blue-700">
+          <li>• Talabaning <strong>qabul sanasidan</strong> boshlab har bir oy uchun <strong>oylik to'lov summasi</strong> (kurs narxi) avtomatik hisoblanadi</li>
+          <li>• <strong>To'lash kerak</strong> = o'tgan oylar soni × oylik to'lov</li>
+          <li>• <strong>Qoldiq</strong> = to'lash kerak − to'langan summa</li>
+          <li>• Talaba kursga qabul qilingan kuni boshlab hisoblanadi — yangi to'lov qo'shish shart emas</li>
+          <li>• Oylik to'lov summasi kurs sozlamalarida belgilanadi (Kurslar bo'limi)</li>
+        </ul>
+      </div>
+
+      {/* === To'lov qilish modali === */}
+      <Modal open={payModal} onClose={() => { if (!paying) { setPayModal(false); setPayingStudent(null) } }} title={payingStudent ? `To'lov qilish: ${payingStudent.full_name}` : 'To\'lov qilish'} size="lg">
+        {payingStudent && (
+          <div className="space-y-4">
+            {/* Talaba holati */}
+            <div className="rounded-xl bg-muted/40 border border-border/50 p-4 space-y-2">
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div><div className="text-xs text-muted-foreground">Kurs</div><div className="font-medium">{payingStudent.course_name}</div></div>
+                <div><div className="text-xs text-muted-foreground">Guruh</div><div className="font-medium">{payingStudent.group_name}</div></div>
+                <div><div className="text-xs text-muted-foreground">Qabul sanasi</div><div className="font-medium">{formatDate(payingStudent.enrollment_date)}</div></div>
+                <div><div className="text-xs text-muted-foreground">O'tgan oylar</div><div className="font-medium">{payingStudent.months_enrolled} oy</div></div>
+                <div><div className="text-xs text-muted-foreground">Oylik to'lov</div><div className="font-medium">{formatMoney(payingStudent.monthly_fee)}</div></div>
+                <div><div className="text-xs text-muted-foreground">To'lash kerak</div><div className="font-semibold text-amber-600">{formatMoney(payingStudent.total_due)}</div></div>
+                <div><div className="text-xs text-muted-foreground">To'langan</div><div className="font-semibold text-emerald-600">{formatMoney(payingStudent.total_paid)}</div></div>
+                <div><div className="text-xs text-muted-foreground">Qoldiq (qarz)</div><div className={`font-bold ${payingStudent.remaining > 0 ? 'text-rose-600' : 'text-emerald-600'}`}>{formatMoney(Math.max(0, payingStudent.remaining))}</div></div>
+              </div>
+            </div>
+
+            {/* To'lov formasi */}
+            <div className="space-y-3">
+              <div className="grid sm:grid-cols-2 gap-3">
+                <Field label="To'lov summasi (so'm) *">
+                  <input
+                    type="number"
+                    className="erp-input"
+                    value={payForm.amount}
+                    onChange={(e) => setPayForm({ ...payForm, amount: Number(e.target.value) })}
+                    placeholder="Masalan: 300000"
+                  />
+                </Field>
+                <Field label="To'lov sanasi">
+                  <input type="date" className="erp-input" value={payForm.payment_date} onChange={(e) => setPayForm({ ...payForm, payment_date: e.target.value })} />
+                </Field>
+              </div>
+              <div className="grid sm:grid-cols-2 gap-3">
+                <Field label="To'lov turi">
+                  <select className="erp-input" value={payForm.payment_type} onChange={(e) => setPayForm({ ...payForm, payment_type: e.target.value })}>
+                    <option value="cash">Naqd</option>
+                    <option value="card">Karta</option>
+                    <option value="transfer">O'tkazma</option>
+                    <option value="other">Boshqa</option>
+                  </select>
+                </Field>
+                <Field label="Qaysi oy uchun (YYYY-MM)">
+                  <input className="erp-input" value={payForm.for_month} onChange={(e) => setPayForm({ ...payForm, for_month: e.target.value })} placeholder={monthStr} />
+                </Field>
+              </div>
+              <Field label="Izoh">
+                <input className="erp-input" value={payForm.description} onChange={(e) => setPayForm({ ...payForm, description: e.target.value })} placeholder="Qo'shimcha ma'lumot..." />
+              </Field>
+
+              {/* Tezkor tugmalar */}
+              {payingStudent.remaining > 0 && (
+                <div className="flex gap-2 flex-wrap">
+                  <button
+                    type="button"
+                    onClick={() => setPayForm({ ...payForm, amount: payingStudent.remaining })}
+                    className="px-3 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-semibold"
+                  >
+                    To'liq qoldiq: {formatMoney(payingStudent.remaining)}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPayForm({ ...payForm, amount: payingStudent.monthly_fee })}
+                    className="px-3 py-1.5 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-700 text-xs font-semibold"
+                  >
+                    Bitta oy: {formatMoney(payingStudent.monthly_fee)}
+                  </button>
+                </div>
+              )}
+            </div>
+
+            <div className="flex gap-2 pt-2">
+              <PrimaryButton onClick={handlePay} className="flex-1" disabled={paying || !payForm.amount}>
+                {paying ? 'Saqlanmoqda...' : 'To\'lovni saqlash'}
+              </PrimaryButton>
+              <GhostButton onClick={() => { if (!paying) { setPayModal(false); setPayingStudent(null) } }}>
+                Bekor
+              </GhostButton>
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      {/* === To'lov tarixi modali === */}
+      <Modal open={showHistory} onClose={() => { setShowHistory(false); setHistoryStudent(null) }} title={historyStudent ? `To'lov tarixi: ${historyStudent.full_name}` : 'To\'lov tarixi'} size="lg">
         <div className="space-y-3">
-          <Field label="Talaba *"><select className="erp-input" value={form.student_id} onChange={(e) => { const s = students.find((x) => x.id === e.target.value); setForm({ ...form, student_id: e.target.value, group_id: s?.group_id || '' }) }}><option value="">— Tanlang —</option>{students.map((s) => <option key={s.id} value={s.id}>{s.full_name} — {s.group?.name || 'Guruh yo\'q'}</option>)}</select></Field>
-          <div className="grid sm:grid-cols-2 gap-3">
-            <Field label="Summa (so'm) *"><input type="number" className="erp-input" value={form.amount} onChange={(e) => setForm({ ...form, amount: Number(e.target.value) })} /></Field>
-            <Field label="To'lov sanasi"><input type="date" className="erp-input" value={form.payment_date} onChange={(e) => setForm({ ...form, payment_date: e.target.value })} /></Field>
-          </div>
-          <div className="grid sm:grid-cols-2 gap-3">
-            <Field label="To'lov turi"><select className="erp-input" value={form.payment_type} onChange={(e) => setForm({ ...form, payment_type: e.target.value })}><option value="cash">Naqd</option><option value="card">Karta</option><option value="transfer">O'tkazma</option><option value="other">Boshqa</option></select></Field>
-            <Field label="Oy (YYYY-MM)"><input className="erp-input" value={form.for_month} onChange={(e) => setForm({ ...form, for_month: e.target.value })} placeholder={monthStr} /></Field>
-          </div>
-          <Field label="Izoh"><input className="erp-input" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></Field>
-          <div className="flex gap-2 pt-2"><PrimaryButton onClick={handleSave} className="flex-1">Saqlash</PrimaryButton><GhostButton onClick={() => setOpenModal(false)}>Bekor</GhostButton></div>
+          {historyStudent && (
+            <div className="rounded-xl bg-muted/40 p-3 text-sm">
+              <div className="grid grid-cols-3 gap-3">
+                <div><div className="text-xs text-muted-foreground">To'lash kerak</div><div className="font-semibold text-amber-600">{formatMoney(historyStudent.total_due)}</div></div>
+                <div><div className="text-xs text-muted-foreground">To'langan</div><div className="font-semibold text-emerald-600">{formatMoney(historyStudent.total_paid)}</div></div>
+                <div><div className="text-xs text-muted-foreground">Qoldiq</div><div className={`font-bold ${historyStudent.remaining > 0 ? 'text-rose-600' : 'text-emerald-600'}`}>{formatMoney(Math.max(0, historyStudent.remaining))}</div></div>
+              </div>
+            </div>
+          )}
+          {studentHistory.length === 0 ? (
+            <EmptyState title="To'lovlar yo'q" description="Bu talaba uchun hali to'lov kiritilmagan." />
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-border/40 text-xs text-muted-foreground">
+                    <th className="text-left px-3 py-2 font-medium">Sana</th>
+                    <th className="text-right px-3 py-2 font-medium">Summa</th>
+                    <th className="text-left px-3 py-2 font-medium">Turi</th>
+                    <th className="text-left px-3 py-2 font-medium">Oy</th>
+                    <th className="text-left px-3 py-2 font-medium">Izoh</th>
+                    <th className="px-3 py-2"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {studentHistory.map((p) => (
+                    <tr key={p.id} className="border-b border-border/20 hover:bg-muted/40">
+                      <td className="px-3 py-2">{formatDate(p.payment_date)}</td>
+                      <td className="px-3 py-2 text-right font-semibold text-emerald-600">{formatMoney(p.amount)}</td>
+                      <td className="px-3 py-2"><PaymentTypeChip type={p.payment_type} /></td>
+                      <td className="px-3 py-2 text-muted-foreground">{p.for_month || '—'}</td>
+                      <td className="px-3 py-2 text-muted-foreground">{p.description || '—'}</td>
+                      <td className="px-3 py-2 text-right">
+                        <IconButton title="O'chirish" danger onClick={() => handleDeletePayment(p.id)}>
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </IconButton>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot>
+                  <tr className="border-t-2 border-border/60 bg-muted/30 font-semibold">
+                    <td className="px-3 py-2 text-right">Jami:</td>
+                    <td className="px-3 py-2 text-right text-emerald-600">{formatMoney(studentHistory.reduce((s, p) => s + Number(p.amount || 0), 0))}</td>
+                    <td colSpan={4}></td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          )}
         </div>
       </Modal>
     </div>
