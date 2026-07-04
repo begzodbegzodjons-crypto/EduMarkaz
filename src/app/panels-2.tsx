@@ -18,7 +18,7 @@ export function TeachersPanel() {
   const [loading, setLoading] = useState(true)
   const [openModal, setOpenModal] = useState(false)
   const [editing, setEditing] = useState<any>(null)
-  const [form, setForm] = useState<any>({ full_name: '', phone: '', subject: '', salary_amount: 0, hire_date: '', notes: '' })
+  const [form, setForm] = useState<any>({ full_name: '', phone: '', login: '', subject: '', salary_amount: 0, hire_date: '', notes: '', password: '' })
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -44,9 +44,29 @@ export function TeachersPanel() {
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between flex-wrap gap-3">
-        <div><h1 className="text-2xl lg:text-3xl font-bold">O'qituvchilar</h1><p className="text-muted-foreground text-sm mt-1">{items.length} murabbiy</p></div>
-        <PrimaryButton onClick={() => { setEditing(null); setForm({ full_name: '', phone: '', subject: '', salary_amount: 0, hire_date: '', notes: '' }); setOpenModal(true) }}><Plus className="w-4 h-4" /> Yangi o'qituvchi</PrimaryButton>
+        <div>
+          <h1 className="text-2xl lg:text-3xl font-bold">O'qituvchilar</h1>
+          <p className="text-muted-foreground text-sm mt-1">{items.length} murabbiy</p>
+        </div>
+        <div className="flex gap-2">
+          <a
+            href="/teacher"
+            target="_blank"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 text-sm font-semibold border border-blue-200"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /><polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" /></svg>
+            O'qituvchi paneli
+          </a>
+          <PrimaryButton onClick={() => { setEditing(null); setForm({ full_name: '', phone: '', login: '', subject: '', salary_amount: 0, hire_date: '', notes: '', password: '' }); setOpenModal(true) }}><Plus className="w-4 h-4" /> Yangi o'qituvchi</PrimaryButton>
+        </div>
       </div>
+
+      {/* O'qituvchi paneli haqida ma'lumot */}
+      <div className="rounded-xl bg-blue-50 border border-blue-200 p-3 text-xs text-blue-800">
+        <strong>ℹ️ O'qituvchi paneli:</strong> O'qituvchilar <code className="px-1 py-0.5 bg-blue-100 rounded">/teacher</code> manzilidan kirib, o'z guruhlaridagi o'quvchilarning davomatini belgilashlari mumkin.
+        Har bir o'qituvchi uchun <strong>login (telefon)</strong> va <strong>parol</strong> kiriting.
+      </div>
+
       {loading ? <PanelLoader /> : items.length === 0 ? <Card><EmptyState title="O'qituvchilar yo'q" description="Birinchi murabbiyingizni qo'shing." /></Card> : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {items.map((t) => (
@@ -54,26 +74,50 @@ export function TeachersPanel() {
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3"><Avatar name={t.full_name} color="cyan" /><div><div className="font-semibold">{t.full_name}</div><div className="text-xs text-muted-foreground">{t.subject || 'Fan ko\'rsatilmagan'}</div></div></div>
                 <div className="flex gap-1">
-                  <IconButton title="Tahrirlash" onClick={() => { setEditing(t); setForm({ full_name: t.full_name, phone: t.phone || '', subject: t.subject || '', salary_amount: t.salary_amount || 0, hire_date: t.hire_date || '', notes: t.notes || '' }); setOpenModal(true) }}><Pencil className="w-3.5 h-3.5" /></IconButton>
+                  <IconButton title="Tahrirlash" onClick={() => { setEditing(t); setForm({ full_name: t.full_name, phone: t.phone || '', login: t.login || '', subject: t.subject || '', salary_amount: t.salary_amount || 0, hire_date: t.hire_date || '', notes: t.notes || '', password: '' }); setOpenModal(true) }}><Pencil className="w-3.5 h-3.5" /></IconButton>
                   <IconButton title="O'chirish" danger onClick={() => handleDelete(t.id)}><Trash2 className="w-3.5 h-3.5" /></IconButton>
                 </div>
               </div>
               <div className="mt-3 space-y-1.5 text-xs">
                 {t.phone && <Row label="Telefon" value={t.phone} />}
+                {t.login && <Row label="Login" value={t.login} />}
                 <Row label="Maosh" value={formatMoney(t.salary_amount)} />
                 <Row label="Ish boshlagan" value={formatDate(t.hire_date)} />
+                <div className="flex items-center gap-1.5">
+                  <span className="text-muted-foreground">O'qituvchi paneli:</span>
+                  {t.has_password ? (
+                    <span className="px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-semibold">✓ Parol o'rnatilgan</span>
+                  ) : (
+                    <span className="px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[10px] font-semibold">⚠ Parol yo'q</span>
+                  )}
+                </div>
               </div>
             </div></Card>
           ))}
         </div>
       )}
-      <Modal open={openModal} onClose={() => setOpenModal(false)} title={editing ? 'O\'qituvchini tahrirlash' : 'Yangi o\'qituvchi'}>
+      <Modal open={openModal} onClose={() => setOpenModal(false)} title={editing ? 'O\'qituvchini tahrirlash' : 'Yangi o\'qituvchi'} size="lg">
         <div className="space-y-3">
           <Field label="F.I.O *"><input className="erp-input" value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} /></Field>
           <div className="grid sm:grid-cols-2 gap-3">
-            <Field label="Telefon"><input className="erp-input" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></Field>
+            <Field label="Telefon (login sifatida ishlatiladi)"><input className="erp-input" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value, login: form.login || e.target.value })} placeholder="+998901234567" /></Field>
             <Field label="Fan / Mutaxassislik"><input className="erp-input" value={form.subject} onChange={(e) => setForm({ ...form, subject: e.target.value })} /></Field>
           </div>
+
+          {/* O'qituvchi paneli uchun parol */}
+          <div className="rounded-xl bg-emerald-50 border border-emerald-200 p-3 space-y-2">
+            <div className="text-xs font-semibold text-emerald-800">🔐 O'qituvchi paneli uchun kirish</div>
+            <div className="grid sm:grid-cols-2 gap-3">
+              <Field label="Login (ixtiyoriy)"><input className="erp-input" value={form.login} onChange={(e) => setForm({ ...form, login: e.target.value })} placeholder="Telefon avtomatik ishlatiladi" /></Field>
+              <Field label={editing ? 'Yangi parol (o\'zgartirish uchun)' : 'Parol *'}>
+                <input type="text" className="erp-input" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} placeholder="Masalan: 1234" />
+              </Field>
+            </div>
+            <p className="text-[11px] text-emerald-700">
+              O'qituvchi <code className="px-1 bg-emerald-100 rounded">/teacher</code> manzilidan login (yoki telefon) va parol bilan kirib, o'z guruhlaridagi o'quvchilarning davomatini belgilay oladi.
+            </p>
+          </div>
+
           <div className="grid sm:grid-cols-2 gap-3">
             <Field label="Maosh (so'm)"><input type="number" className="erp-input" value={form.salary_amount} onChange={(e) => setForm({ ...form, salary_amount: Number(e.target.value) })} /></Field>
             <Field label="Ish boshlagan sana"><input type="date" className="erp-input" value={form.hire_date} onChange={(e) => setForm({ ...form, hire_date: e.target.value })} /></Field>
