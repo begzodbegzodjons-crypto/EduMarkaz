@@ -106,7 +106,7 @@ export function AttendancePanel() {
 
   async function handleDelete(id: string) { if (!confirm('O\'chirmoqchimisiz?')) return; const { ok, error } = await apiFetch(`/api/attendance?id=${id}`, { method: 'DELETE' }); if (!ok) return alert(error); load() }
 
-  // So'nggi davomatlar ro'yxati
+  // So'nggi davomatlar ro'yxati - o'qituvchi ma'lumotlari bilan
   const recentByDate = useMemo(() => {
     const m: Record<string, any[]> = {}
     items.forEach((a) => {
@@ -115,6 +115,43 @@ export function AttendancePanel() {
       m[key].push(a)
     })
     return Object.entries(m).sort(([a], [b]) => b.localeCompare(a)).slice(0, 5)
+  }, [items])
+
+  // === YANGI: O'qituvchilar tomonidan qilingan davomat sessiyalari ===
+  // Har bir sessiya = bitta o'qituvchi + bitta guruh + bitta sana
+  const teacherSessions = useMemo(() => {
+    const m: Record<string, any> = {}
+    items.forEach((a) => {
+      const teacherId = a.teacher_id || 'admin'
+      const key = `${teacherId}_${a.group_id}_${a.lesson_date}`
+      if (!m[key]) {
+        m[key] = {
+          teacher_id: teacherId,
+          teacher_name: a.teacher?.full_name || (teacherId === 'admin' ? 'Admin tomonidan' : '—'),
+          teacher_subject: a.teacher?.subject || '',
+          group_id: a.group_id,
+          group_name: a.group?.name || '—',
+          course_name: a.group?.course?.name || '—',
+          lesson_date: a.lesson_date,
+          created_at: a.created_at,
+          present: 0,
+          absent: 0,
+          late: 0,
+          excused: 0,
+          total: 0,
+        }
+      }
+      const status = a.status as 'present' | 'absent' | 'late' | 'excused'
+      if (m[key][status] !== undefined) m[key][status]++
+      m[key].total++
+      if (a.created_at && (!m[key].created_at || a.created_at < m[key].created_at)) {
+        m[key].created_at = a.created_at
+      }
+    })
+    return Object.values(m).sort((a: any, b: any) => {
+      if (a.lesson_date !== b.lesson_date) return b.lesson_date.localeCompare(a.lesson_date)
+      return (b.created_at || '').localeCompare(a.created_at || '')
+    })
   }, [items])
 
   return (
@@ -156,6 +193,81 @@ export function AttendancePanel() {
         </Card>
       )}
 
+      {/* === YANGI: O'qituvchilar tomonidan qilingan davomat sessiyalari === */}
+      <Card>
+        <CardHeader
+          title="O'qituvchilar tomonidan qilingan davomatlar"
+          subtitle={`${teacherSessions.length} ta sessiya · kim, qachon, qaysi guruhda davomat qilgan`}
+        />
+        {loading ? <PanelLoader /> : teacherSessions.length === 0 ? (
+          <EmptyState title="Hozircha davomat yo'q" description="O'qituvchilar o'z panelidan davomat belgilashlari kerak." />
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border/40 text-xs text-muted-foreground">
+                  <th className="text-left px-4 py-3 font-medium">#</th>
+                  <th className="text-left px-4 py-3 font-medium">O'qituvchi</th>
+                  <th className="text-left px-4 py-3 font-medium">Kurs</th>
+                  <th className="text-left px-4 py-3 font-medium">Guruh</th>
+                  <th className="text-left px-4 py-3 font-medium">Dars sanasi</th>
+                  <th className="text-left px-4 py-3 font-medium">Belgilangan vaqt</th>
+                  <th className="text-center px-4 py-3 font-medium">Keldi</th>
+                  <th className="text-center px-4 py-3 font-medium">Kelmadi</th>
+                  <th className="text-center px-4 py-3 font-medium">Kechikdi</th>
+                  <th className="text-center px-4 py-3 font-medium">Jami</th>
+                </tr>
+              </thead>
+              <tbody>
+                {teacherSessions.slice(0, 50).map((s: any, idx: number) => {
+                  const dt = s.created_at ? new Date(s.created_at) : null
+                  const dateStr = s.lesson_date || '—'
+                  const timeStr = dt ? dt.toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' }) : '—'
+                  const fullDateStr = dt ? dt.toLocaleDateString('uz-UZ') : '—'
+                  return (
+                    <tr key={idx} className="border-b border-border/20 hover:bg-muted/40">
+                      <td className="px-4 py-3 text-muted-foreground text-xs">{idx + 1}</td>
+                      <td className="px-4 py-3">
+                        <div className="font-medium flex items-center gap-1">
+                          👤 {s.teacher_name}
+                        </div>
+                        {s.teacher_subject && (
+                          <div className="text-[10px] text-muted-foreground">{s.teacher_subject}</div>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-muted-foreground text-xs">{s.course_name}</td>
+                      <td className="px-4 py-3 font-medium text-xs">{s.group_name}</td>
+                      <td className="px-4 py-3">
+                        <div className="font-medium text-xs">{dateStr}</div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="text-xs text-muted-foreground">
+                          <div className="font-medium">{fullDateStr}</div>
+                          <div className="text-[10px]">🕐 {timeStr}</div>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-center text-emerald-600 font-medium">{s.present}</td>
+                      <td className="px-4 py-3 text-center text-red-600 font-medium">{s.absent}</td>
+                      <td className="px-4 py-3 text-center text-amber-600 font-medium">{s.late}</td>
+                      <td className="px-4 py-3 text-center font-bold">{s.total}</td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+              <tfoot>
+                <tr className="border-t-2 border-border/60 bg-muted/30 font-bold">
+                  <td colSpan={6} className="px-4 py-3 text-right">Jami:</td>
+                  <td className="px-4 py-3 text-center text-emerald-600">{teacherSessions.reduce((s: number, x: any) => s + x.present, 0)}</td>
+                  <td className="px-4 py-3 text-center text-red-600">{teacherSessions.reduce((s: number, x: any) => s + x.absent, 0)}</td>
+                  <td className="px-4 py-3 text-center text-amber-600">{teacherSessions.reduce((s: number, x: any) => s + x.late, 0)}</td>
+                  <td className="px-4 py-3 text-center">{teacherSessions.reduce((s: number, x: any) => s + x.total, 0)}</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        )}
+      </Card>
+
       {/* So'nggi davomatlar */}
       <Card>
         <CardHeader title="So'nggi davomatlar" subtitle="Oxirgi 5 kun" />
@@ -167,8 +279,14 @@ export function AttendancePanel() {
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2">
                   {recs.map((a) => (
                     <div key={a.id} className="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-muted/40">
-                      <div className="text-sm font-medium truncate">{a.student?.full_name}</div>
-                      <div className="flex items-center gap-1"><AttStatusChip status={a.status} /><IconButton danger onClick={() => handleDelete(a.id)} title="O'chirish"><Trash2 className="w-3 h-3" /></IconButton></div>
+                      <div className="min-w-0 flex-1">
+                        <div className="text-sm font-medium truncate">{a.student?.full_name}</div>
+                        <div className="text-[10px] text-muted-foreground truncate">
+                          {a.group?.name || '—'}
+                          {a.teacher?.full_name && ` · 👤 ${a.teacher.full_name}`}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1 shrink-0"><AttStatusChip status={a.status} /><IconButton danger onClick={() => handleDelete(a.id)} title="O'chirish"><Trash2 className="w-3 h-3" /></IconButton></div>
                     </div>
                   ))}
                 </div>
