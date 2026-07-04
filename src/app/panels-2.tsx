@@ -894,23 +894,39 @@ export function GroupsPanel() {
 }
 
 // ============================================================================
-//  KURSLAR PANEL
+//  KURSLAR PANEL — kartochka bosilganda to'liq ma'lumot
 // ============================================================================
 export function CoursesPanel() {
   const [items, setItems] = useState<any[]>([])
   const [groups, setGroups] = useState<any[]>([])
   const [students, setStudents] = useState<any[]>([])
+  const [teachers, setTeachers] = useState<any[]>([])
+  const [schedule, setSchedule] = useState<any[]>([])
+  const [payments, setPayments] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [openModal, setOpenModal] = useState(false)
   const [editing, setEditing] = useState<any>(null)
   const [form, setForm] = useState<any>({ name: '', description: '', duration_months: 3, price: 0 })
 
+  // Detal uchun state
+  const [selectedCourse, setSelectedCourse] = useState<any>(null)
+
   const load = useCallback(async () => {
     setLoading(true)
-    const [c, g, s] = await Promise.all([apiFetch('/api/courses'), apiFetch('/api/groups'), apiFetch('/api/students')])
+    const [c, g, s, t, sch, p] = await Promise.all([
+      apiFetch('/api/courses'),
+      apiFetch('/api/groups'),
+      apiFetch('/api/students'),
+      apiFetch('/api/teachers'),
+      apiFetch('/api/schedule'),
+      apiFetch('/api/payments?limit=1000'),
+    ])
     if (c.ok) setItems(c.data?.courses || [])
     if (g.ok) setGroups(g.data?.groups || [])
     if (s.ok) setStudents(s.data?.students || [])
+    if (t.ok) setTeachers(t.data?.teachers || [])
+    if (sch.ok) setSchedule(sch.data?.schedule || [])
+    if (p.ok) setPayments(p.data?.payments || [])
     setLoading(false)
   }, [])
 
@@ -928,33 +944,315 @@ export function CoursesPanel() {
   }
   async function handleDelete(id: string) { if (!confirm('O\'chirmoqchimisiz?')) return; const { ok, error } = await apiFetch(`/api/courses?id=${id}`, { method: 'DELETE' }); if (!ok) return alert(error); load() }
 
+  const WEEKDAYS = ['Dushanba', 'Seshanba', 'Chorshanba', 'Payshanba', 'Juma', 'Shanba', 'Yakshanba']
+
+  // === DETAL KO'RINISHI ===
+  if (selectedCourse) {
+    const c = selectedCourse
+    // Kursdagi guruhlar (o'qituvchi bilan)
+    const courseGroups = groups.filter((g) => g.course_id === c.id).map((g) => ({
+      ...g,
+      teacher: teachers.find((t) => t.id === g.teacher_id),
+      students_count: students.filter((s) => s.group_id === g.id && (s.status === 'active' || s.status === 'paused')).length,
+    }))
+    // Kursdagi barcha talabalar
+    const courseStudents = students.filter((s) => s.course_id === c.id)
+    const activeStudents = courseStudents.filter((s) => s.status === 'active')
+    // Kursdagi darslar (jadvaldan)
+    const courseSchedule = schedule.filter((s) => {
+      const grp = groups.find((g) => g.id === s.group_id)
+      return grp?.course_id === c.id
+    })
+    // Kurs bo'yicha to'lovlar
+    const coursePayments = payments.filter((p) => {
+      const stud = students.find((s) => s.id === p.student_id)
+      return stud?.course_id === c.id
+    })
+    const totalPaid = coursePayments.reduce((s, p) => s + Number(p.amount || 0), 0)
+    // Jami talabalar
+    const totalStudents = courseStudents.length
+    const totalActive = activeStudents.length
+
+    return (
+      <div className="space-y-5">
+        {/* Orqaga qaytish */}
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setSelectedCourse(null)}
+            className="p-2 rounded-lg hover:bg-muted text-muted-foreground"
+            title="Kurslarga qaytish"
+          >
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" /></svg>
+          </button>
+          <div className="flex items-center gap-3">
+            <Avatar name={c.name} color="violet" />
+            <div>
+              <h1 className="text-2xl lg:text-3xl font-bold">{c.name}</h1>
+              <p className="text-muted-foreground text-sm mt-0.5">
+                {c.duration_months} oylik kurs · {courseGroups.length} guruh · {totalActive} faol talaba
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* === 1. Asosiy ma'lumotlar === */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="bg-card rounded-2xl border border-border/50 p-3">
+            <div className="text-[10px] text-muted-foreground">Yaratilgan sana</div>
+            <div className="text-sm font-semibold mt-0.5">{formatDate(c.created_at) || '—'}</div>
+          </div>
+          <div className="bg-card rounded-2xl border border-border/50 p-3">
+            <div className="text-[10px] text-muted-foreground">Davomiyligi</div>
+            <div className="text-sm font-semibold mt-0.5">{c.duration_months} oy</div>
+          </div>
+          <div className="bg-card rounded-2xl border border-border/50 p-3">
+            <div className="text-[10px] text-muted-foreground">Oylik to'lov</div>
+            <div className="text-sm font-semibold mt-0.5 text-amber-600">{formatMoney(c.price)}</div>
+          </div>
+          <div className="bg-card rounded-2xl border border-border/50 p-3">
+            <div className="text-[10px] text-muted-foreground">Jami to'lovlar</div>
+            <div className="text-sm font-semibold mt-0.5 text-emerald-600">{formatMoney(totalPaid)}</div>
+          </div>
+        </div>
+
+        {/* === 2. Statistik kartochkalar === */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="bg-violet-50 rounded-2xl border border-violet-200 p-3">
+            <div className="text-[10px] text-violet-700">Guruhlar</div>
+            <div className="text-2xl font-bold mt-0.5 text-violet-900">{courseGroups.length}</div>
+          </div>
+          <div className="bg-emerald-50 rounded-2xl border border-emerald-200 p-3">
+            <div className="text-[10px] text-emerald-700">Jami talabalar</div>
+            <div className="text-2xl font-bold mt-0.5 text-emerald-900">{totalStudents}</div>
+          </div>
+          <div className="bg-blue-50 rounded-2xl border border-blue-200 p-3">
+            <div className="text-[10px] text-blue-700">Faol talabalar</div>
+            <div className="text-2xl font-bold mt-0.5 text-blue-900">{totalActive}</div>
+          </div>
+          <div className="bg-amber-50 rounded-2xl border border-amber-200 p-3">
+            <div className="text-[10px] text-amber-700">Darslar (jadvalda)</div>
+            <div className="text-2xl font-bold mt-0.5 text-amber-900">{courseSchedule.length}</div>
+          </div>
+        </div>
+
+        {/* === Tavsif === */}
+        {c.description && (
+          <Card>
+            <CardHeader title="Kurs tavsifi" />
+            <div className="p-4 pt-0 text-sm text-muted-foreground">{c.description}</div>
+          </Card>
+        )}
+
+        {/* === 3. Guruhlar jadvali === */}
+        <Card>
+          <CardHeader title="Guruhlar" subtitle={`${courseGroups.length} guruh · o'qituvchi va talabalar bilan`} />
+          {courseGroups.length === 0 ? (
+            <EmptyState title="Guruhlar yo'q" description="Bu kursga guruh qo'shing." />
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-border/40 text-xs text-muted-foreground">
+                    <th className="text-left px-4 py-3 font-medium">#</th>
+                    <th className="text-left px-4 py-3 font-medium">Guruh</th>
+                    <th className="text-left px-4 py-3 font-medium">O'qituvchi</th>
+                    <th className="text-center px-4 py-3 font-medium">Talabalar</th>
+                    <th className="text-left px-4 py-3 font-medium">Jadval</th>
+                    <th className="text-left px-4 py-3 font-medium">Ochilgan sana</th>
+                    <th className="text-left px-4 py-3 font-medium">Tugash sana</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {courseGroups.map((g, idx) => (
+                    <tr key={g.id} className="border-b border-border/20 hover:bg-muted/40">
+                      <td className="px-4 py-3 text-muted-foreground text-xs">{idx + 1}</td>
+                      <td className="px-4 py-3 font-medium">{g.name}</td>
+                      <td className="px-4 py-3 text-muted-foreground">
+                        {g.teacher ? (
+                          <span className="flex items-center gap-1">
+                            👤 {g.teacher.full_name}
+                            {g.teacher.subject && <span className="text-[10px] text-muted-foreground">({g.teacher.subject})</span>}
+                          </span>
+                        ) : <span className="text-amber-600 text-xs">Biriktirilmagan</span>}
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${g.students_count >= g.max_students ? 'bg-red-100 text-red-700' : 'bg-emerald-100 text-emerald-700'}`}>
+                          {g.students_count}/{g.max_students}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-muted-foreground text-xs">{g.schedule || '—'}</td>
+                      <td className="px-4 py-3 text-muted-foreground text-xs">{formatDate(g.start_date) || '—'}</td>
+                      <td className="px-4 py-3 text-muted-foreground text-xs">{formatDate(g.end_date) || '—'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </Card>
+
+        {/* === 4. Talabalar ro'yxati === */}
+        <Card>
+          <CardHeader title="Talabalar ro'yxati" subtitle={`${totalStudents} jami · ${totalActive} faol`} />
+          {courseStudents.length === 0 ? (
+            <EmptyState title="Talabalar yo'q" description="Bu kursga talaba qo'shing." />
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-border/40 text-xs text-muted-foreground">
+                    <th className="text-left px-4 py-3 font-medium">#</th>
+                    <th className="text-left px-4 py-3 font-medium">Talaba</th>
+                    <th className="text-left px-4 py-3 font-medium">Guruh</th>
+                    <th className="text-left px-4 py-3 font-medium">Telefon</th>
+                    <th className="text-left px-4 py-3 font-medium">Qabul sana</th>
+                    <th className="text-center px-4 py-3 font-medium">Holat</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {courseStudents.slice(0, 100).map((s, idx) => {
+                    const grp = groups.find((g) => g.id === s.group_id)
+                    return (
+                      <tr key={s.id} className="border-b border-border/20 hover:bg-muted/40">
+                        <td className="px-4 py-3 text-muted-foreground text-xs">{idx + 1}</td>
+                        <td className="px-4 py-3 font-medium">{s.full_name}</td>
+                        <td className="px-4 py-3 text-muted-foreground">{grp?.name || '—'}</td>
+                        <td className="px-4 py-3 text-muted-foreground text-xs">{s.phone || '—'}</td>
+                        <td className="px-4 py-3 text-muted-foreground text-xs">{formatDate(s.enrollment_date) || '—'}</td>
+                        <td className="px-4 py-3 text-center">
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${
+                            s.status === 'active' ? 'bg-emerald-100 text-emerald-700' :
+                            s.status === 'paused' ? 'bg-amber-100 text-amber-700' :
+                            s.status === 'graduated' ? 'bg-blue-100 text-blue-700' :
+                            'bg-red-100 text-red-700'
+                          }`}>
+                            {s.status === 'active' ? 'Faol' : s.status === 'paused' ? 'To\'xtatilgan' : s.status === 'graduated' ? 'Bitirgan' : 'Ketgan'}
+                          </span>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </Card>
+
+        {/* === 5. Dars jadvali === */}
+        <Card>
+          <CardHeader title="Dars jadvali" subtitle={`${courseSchedule.length} ta dars · haftalik`} />
+          {courseSchedule.length === 0 ? (
+            <EmptyState title="Dars jadvali yo'q" description="Dars jadvali bo'limidan dars qo'shing." />
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-border/40 text-xs text-muted-foreground">
+                    <th className="text-left px-4 py-3 font-medium">#</th>
+                    <th className="text-left px-4 py-3 font-medium">Kun</th>
+                    <th className="text-left px-4 py-3 font-medium">Guruh</th>
+                    <th className="text-left px-4 py-3 font-medium">O'qituvchi</th>
+                    <th className="text-left px-4 py-3 font-medium">Vaqt</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {courseSchedule.sort((a, b) => a.weekday - b.weekday || a.start_time.localeCompare(b.start_time)).map((s, idx) => {
+                    const grp = groups.find((g) => g.id === s.group_id)
+                    const tch = teachers.find((t) => t.id === s.teacher_id)
+                    return (
+                      <tr key={s.id} className="border-b border-border/20 hover:bg-muted/40">
+                        <td className="px-4 py-3 text-muted-foreground text-xs">{idx + 1}</td>
+                        <td className="px-4 py-3 font-medium">{WEEKDAYS[s.weekday] || '—'}</td>
+                        <td className="px-4 py-3 text-muted-foreground">{grp?.name || '—'}</td>
+                        <td className="px-4 py-3 text-muted-foreground">{tch?.full_name || '—'}</td>
+                        <td className="px-4 py-3">
+                          <span className="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 text-xs font-semibold">
+                            {s.start_time?.slice(0, 5)} - {s.end_time?.slice(0, 5)}
+                          </span>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </Card>
+
+        {/* === 6. Moliyaviy ma'lumot === */}
+        <Card>
+          <CardHeader
+            title="Moliyaviy ma'lumot"
+            subtitle={`Jami to'lovlar: ${formatMoney(totalPaid)} · ${coursePayments.length} ta to'lov yozuvi`}
+          />
+          <div className="p-4 pt-0 grid grid-cols-2 lg:grid-cols-4 gap-3">
+            <div className="bg-emerald-50 rounded-xl border border-emerald-200 p-3 text-center">
+              <div className="text-[10px] text-emerald-700">Jami to'langan</div>
+              <div className="text-lg font-bold mt-1 text-emerald-900">{formatMoney(totalPaid)}</div>
+            </div>
+            <div className="bg-amber-50 rounded-xl border border-amber-200 p-3 text-center">
+              <div className="text-[10px] text-amber-700">Oylik to'lov (har talaba)</div>
+              <div className="text-lg font-bold mt-1 text-amber-900">{formatMoney(c.price)}</div>
+            </div>
+            <div className="bg-blue-50 rounded-xl border border-blue-200 p-3 text-center">
+              <div className="text-[10px] text-blue-700">Faol talabalar</div>
+              <div className="text-lg font-bold mt-1 text-blue-900">{totalActive}</div>
+            </div>
+            <div className="bg-violet-50 rounded-xl border border-violet-200 p-3 text-center">
+              <div className="text-[10px] text-violet-700">Kutilayotgan oylik tushum</div>
+              <div className="text-lg font-bold mt-1 text-violet-900">{formatMoney(totalActive * Number(c.price || 0))}</div>
+            </div>
+          </div>
+        </Card>
+
+        {/* === Ma'lumot === */}
+        <div className="rounded-xl bg-blue-50 border border-blue-200 p-3 text-xs text-blue-800">
+          <strong>ℹ️ Kurs haqida:</strong> Bu yerda kursning barcha ma'lumotlari — guruhlari, talabalari, dars jadvali va moliyaviy ko'rsatkichlari bitta sahifada ko'rinadi.
+          Barcha ma'lumotlar markaziy bazadan olinadi — yangi talaba qo'shilsa, to'lov qilinsa yoki davomat belgilansa, bu yerda avtomatik yangilanadi.
+        </div>
+      </div>
+    )
+  }
+
+  // === ASOSIY RO'YXAT ===
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between flex-wrap gap-3">
-        <div><h1 className="text-2xl lg:text-3xl font-bold">Kurslar</h1><p className="text-muted-foreground text-sm mt-1">{items.length} kurs</p></div>
+        <div><h1 className="text-2xl lg:text-3xl font-bold">Kurslar</h1><p className="text-muted-foreground text-sm mt-1">{items.length} kurs · batafsil uchun kursni bosing</p></div>
         <PrimaryButton onClick={() => { setEditing(null); setForm({ name: '', description: '', duration_months: 3, price: 0 }); setOpenModal(true) }}><Plus className="w-4 h-4" /> Yangi kurs</PrimaryButton>
       </div>
       {loading ? <PanelLoader /> : items.length === 0 ? <Card><EmptyState title="Kurslar yo'q" description="Birinchi kursingizni yarating." /></Card> : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {items.map((c) => {
             const groupCount = groups.filter((g) => g.course_id === c.id).length
-            const studentCount = students.filter((s) => s.course_id === c.id).length
+            const studentCount = students.filter((s) => s.course_id === c.id && s.status === 'active').length
             return (
-              <Card key={c.id}><div className="p-4">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3"><Avatar name={c.name} color="violet" /><div><div className="font-semibold">{c.name}</div><div className="text-xs text-muted-foreground">{c.duration_months} oy</div></div></div>
-                  <div className="flex gap-1">
-                    <IconButton title="Tahrirlash" onClick={() => { setEditing(c); setForm({ name: c.name, description: c.description || '', duration_months: c.duration_months, price: c.price }); setOpenModal(true) }}><Pencil className="w-3.5 h-3.5" /></IconButton>
-                    <IconButton title="O'chirish" danger onClick={() => handleDelete(c.id)}><Trash2 className="w-3.5 h-3.5" /></IconButton>
+              <Card key={c.id}>
+                <div
+                  className="p-4 cursor-pointer hover:bg-muted/30 transition-colors"
+                  onClick={() => setSelectedCourse(c)}
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-3"><Avatar name={c.name} color="violet" /><div><div className="font-semibold">{c.name}</div><div className="text-xs text-muted-foreground">{c.duration_months} oy</div></div></div>
+                    <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
+                      <IconButton title="Tahrirlash" onClick={() => { setEditing(c); setForm({ name: c.name, description: c.description || '', duration_months: c.duration_months, price: c.price }); setOpenModal(true) }}><Pencil className="w-3.5 h-3.5" /></IconButton>
+                      <IconButton title="O'chirish" danger onClick={() => handleDelete(c.id)}><Trash2 className="w-3.5 h-3.5" /></IconButton>
+                    </div>
+                  </div>
+                  {c.description && <p className="mt-3 text-xs text-muted-foreground line-clamp-2">{c.description}</p>}
+                  <div className="mt-3 pt-3 border-t border-border/40 grid grid-cols-3 gap-2 text-center">
+                    <div><div className="text-base font-bold text-violet-600">{groupCount}</div><div className="text-[10px] text-muted-foreground">guruh</div></div>
+                    <div><div className="text-base font-bold text-emerald-600">{studentCount}</div><div className="text-[10px] text-muted-foreground">talaba</div></div>
+                    <div><div className="text-base font-bold text-amber-600">{formatMoney(c.price).replace(' so\'m', '')}</div><div className="text-[10px] text-muted-foreground">so'm</div></div>
+                  </div>
+                  <div className="mt-2 flex items-center justify-end">
+                    <span className="text-[10px] text-blue-600 font-medium flex items-center gap-1">
+                      Batafsil
+                      <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><polyline points="9 18 15 12 9 6" /></svg>
+                    </span>
                   </div>
                 </div>
-                {c.description && <p className="mt-3 text-xs text-muted-foreground line-clamp-2">{c.description}</p>}
-                <div className="mt-3 pt-3 border-t border-border/40 grid grid-cols-3 gap-2 text-center">
-                  <div><div className="text-base font-bold text-violet-600">{groupCount}</div><div className="text-[10px] text-muted-foreground">guruh</div></div>
-                  <div><div className="text-base font-bold text-emerald-600">{studentCount}</div><div className="text-[10px] text-muted-foreground">talaba</div></div>
-                  <div><div className="text-base font-bold text-amber-600">{formatMoney(c.price).replace(' so\'m', '')}</div><div className="text-[10px] text-muted-foreground">so'm</div></div>
-                </div>
-              </div></Card>
+              </Card>
             )
           })}
         </div>
