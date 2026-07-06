@@ -80,7 +80,7 @@ export function TeachersPanel() {
 
   // Status badge (davomat)
   function attBadge(status: string) {
-    if (status === 'present') return <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[9px] font-bold">Keldi</span>
+    if (status === 'present') return <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 text-[9px] font-bold">Keldi</span>
     if (status === 'absent') return <span className="px-1.5 py-0.5 rounded bg-red-100 text-red-700 text-[9px] font-bold">Kelmadi</span>
     if (status === 'late') return <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 text-[9px] font-bold">Kechikdi</span>
     if (status === 'sick') return <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 text-[9px] font-bold">Kasal</span>
@@ -145,13 +145,13 @@ export function TeachersPanel() {
               </div>
               <div className="bg-card rounded-2xl border border-border/50 p-3">
                 <div className="text-[10px] text-muted-foreground">Oylik maosh</div>
-                <div className="text-sm font-semibold mt-0.5 text-emerald-600">{formatMoney(t.salary_amount)}</div>
+                <div className="text-sm font-semibold mt-0.5 text-blue-600">{formatMoney(t.salary_amount)}</div>
               </div>
               <div className="bg-card rounded-2xl border border-border/50 p-3">
                 <div className="text-[10px] text-muted-foreground">O'qituvchi paneli</div>
                 <div className="text-sm font-semibold mt-0.5">
                   {t.has_password ? (
-                    <span className="text-emerald-600">✓ Parol bor</span>
+                    <span className="text-blue-600">✓ Parol bor</span>
                   ) : (
                     <span className="text-amber-600">⚠ Parol yo'q</span>
                   )}
@@ -165,9 +165,9 @@ export function TeachersPanel() {
                 <div className="text-[10px] text-blue-700">Guruhlar</div>
                 <div className="text-2xl font-bold mt-0.5 text-blue-900">{teacherGroups.length}</div>
               </div>
-              <div className="bg-emerald-50 rounded-2xl border border-emerald-200 p-3">
-                <div className="text-[10px] text-emerald-700">Jami talabalar</div>
-                <div className="text-2xl font-bold mt-0.5 text-emerald-900">{totalStudents}</div>
+              <div className="bg-blue-50 rounded-2xl border border-blue-200 p-3">
+                <div className="text-[10px] text-blue-700">Jami talabalar</div>
+                <div className="text-2xl font-bold mt-0.5 text-blue-900">{totalStudents}</div>
               </div>
               <div className="bg-violet-50 rounded-2xl border border-violet-200 p-3">
                 <div className="text-[10px] text-violet-700">Darslar (jadvalda)</div>
@@ -205,7 +205,7 @@ export function TeachersPanel() {
                           <td className="px-4 py-3 font-medium">{g.name}</td>
                           <td className="px-4 py-3 text-muted-foreground">{g.course?.name || '—'}</td>
                           <td className="px-4 py-3 text-center">
-                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${g.students_count >= g.max_students ? 'bg-red-100 text-red-700' : 'bg-emerald-100 text-emerald-700'}`}>
+                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${g.students_count >= g.max_students ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'}`}>
                               {g.students_count}/{g.max_students}
                             </span>
                           </td>
@@ -253,7 +253,7 @@ export function TeachersPanel() {
                               ) : '—'}
                             </td>
                             <td className="px-4 py-3">
-                              <span className="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 text-xs font-semibold">
+                              <span className="px-2 py-0.5 rounded bg-blue-50 text-blue-700 text-xs font-semibold">
                                 {s.start_time?.slice(0, 5)} - {s.end_time?.slice(0, 5)}
                               </span>
                             </td>
@@ -336,11 +336,11 @@ export function TeachersPanel() {
                             <td className="px-4 py-3 text-muted-foreground text-xs">{idx + 1}</td>
                             <td className="px-4 py-3 font-medium">{p.period_month}</td>
                             <td className="px-4 py-3 text-right">{formatMoney(p.amount)}</td>
-                            <td className="px-4 py-3 text-right text-emerald-600">{p.bonus > 0 ? `+${formatMoney(p.bonus)}` : '—'}</td>
+                            <td className="px-4 py-3 text-right text-blue-600">{p.bonus > 0 ? `+${formatMoney(p.bonus)}` : '—'}</td>
                             <td className="px-4 py-3 text-right text-rose-600">{p.deduction > 0 ? `-${formatMoney(p.deduction)}` : '—'}</td>
-                            <td className="px-4 py-3 text-right font-bold text-emerald-600">{formatMoney(total)}</td>
+                            <td className="px-4 py-3 text-right font-bold text-blue-600">{formatMoney(total)}</td>
                             <td className="px-4 py-3 text-center">
-                              <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${p.status === 'paid' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
+                              <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${p.status === 'paid' ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700'}`}>
                                 {p.status === 'paid' ? '✓ To\'langan' : '⏳ Kutilmoqda'}
                               </span>
                             </td>
@@ -352,7 +352,7 @@ export function TeachersPanel() {
                     <tfoot>
                       <tr className="border-t-2 border-border/60 bg-muted/30 font-bold">
                         <td colSpan={5} className="px-4 py-3 text-right">JAMI:</td>
-                        <td className="px-4 py-3 text-right text-emerald-600">{formatMoney(totalPaid + totalPending)}</td>
+                        <td className="px-4 py-3 text-right text-blue-600">{formatMoney(totalPaid + totalPending)}</td>
                         <td colSpan={2}></td>
                       </tr>
                     </tfoot>
@@ -428,7 +428,7 @@ export function TeachersPanel() {
                     <div className="flex items-center gap-1.5">
                       <span className="text-muted-foreground">Panel:</span>
                       {t.has_password ? (
-                        <span className="px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-semibold">✓ Parol bor</span>
+                        <span className="px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700 text-[10px] font-semibold">✓ Parol bor</span>
                       ) : (
                         <span className="px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[10px] font-semibold">⚠ Parol yo'q</span>
                       )}
@@ -458,16 +458,16 @@ export function TeachersPanel() {
           </div>
 
           {/* O'qituvchi paneli uchun parol */}
-          <div className="rounded-xl bg-emerald-50 border border-emerald-200 p-3 space-y-2">
-            <div className="text-xs font-semibold text-emerald-800">🔐 O'qituvchi paneli uchun kirish</div>
+          <div className="rounded-xl bg-blue-50 border border-blue-200 p-3 space-y-2">
+            <div className="text-xs font-semibold text-blue-800">🔐 O'qituvchi paneli uchun kirish</div>
             <div className="grid sm:grid-cols-2 gap-3">
               <Field label="Login (ixtiyoriy)"><input className="erp-input" value={form.login} onChange={(e) => setForm({ ...form, login: e.target.value })} placeholder="Telefon avtomatik ishlatiladi" /></Field>
               <Field label={editing ? 'Yangi parol (o\'zgartirish uchun)' : 'Parol *'}>
                 <input type="text" className="erp-input" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} placeholder="Masalan: 1234" />
               </Field>
             </div>
-            <p className="text-[11px] text-emerald-700">
-              O'qituvchi <code className="px-1 bg-emerald-100 rounded">/teacher</code> manzilidan login (yoki telefon) va parol bilan kirib, o'z guruhlaridagi o'quvchilarning davomatini belgilay oladi.
+            <p className="text-[11px] text-blue-700">
+              O'qituvchi <code className="px-1 bg-blue-100 rounded">/teacher</code> manzilidan login (yoki telefon) va parol bilan kirib, o'z guruhlaridagi o'quvchilarning davomatini belgilay oladi.
             </p>
           </div>
 
@@ -584,7 +584,7 @@ export function GroupsPanel() {
 
   // Status badge
   function statusBadge(status: string) {
-    if (status === 'present') return <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[9px] font-bold">K</span>
+    if (status === 'present') return <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 text-[9px] font-bold">K</span>
     if (status === 'absent') return <span className="px-1.5 py-0.5 rounded bg-red-100 text-red-700 text-[9px] font-bold">·</span>
     if (status === 'late') return <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 text-[9px] font-bold">Kech</span>
     return <span className="text-[9px] text-muted-foreground">—</span>
@@ -658,7 +658,7 @@ export function GroupsPanel() {
                           {/* Bugungi davomat holati */}
                           {todayStatus ? (
                             <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${
-                              todayStatus === 'present' ? 'bg-emerald-100 text-emerald-700' :
+                              todayStatus === 'present' ? 'bg-blue-100 text-blue-700' :
                               todayStatus === 'absent' ? 'bg-red-100 text-red-700' :
                               'bg-amber-100 text-amber-700'
                             }`}>
@@ -744,7 +744,7 @@ export function GroupsPanel() {
                 {/* Legenda */}
                 <div className="mt-3 pt-3 border-t border-border/40 flex items-center gap-3 text-[10px] text-muted-foreground flex-wrap">
                   <span className="flex items-center gap-1">
-                    <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[9px] font-bold">K</span> Keldi
+                    <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 text-[9px] font-bold">K</span> Keldi
                   </span>
                   <span className="flex items-center gap-1">
                     <span className="px-1.5 py-0.5 rounded bg-red-100 text-red-700 text-[9px] font-bold">·</span> Kelmadi
@@ -809,7 +809,7 @@ export function GroupsPanel() {
                     <Row label="Tugash" value={formatDate(g.end_date)} />
                   </div>
                   <div className="mt-3 pt-3 border-t border-border/40 flex items-center justify-between">
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${isFull ? 'bg-red-100 text-red-700' : 'bg-emerald-100 text-emerald-700'}`}>{count}/{g.max_students} talaba</span>
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${isFull ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'}`}>{count}/{g.max_students} talaba</span>
                     <span className="text-[10px] text-blue-600 font-medium flex items-center gap-1">
                       Batafsil
                       <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><polyline points="9 18 15 12 9 6" /></svg>
@@ -853,7 +853,7 @@ export function GroupsPanel() {
                   onClick={() => setForm({ ...form, schedule: form.schedule && form.schedule.startsWith('Se-Pay-Shan') ? form.schedule : 'Se-Pay-Shan ' })}
                   className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
                     form.schedule?.startsWith('Se-Pay-Shan')
-                      ? 'bg-emerald-600 text-white border-emerald-600'
+                      ? 'bg-blue-600 text-white border-blue-600'
                       : 'bg-card text-muted-foreground border-border/50 hover:bg-muted'
                   }`}
                 >
@@ -1011,7 +1011,7 @@ export function CoursesPanel() {
           </div>
           <div className="bg-card rounded-2xl border border-border/50 p-3">
             <div className="text-[10px] text-muted-foreground">Jami to'lovlar</div>
-            <div className="text-sm font-semibold mt-0.5 text-emerald-600">{formatMoney(totalPaid)}</div>
+            <div className="text-sm font-semibold mt-0.5 text-blue-600">{formatMoney(totalPaid)}</div>
           </div>
         </div>
 
@@ -1021,9 +1021,9 @@ export function CoursesPanel() {
             <div className="text-[10px] text-violet-700">Guruhlar</div>
             <div className="text-2xl font-bold mt-0.5 text-violet-900">{courseGroups.length}</div>
           </div>
-          <div className="bg-emerald-50 rounded-2xl border border-emerald-200 p-3">
-            <div className="text-[10px] text-emerald-700">Jami talabalar</div>
-            <div className="text-2xl font-bold mt-0.5 text-emerald-900">{totalStudents}</div>
+          <div className="bg-blue-50 rounded-2xl border border-blue-200 p-3">
+            <div className="text-[10px] text-blue-700">Jami talabalar</div>
+            <div className="text-2xl font-bold mt-0.5 text-blue-900">{totalStudents}</div>
           </div>
           <div className="bg-blue-50 rounded-2xl border border-blue-200 p-3">
             <div className="text-[10px] text-blue-700">Faol talabalar</div>
@@ -1076,7 +1076,7 @@ export function CoursesPanel() {
                         ) : <span className="text-amber-600 text-xs">Biriktirilmagan</span>}
                       </td>
                       <td className="px-4 py-3 text-center">
-                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${g.students_count >= g.max_students ? 'bg-red-100 text-red-700' : 'bg-emerald-100 text-emerald-700'}`}>
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${g.students_count >= g.max_students ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'}`}>
                           {g.students_count}/{g.max_students}
                         </span>
                       </td>
@@ -1121,7 +1121,7 @@ export function CoursesPanel() {
                         <td className="px-4 py-3 text-muted-foreground text-xs">{formatDate(s.enrollment_date) || '—'}</td>
                         <td className="px-4 py-3 text-center">
                           <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${
-                            s.status === 'active' ? 'bg-emerald-100 text-emerald-700' :
+                            s.status === 'active' ? 'bg-blue-100 text-blue-700' :
                             s.status === 'paused' ? 'bg-amber-100 text-amber-700' :
                             s.status === 'graduated' ? 'bg-blue-100 text-blue-700' :
                             'bg-red-100 text-red-700'
@@ -1166,7 +1166,7 @@ export function CoursesPanel() {
                         <td className="px-4 py-3 text-muted-foreground">{grp?.name || '—'}</td>
                         <td className="px-4 py-3 text-muted-foreground">{tch?.full_name || '—'}</td>
                         <td className="px-4 py-3">
-                          <span className="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 text-xs font-semibold">
+                          <span className="px-2 py-0.5 rounded bg-blue-50 text-blue-700 text-xs font-semibold">
                             {s.start_time?.slice(0, 5)} - {s.end_time?.slice(0, 5)}
                           </span>
                         </td>
@@ -1186,9 +1186,9 @@ export function CoursesPanel() {
             subtitle={`Jami to'lovlar: ${formatMoney(totalPaid)} · ${coursePayments.length} ta to'lov yozuvi`}
           />
           <div className="p-4 pt-0 grid grid-cols-2 lg:grid-cols-4 gap-3">
-            <div className="bg-emerald-50 rounded-xl border border-emerald-200 p-3 text-center">
-              <div className="text-[10px] text-emerald-700">Jami to'langan</div>
-              <div className="text-lg font-bold mt-1 text-emerald-900">{formatMoney(totalPaid)}</div>
+            <div className="bg-blue-50 rounded-xl border border-blue-200 p-3 text-center">
+              <div className="text-[10px] text-blue-700">Jami to'langan</div>
+              <div className="text-lg font-bold mt-1 text-blue-900">{formatMoney(totalPaid)}</div>
             </div>
             <div className="bg-amber-50 rounded-xl border border-amber-200 p-3 text-center">
               <div className="text-[10px] text-amber-700">Oylik to'lov (har talaba)</div>
@@ -1242,7 +1242,7 @@ export function CoursesPanel() {
                   {c.description && <p className="mt-3 text-xs text-muted-foreground line-clamp-2">{c.description}</p>}
                   <div className="mt-3 pt-3 border-t border-border/40 grid grid-cols-3 gap-2 text-center">
                     <div><div className="text-base font-bold text-violet-600">{groupCount}</div><div className="text-[10px] text-muted-foreground">guruh</div></div>
-                    <div><div className="text-base font-bold text-emerald-600">{studentCount}</div><div className="text-[10px] text-muted-foreground">talaba</div></div>
+                    <div><div className="text-base font-bold text-blue-600">{studentCount}</div><div className="text-[10px] text-muted-foreground">talaba</div></div>
                     <div><div className="text-base font-bold text-amber-600">{formatMoney(c.price).replace(' so\'m', '')}</div><div className="text-[10px] text-muted-foreground">so'm</div></div>
                   </div>
                   <div className="mt-2 flex items-center justify-end">

@@ -45,38 +45,39 @@
 
 :root {
   --radius: 0.75rem;
-  /* Emerald + slate premium light theme */
-  --background: oklch(0.99 0.005 200);
-  --foreground: oklch(0.18 0.02 220);
+  /* Blue + light premium theme (rasmdagi dizaynga mos) */
+  --background: oklch(0.99 0.003 240);
+  --foreground: oklch(0.15 0.01 240);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.18 0.02 220);
+  --card-foreground: oklch(0.15 0.01 240);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.18 0.02 220);
-  --primary: oklch(0.55 0.16 160);
-  --primary-foreground: oklch(0.99 0.01 160);
-  --secondary: oklch(0.96 0.02 200);
-  --secondary-foreground: oklch(0.25 0.03 220);
-  --muted: oklch(0.96 0.01 200);
-  --muted-foreground: oklch(0.50 0.02 220);
-  --accent: oklch(0.94 0.04 165);
-  --accent-foreground: oklch(0.25 0.04 165);
-  --destructive: oklch(0.58 0.24 25);
-  --border: oklch(0.90 0.01 200);
-  --input: oklch(0.92 0.01 200);
-  --ring: oklch(0.55 0.16 160);
-  --chart-1: oklch(0.60 0.18 160);
-  --chart-2: oklch(0.65 0.15 200);
+  --popover-foreground: oklch(0.15 0.01 240);
+  --primary: oklch(0.55 0.14 240);
+  --primary-foreground: oklch(0.99 0.01 240);
+  --secondary: oklch(0.96 0.01 240);
+  --secondary-foreground: oklch(0.25 0.02 240);
+  --muted: oklch(0.96 0.005 240);
+  --muted-foreground: oklch(0.50 0.02 240);
+  --accent: oklch(0.93 0.03 240);
+  --accent-foreground: oklch(0.25 0.04 240);
+  --destructive: oklch(0.58 0.22 25);
+  --border: oklch(0.90 0.01 240);
+  --input: oklch(0.92 0.01 240);
+  --ring: oklch(0.55 0.14 240);
+  --chart-1: oklch(0.60 0.16 240);
+  --chart-2: oklch(0.65 0.15 160);
   --chart-3: oklch(0.70 0.18 90);
-  --chart-4: oklch(0.62 0.20 30);
-  --chart-5: oklch(0.55 0.20 290);
-  --sidebar: oklch(0.20 0.03 220);
-  --sidebar-foreground: oklch(0.95 0.01 200);
-  --sidebar-primary: oklch(0.55 0.16 160);
-  --sidebar-primary-foreground: oklch(0.99 0.01 160);
-  --sidebar-accent: oklch(0.27 0.04 220);
-  --sidebar-accent-foreground: oklch(0.95 0.01 200);
-  --sidebar-border: oklch(0.30 0.03 220);
-  --sidebar-ring: oklch(0.55 0.16 160);
+  --chart-4: oklch(0.62 0.20 25);
+  --chart-5: oklch(0.60 0.18 290);
+  /* Sidebar — oq/yorug' (rasmdagi kabi) */
+  --sidebar: oklch(1 0 0);
+  --sidebar-foreground: oklch(0.20 0.02 240);
+  --sidebar-primary: oklch(0.55 0.14 240);
+  --sidebar-primary-foreground: oklch(0.99 0.01 240);
+  --sidebar-accent: oklch(0.93 0.03 240);
+  --sidebar-accent-foreground: oklch(0.25 0.04 240);
+  --sidebar-border: oklch(0.90 0.01 240);
+  --sidebar-ring: oklch(0.55 0.14 240);
 }
 
 .dark {
@@ -177,23 +178,23 @@
   width: 100%;
   padding: 0.75rem 1rem;
   border-radius: 0.75rem;
-  border: 2px solid oklch(0.82 0.02 200) !important;
+  border: 2px solid oklch(0.85 0.02 240) !important;
   background: #ffffff !important;
   outline: none;
   transition: all 0.15s ease;
   font-size: 0.95rem;
-  color: oklch(0.18 0.02 220);
+  color: oklch(0.15 0.01 240);
   font-weight: 500;
-  box-shadow: inset 0 1px 2px oklch(0.92 0.01 200 / 50%);
+  box-shadow: inset 0 1px 2px oklch(0.92 0.01 240 / 50%);
 }
 .erp-input:hover {
-  border-color: oklch(0.72 0.05 180) !important;
+  border-color: oklch(0.70 0.05 240) !important;
   background: #fcfcfd !important;
 }
 .erp-input:focus {
-  border-color: oklch(0.55 0.16 160) !important;
+  border-color: oklch(0.55 0.14 240) !important;
   background: #ffffff !important;
-  box-shadow: 0 0 0 4px oklch(0.55 0.16 160 / 15%), inset 0 1px 2px oklch(0.92 0.01 200 / 30%) !important;
+  box-shadow: 0 0 0 4px oklch(0.55 0.14 240 / 15%), inset 0 1px 2px oklch(0.92 0.01 240 / 30%) !important;
 }
 .erp-input::placeholder {
   color: oklch(0.62 0.015 220);

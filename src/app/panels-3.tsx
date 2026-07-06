@@ -12,7 +12,7 @@ import {
 
 // Status options
 const ATT_STATUS = [
-  { v: 'present', label: 'Keldi', cls: 'bg-emerald-500 text-white' },
+  { v: 'present', label: 'Keldi', cls: 'bg-blue-500 text-white' },
   { v: 'absent', label: 'Kelmadi', cls: 'bg-red-500 text-white' },
   { v: 'late', label: 'Kechikdi', cls: 'bg-amber-500 text-white' },
   { v: 'excused', label: 'Sababli', cls: 'bg-blue-500 text-white' },
@@ -246,7 +246,7 @@ export function AttendancePanel() {
                           <div className="text-[10px]">🕐 {timeStr}</div>
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-center text-emerald-600 font-medium">{s.present}</td>
+                      <td className="px-4 py-3 text-center text-blue-600 font-medium">{s.present}</td>
                       <td className="px-4 py-3 text-center text-red-600 font-medium">{s.absent}</td>
                       <td className="px-4 py-3 text-center text-amber-600 font-medium">{s.late}</td>
                       <td className="px-4 py-3 text-center font-bold">{s.total}</td>
@@ -257,7 +257,7 @@ export function AttendancePanel() {
               <tfoot>
                 <tr className="border-t-2 border-border/60 bg-muted/30 font-bold">
                   <td colSpan={6} className="px-4 py-3 text-right">Jami:</td>
-                  <td className="px-4 py-3 text-center text-emerald-600">{teacherSessions.reduce((s: number, x: any) => s + x.present, 0)}</td>
+                  <td className="px-4 py-3 text-center text-blue-600">{teacherSessions.reduce((s: number, x: any) => s + x.present, 0)}</td>
                   <td className="px-4 py-3 text-center text-red-600">{teacherSessions.reduce((s: number, x: any) => s + x.absent, 0)}</td>
                   <td className="px-4 py-3 text-center text-amber-600">{teacherSessions.reduce((s: number, x: any) => s + x.late, 0)}</td>
                   <td className="px-4 py-3 text-center">{teacherSessions.reduce((s: number, x: any) => s + x.total, 0)}</td>
@@ -415,7 +415,7 @@ export function AttendanceReportPanel() {
 
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
         <SummaryBox label="Jami darslar" value={totals.total} color="bg-blue-50 text-blue-700" />
-        <SummaryBox label="Keldi" value={totals.present} color="bg-emerald-50 text-emerald-700" />
+        <SummaryBox label="Keldi" value={totals.present} color="bg-blue-50 text-blue-700" />
         <SummaryBox label="Kelmadi" value={totals.absent} color="bg-red-50 text-red-700" />
         <SummaryBox label="Kechikdi" value={totals.late} color="bg-amber-50 text-amber-700" />
         <SummaryBox label="Sababli" value={totals.excused} color="bg-violet-50 text-violet-700" />
@@ -444,11 +444,11 @@ export function AttendanceReportPanel() {
                       <td className="px-4 py-3 font-medium">{r.name}</td>
                       <td className="px-4 py-3 text-muted-foreground">{r.groupName}</td>
                       <td className="px-4 py-3 text-center font-bold">{r.total}</td>
-                      <td className="px-4 py-3 text-center text-emerald-600">{r.present}</td>
+                      <td className="px-4 py-3 text-center text-blue-600">{r.present}</td>
                       <td className="px-4 py-3 text-center text-red-600">{r.absent}</td>
                       <td className="px-4 py-3 text-center text-amber-600">{r.late}</td>
                       <td className="px-4 py-3 text-center text-blue-600">{r.excused}</td>
-                      <td className="px-4 py-3 text-center"><span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${rate >= 80 ? 'bg-emerald-100 text-emerald-700' : rate >= 60 ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'}`}>{rate}%</span></td>
+                      <td className="px-4 py-3 text-center"><span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${rate >= 80 ? 'bg-blue-100 text-blue-700' : rate >= 60 ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'}`}>{rate}%</span></td>
                     </tr>
                   )
                 })}
@@ -512,7 +512,7 @@ export function AttendanceReportPanel() {
                           <div className="text-[10px]">🕐 {timeStr}</div>
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-center text-emerald-600 font-medium">{s.present}</td>
+                      <td className="px-4 py-3 text-center text-blue-600 font-medium">{s.present}</td>
                       <td className="px-4 py-3 text-center text-red-600 font-medium">{s.absent}</td>
                       <td className="px-4 py-3 text-center text-amber-600 font-medium">{s.late}</td>
                       <td className="px-4 py-3 text-center font-bold">{s.total}</td>
@@ -523,7 +523,7 @@ export function AttendanceReportPanel() {
               <tfoot>
                 <tr className="border-t-2 border-border/60 bg-muted/30 font-bold">
                   <td colSpan={6} className="px-4 py-3 text-right">Jami:</td>
-                  <td className="px-4 py-3 text-center text-emerald-600">{sessionList.reduce((s: number, x: any) => s + x.present, 0)}</td>
+                  <td className="px-4 py-3 text-center text-blue-600">{sessionList.reduce((s: number, x: any) => s + x.present, 0)}</td>
                   <td className="px-4 py-3 text-center text-red-600">{sessionList.reduce((s: number, x: any) => s + x.absent, 0)}</td>
                   <td className="px-4 py-3 text-center text-amber-600">{sessionList.reduce((s: number, x: any) => s + x.late, 0)}</td>
                   <td className="px-4 py-3 text-center">{sessionList.reduce((s: number, x: any) => s + x.total, 0)}</td>
@@ -682,7 +682,7 @@ export function TeacherAttendancePanel() {
                   <div className="flex-1 min-w-0">
                     <div className="text-sm font-semibold truncate">{r.teacher_name}</div>
                     {r.teacher_subject && <div className="text-[10px] text-muted-foreground truncate">📚 {r.teacher_subject}</div>}
-                    {r.course_names?.length > 0 && <div className="text-[10px] text-emerald-600 truncate">🎯 {r.course_names.join(', ')}</div>}
+                    {r.course_names?.length > 0 && <div className="text-[10px] text-blue-600 truncate">🎯 {r.course_names.join(', ')}</div>}
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-1">
@@ -712,7 +712,7 @@ export function TeacherAttendancePanel() {
                         <div className="min-w-0">
                           <div className="text-sm font-medium truncate">{a.teacher?.full_name || '—'}</div>
                           <div className="text-[10px] text-muted-foreground truncate">{a.teacher?.subject || '—'}</div>
-                          {a.group?.name && <div className="text-[10px] text-emerald-600 truncate">{a.group.name}</div>}
+                          {a.group?.name && <div className="text-[10px] text-blue-600 truncate">{a.group.name}</div>}
                         </div>
                       </div>
                       <div className="flex items-center gap-1"><AttStatusChip status={a.status} /><IconButton danger onClick={() => handleDelete(a.id)}><Trash2 className="w-3 h-3" /></IconButton></div>

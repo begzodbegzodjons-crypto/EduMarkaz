@@ -19,7 +19,7 @@ export function CardHeader({ title, subtitle, action }: { title: string; subtitl
     </div>
   )
 }
-export function PanelLoader() { return <div className="flex items-center justify-center py-20"><Spinner className="w-8 h-8 text-emerald-500" /></div> }
+export function PanelLoader() { return <div className="flex items-center justify-center py-20"><Spinner className="w-8 h-8 text-blue-500" /></div> }
 export function EmptyState({ title, description, action }: { title: string; description?: string; action?: React.ReactNode }) {
   return (
     <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
@@ -52,7 +52,7 @@ export function Modal({ open, onClose, title, children, size = 'md' }: { open: b
   )
 }
 export function PrimaryButton({ children, onClick, type = 'button', disabled, className = '' }: { children: React.ReactNode; onClick?: () => void; type?: 'button' | 'submit'; disabled?: boolean; className?: string }) {
-  return <button type={type} onClick={onClick} disabled={disabled} className={`inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white text-sm font-semibold shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed ${className}`}>{children}</button>
+  return <button type={type} onClick={onClick} disabled={disabled} className={`inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-blue-500 to-sky-600 text-white text-sm font-semibold shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed ${className}`}>{children}</button>
 }
 export function GhostButton({ children, onClick, className = '' }: { children: React.ReactNode; onClick?: () => void; className?: string }) {
   return <button onClick={onClick} className={`inline-flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition ${className}`}>{children}</button>
@@ -68,21 +68,21 @@ export function Field({ label, children, labelSize = 'sm' }: { label: string; ch
     </div>
   )
 }
-export function Avatar({ name, color = 'emerald' }: { name: string; color?: string }) {
+export function Avatar({ name, color = 'blue' }: { name: string; color?: string }) {
   const initials = (name || '?').split(' ').slice(0, 2).map((s) => s[0]?.toUpperCase()).join('')
   const colorMap: any = {
-    emerald: 'from-emerald-400 to-teal-500', cyan: 'from-cyan-500 to-teal-600', amber: 'from-amber-500 to-orange-600',
+    blue: 'from-blue-400 to-sky-500', cyan: 'from-cyan-500 to-sky-600', amber: 'from-amber-500 to-orange-600',
     violet: 'from-violet-500 to-purple-600', blue: 'from-blue-500 to-indigo-600', rose: 'from-rose-500 to-pink-600',
   }
-  return <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${colorMap[color] || colorMap.emerald} text-white flex items-center justify-center font-semibold text-sm shrink-0`}>{initials}</div>
+  return <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${colorMap[color] || colorMap.blue} text-white flex items-center justify-center font-semibold text-sm shrink-0`}>{initials}</div>
 }
 export function Row({ label, value }: { label: string; value: string }) {
   return <div className="flex justify-between gap-2"><span className="text-muted-foreground shrink-0">{label}:</span><span className="font-medium text-right truncate">{value}</span></div>
 }
 export function StatCard({ label, value, sub, icon: Icon, color, trend, onClick }: { label: string; value: any; sub?: string; icon: any; color: string; trend?: 'up' | 'down'; onClick?: () => void }) {
   const colorMap: any = {
-    emerald: 'from-emerald-500 to-emerald-600 shadow-emerald-500/25',
-    teal: 'from-teal-500 to-teal-600 shadow-teal-500/25',
+    blue: 'from-blue-500 to-blue-600 shadow-blue-500/25',
+    sky: 'from-sky-500 to-sky-600 shadow-sky-500/25',
     cyan: 'from-cyan-500 to-cyan-600 shadow-cyan-500/25',
     amber: 'from-amber-500 to-orange-600 shadow-amber-500/25',
     rose: 'from-rose-500 to-pink-600 shadow-rose-500/25',

@@ -221,7 +221,7 @@ export default function TeacherPanelPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <div className="text-center">
-          <div className="w-12 h-12 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+          <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
           <div className="text-slate-600 text-sm">Yuklanmoqda...</div>
         </div>
       </div>
@@ -231,14 +231,14 @@ export default function TeacherPanelPage() {
   // === Login sahifasi ===
   if (!teacher) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 to-teal-100 p-4">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-sky-100 p-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="bg-white rounded-3xl shadow-xl p-8 w-full max-w-md"
         >
           <div className="text-center mb-6">
-            <div className="w-16 h-16 rounded-2xl bg-emerald-600 flex items-center justify-center mx-auto mb-3">
+            <div className="w-16 h-16 rounded-2xl bg-blue-600 flex items-center justify-center mx-auto mb-3">
               <svg className="w-9 h-9 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                 <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
                 <path d="M6 12v5c3 3 9 3 12 0v-5" />
@@ -260,7 +260,7 @@ export default function TeacherPanelPage() {
                 onChange={(e) => setCenterInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
                 placeholder="Masalan: Anor (markaz nomi)"
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 outline-none text-sm"
+                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-sm"
                 autoFocus
               />
               <p className="text-[10px] text-slate-500 mt-1">
@@ -275,7 +275,7 @@ export default function TeacherPanelPage() {
                 onChange={(e) => setLoginInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
                 placeholder="Login yoki telefon raqami"
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 outline-none text-sm"
+                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-sm"
               />
             </div>
             <div>
@@ -286,7 +286,7 @@ export default function TeacherPanelPage() {
                 onChange={(e) => setPasswordInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
                 placeholder="Parol"
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 outline-none text-sm"
+                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-sm"
               />
             </div>
             {loginError && (
@@ -297,7 +297,7 @@ export default function TeacherPanelPage() {
             <button
               onClick={handleLogin}
               disabled={loggingIn}
-              className="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-semibold text-sm transition-colors"
+              className="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-semibold text-sm transition-colors"
             >
               {loggingIn ? (
                 <span className="flex items-center gap-2 justify-center">
@@ -330,7 +330,7 @@ export default function TeacherPanelPage() {
       <header className="bg-white border-b border-slate-200 sticky top-0 z-10">
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-emerald-600 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center">
               <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                 <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
                 <path d="M6 12v5c3 3 9 3 12 0v-5" />
@@ -361,7 +361,7 @@ export default function TeacherPanelPage() {
           </div>
           <div className="bg-white rounded-2xl border border-slate-200 p-4">
             <div className="text-xs text-slate-500">Jami o'quvchilar</div>
-            <div className="text-2xl font-bold text-emerald-600 mt-1">
+            <div className="text-2xl font-bold text-blue-600 mt-1">
               {groups.reduce((s, g) => s + g.students_count, 0)}
             </div>
           </div>
@@ -393,7 +393,7 @@ export default function TeacherPanelPage() {
                   onClick={() => setSelectedGroup(g.id)}
                   className={`p-3 rounded-xl border-2 text-left transition-all ${
                     selectedGroup === g.id
-                      ? 'border-emerald-500 bg-emerald-50'
+                      ? 'border-blue-500 bg-blue-50'
                       : 'border-slate-200 hover:border-slate-300 bg-white'
                   }`}
                 >
@@ -449,7 +449,7 @@ export default function TeacherPanelPage() {
                   <span className="text-xs text-slate-600 mr-2">Hammasini:</span>
                   <button
                     onClick={() => setAll('present')}
-                    className="px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-semibold"
+                    className="px-2.5 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-semibold"
                   >
                     ✓ Keldi
                   </button>
@@ -486,8 +486,8 @@ export default function TeacherPanelPage() {
                             onClick={() => setStatus(s.id, 'present')}
                             className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
                               status === 'present'
-                                ? 'bg-emerald-600 text-white'
-                                : 'bg-slate-100 text-slate-600 hover:bg-emerald-50'
+                                ? 'bg-blue-600 text-white'
+                                : 'bg-slate-100 text-slate-600 hover:bg-blue-50'
                             }`}
                           >
                             Keldi
@@ -523,7 +523,7 @@ export default function TeacherPanelPage() {
                   <button
                     onClick={handleSave}
                     disabled={saving}
-                    className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-semibold text-sm flex items-center gap-2"
+                    className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-semibold text-sm flex items-center gap-2"
                   >
                     {saving ? (
                       <>
@@ -538,7 +538,7 @@ export default function TeacherPanelPage() {
                     )}
                   </button>
                   {savedMessage && (
-                    <div className="text-sm font-semibold text-emerald-600">{savedMessage}</div>
+                    <div className="text-sm font-semibold text-blue-600">{savedMessage}</div>
                   )}
                 </div>
               </>

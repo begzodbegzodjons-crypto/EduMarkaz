@@ -41,16 +41,16 @@ export function DashboardPanel({ user, setActiveTab }: { user: any; setActiveTab
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="Jami talabalar" value={stats.totalStudents} sub={`${stats.activeStudents} faol`} icon={Users} color="emerald" onClick={() => setActiveTab?.('students')} />
+        <StatCard label="Jami talabalar" value={stats.totalStudents} sub={`${stats.activeStudents} faol`} icon={Users} color="blue" onClick={() => setActiveTab?.('students')} />
         <StatCard label="Lidlar" value={stats.leads.total} sub={`${stats.leads.new} yangi`} icon={Sparkles} color="amber" onClick={() => setActiveTab?.('leads')} />
-        <StatCard label="Guruhlar" value={stats.totalGroups} sub={`${stats.totalCourses} kurs`} icon={BookOpen} color="teal" onClick={() => setActiveTab?.('groups')} />
+        <StatCard label="Guruhlar" value={stats.totalGroups} sub={`${stats.totalCourses} kurs`} icon={BookOpen} color="sky" onClick={() => setActiveTab?.('groups')} />
         <StatCard label="O'qituvchilar" value={stats.totalTeachers} sub="murabbiylar" icon={UserCog} color="cyan" onClick={() => setActiveTab?.('teachers')} />
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="Oylik tushum" value={formatMoney(stats.monthRevenue)} sub={`Jami: ${formatMoney(stats.totalRevenue)}`} icon={Wallet} color="emerald" trend="up" onClick={() => setActiveTab?.('payments')} />
+        <StatCard label="Oylik tushum" value={formatMoney(stats.monthRevenue)} sub={`Jami: ${formatMoney(stats.totalRevenue)}`} icon={Wallet} color="blue" trend="up" onClick={() => setActiveTab?.('payments')} />
         <StatCard label="Oylik xarajat" value={formatMoney(stats.monthExpenseTotal)} sub={`Jami: ${formatMoney(stats.totalExpense)}`} icon={TrendingDown} color="rose" trend="down" onClick={() => setActiveTab?.('expenses')} />
-        <StatCard label="Sof foyda (oy)" value={formatMoney(stats.monthNetProfit)} sub={`Jami: ${formatMoney(stats.totalNetProfit)}`} icon={TrendingUp} color={stats.monthNetProfit >= 0 ? 'emerald' : 'rose'} trend={stats.monthNetProfit >= 0 ? 'up' : 'down'} onClick={() => setActiveTab?.('finance')} />
+        <StatCard label="Sof foyda (oy)" value={formatMoney(stats.monthNetProfit)} sub={`Jami: ${formatMoney(stats.totalNetProfit)}`} icon={TrendingUp} color={stats.monthNetProfit >= 0 ? 'blue' : 'rose'} trend={stats.monthNetProfit >= 0 ? 'up' : 'down'} onClick={() => setActiveTab?.('finance')} />
         <StatCard label="Davomat darajasi" value={`${stats.attendance.rate}%`} sub={`${stats.attendance.present}/${stats.attendance.total} dars`} icon={ClipboardCheck} color="violet" onClick={() => setActiveTab?.('attendance')} />
       </div>
 
@@ -65,14 +65,14 @@ export function DashboardPanel({ user, setActiveTab }: { user: any; setActiveTab
           <CardHeader title="Davomat statistikasi" subtitle={`${stats.attendance.rate}% kelish`} />
           <div className="p-4 pt-0">
             <div className="grid grid-cols-3 gap-3">
-              <AttStat label="Keldi" value={stats.attendance.present} color="emerald" />
+              <AttStat label="Keldi" value={stats.attendance.present} color="blue" />
               <AttStat label="Kelmadi" value={stats.attendance.absent} color="rose" />
               <AttStat label="Kechikdi" value={stats.attendance.late} color="amber" />
             </div>
             <div className="mt-4">
               <div className="text-xs text-muted-foreground mb-1.5">Umumiy kelish foizi</div>
               <div className="h-3 rounded-full bg-muted overflow-hidden">
-                <motion.div initial={{ width: 0 }} animate={{ width: `${stats.attendance.rate}%` }} transition={{ duration: 1, ease: 'easeOut' }} className="h-full bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full" />
+                <motion.div initial={{ width: 0 }} animate={{ width: `${stats.attendance.rate}%` }} transition={{ duration: 1, ease: 'easeOut' }} className="h-full bg-gradient-to-r from-blue-500 to-sky-500 rounded-full" />
               </div>
               <div className="text-right text-xs text-muted-foreground mt-1">{stats.attendance.rate}%</div>
             </div>
@@ -114,7 +114,7 @@ export function DashboardPanel({ user, setActiveTab }: { user: any; setActiveTab
           <div className="p-4 pt-0 space-y-2">
             <FunnelRow label="Yangi lidlar" value={stats.leads.new} total={stats.leads.total} color="bg-amber-500" />
             <FunnelRow label="Bog'lanilgan" value={stats.leads.contacted} total={stats.leads.total} color="bg-blue-500" />
-            <FunnelRow label="Ro'yxatga olingan" value={stats.leads.enrolled} total={stats.leads.total} color="bg-emerald-500" />
+            <FunnelRow label="Ro'yxatga olingan" value={stats.leads.enrolled} total={stats.leads.total} color="bg-blue-500" />
           </div>
         </Card>
       </div>
@@ -138,7 +138,7 @@ export function DashboardPanel({ user, setActiveTab }: { user: any; setActiveTab
 }
 
 function AttStat({ label, value, color }: { label: string; value: number; color: string }) {
-  const map: any = { emerald: 'bg-emerald-50 text-emerald-700 border-emerald-200', rose: 'bg-red-50 text-red-700 border-red-200', amber: 'bg-amber-50 text-amber-700 border-amber-200' }
+  const map: any = { blue: 'bg-blue-50 text-blue-700 border-blue-200', rose: 'bg-red-50 text-red-700 border-red-200', amber: 'bg-amber-50 text-amber-700 border-amber-200' }
   return <div className={`rounded-xl border p-3 text-center ${map[color]}`}><div className="text-2xl font-bold">{value}</div><div className="text-xs font-medium">{label}</div></div>
 }
 function FunnelRow({ label, value, total, color }: { label: string; value: number; total: number; color: string }) {
@@ -230,7 +230,7 @@ function DualBarChart({ data }: { data: { label: string; income: number; expense
       {/* Legenda */}
       <div className="flex items-center gap-4 justify-center mt-2 text-xs">
         <div className="flex items-center gap-1.5">
-          <div className="w-3 h-3 rounded-sm bg-gradient-to-t from-emerald-500 to-teal-400" />
+          <div className="w-3 h-3 rounded-sm bg-gradient-to-t from-blue-500 to-sky-400" />
           <span className="text-muted-foreground">Daromad</span>
         </div>
         <div className="flex items-center gap-1.5">
@@ -371,7 +371,7 @@ export function LeadsPanel() {
                   <LeadStatusChip status={s.status} />
                   <button
                     onClick={() => openAcceptModal(s)}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition-colors shadow-sm"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold transition-colors shadow-sm"
                     title="Lidni talabalar ro'yxatiga qo'shish"
                   >
                     <CheckCircle className="w-3.5 h-3.5" />
@@ -467,7 +467,7 @@ export function LeadsPanel() {
   )
 }
 function LeadStatusChip({ status }: { status: string }) {
-  const map: any = { new: { label: 'Yangi', cls: 'bg-amber-100 text-amber-700' }, contacted: { label: 'Bog\'lanilgan', cls: 'bg-blue-100 text-blue-700' }, visited: { label: 'Tashrif', cls: 'bg-violet-100 text-violet-700' }, enrolled: { label: 'Ro\'yxatga olingan', cls: 'bg-emerald-100 text-emerald-700' }, trial: { label: 'Sinovdagi', cls: 'bg-slate-200 text-slate-700' }, rejected: { label: 'Rad etilgan', cls: 'bg-red-100 text-red-700' } }
+  const map: any = { new: { label: 'Yangi', cls: 'bg-amber-100 text-amber-700' }, contacted: { label: 'Bog\'lanilgan', cls: 'bg-blue-100 text-blue-700' }, visited: { label: 'Tashrif', cls: 'bg-violet-100 text-violet-700' }, enrolled: { label: 'Ro\'yxatga olingan', cls: 'bg-blue-100 text-blue-700' }, trial: { label: 'Sinovdagi', cls: 'bg-slate-200 text-slate-700' }, rejected: { label: 'Rad etilgan', cls: 'bg-red-100 text-red-700' } }
   const s = map[status] || map.new
   return <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${s.cls}`}>{s.label}</span>
 }
@@ -585,7 +585,7 @@ export function StudentsPanel() {
   )
 }
 function StatusChip({ status }: { status: string }) {
-  const map: any = { active: { label: 'Faol', cls: 'bg-emerald-100 text-emerald-700' }, paused: { label: 'To\'xtatilgan', cls: 'bg-amber-100 text-amber-700' }, graduated: { label: 'Bitirgan', cls: 'bg-blue-100 text-blue-700' }, left: { label: 'Ketgan', cls: 'bg-red-100 text-red-700' } }
+  const map: any = { active: { label: 'Faol', cls: 'bg-blue-100 text-blue-700' }, paused: { label: 'To\'xtatilgan', cls: 'bg-amber-100 text-amber-700' }, graduated: { label: 'Bitirgan', cls: 'bg-blue-100 text-blue-700' }, left: { label: 'Ketgan', cls: 'bg-red-100 text-red-700' } }
   const s = map[status] || map.active
   return <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${s.cls}`}>{s.label}</span>
 }

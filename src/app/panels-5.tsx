@@ -69,7 +69,7 @@ export function RemindersPanel() {
               <motion.div key={r.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
                 <Card>
                   <div className={`p-4 flex items-start gap-3 ${r.is_done ? 'opacity-50' : ''}`}>
-                    <button onClick={() => toggleDone(r)} className={`mt-1 w-5 h-5 rounded-md border-2 flex items-center justify-center transition ${r.is_done ? 'bg-emerald-500 border-emerald-500' : 'border-border hover:border-emerald-500'}`}>
+                    <button onClick={() => toggleDone(r)} className={`mt-1 w-5 h-5 rounded-md border-2 flex items-center justify-center transition ${r.is_done ? 'bg-blue-500 border-blue-500' : 'border-border hover:border-blue-500'}`}>
                       {r.is_done && <CheckCircle className="w-3 h-3 text-white" />}
                     </button>
                     <div className="flex-1 min-w-0">
@@ -236,7 +236,7 @@ export function SettingsPanel({ user }: { user: PublicUser }) {
 
       <div className="flex items-center gap-3">
         <PrimaryButton onClick={handleSave} disabled={saving}>{saving ? 'Saqlanmoqda...' : 'Saqlash'}</PrimaryButton>
-        {saved && <span className="text-sm text-emerald-600 font-medium flex items-center gap-1"><CheckCircle className="w-4 h-4" /> Saqlandi</span>}
+        {saved && <span className="text-sm text-blue-600 font-medium flex items-center gap-1"><CheckCircle className="w-4 h-4" /> Saqlandi</span>}
       </div>
 
       {/* === YANGI: Login va parolni o'zgartirish === */}
@@ -314,7 +314,7 @@ export function SettingsPanel({ user }: { user: PublicUser }) {
                   <p className="text-[10px] text-red-600 mt-1">⚠ Parollar mos kelmadi</p>
                 )}
                 {credForm.confirm_password && credForm.new_password === credForm.confirm_password && (
-                  <p className="text-[10px] text-emerald-600 mt-1">✓ Parollar mos</p>
+                  <p className="text-[10px] text-blue-600 mt-1">✓ Parollar mos</p>
                 )}
               </Field>
             )}
@@ -329,7 +329,7 @@ export function SettingsPanel({ user }: { user: PublicUser }) {
             <PrimaryButton onClick={handleChangeCredentials} disabled={savingCred}>
               {savingCred ? 'Saqlanmoqda...' : 'Login va parolni yangilash'}
             </PrimaryButton>
-            {credSaved && <span className="text-sm text-emerald-600 font-medium flex items-center gap-1"><CheckCircle className="w-4 h-4" /> Yangilandi</span>}
+            {credSaved && <span className="text-sm text-blue-600 font-medium flex items-center gap-1"><CheckCircle className="w-4 h-4" /> Yangilandi</span>}
           </div>
         </div>
       </Card>
@@ -373,7 +373,7 @@ export function TelegramPanel({ user }: { user: PublicUser }) {
 }
 function FAQItem({ q, a }: { q: string; a: string }) {
   return (
-    <div className="border-l-2 border-emerald-500 pl-3">
+    <div className="border-l-2 border-blue-500 pl-3">
       <div className="font-semibold text-sm">{q}</div>
       <div className="text-sm text-muted-foreground mt-1">{a}</div>
     </div>
@@ -425,9 +425,9 @@ export function LicensePanel({ user, onActivated }: { user: PublicUser; onActiva
                 <div className="text-xs text-amber-700 uppercase">Holat</div>
                 <div className="text-lg font-bold text-amber-900 mt-1">Administrator</div>
               </div>
-              <div className="rounded-xl bg-emerald-50 border border-emerald-200 p-4">
-                <div className="text-xs text-emerald-700 uppercase">Muddat</div>
-                <div className="text-lg font-bold text-emerald-900 mt-1">Cheksiz</div>
+              <div className="rounded-xl bg-blue-50 border border-blue-200 p-4">
+                <div className="text-xs text-blue-700 uppercase">Muddat</div>
+                <div className="text-lg font-bold text-blue-900 mt-1">Cheksiz</div>
               </div>
             </div>
           </div>
@@ -444,7 +444,7 @@ export function LicensePanel({ user, onActivated }: { user: PublicUser; onActiva
       <Card>
         <div className="p-6">
           <div className="flex items-center gap-4 mb-5">
-            <div className={`w-16 h-16 rounded-2xl flex items-center justify-center ${isActive ? 'bg-gradient-to-br from-emerald-500 to-teal-600' : isTrial ? 'bg-gradient-to-br from-amber-500 to-orange-600' : 'bg-gradient-to-br from-red-500 to-rose-600'}`}>
+            <div className={`w-16 h-16 rounded-2xl flex items-center justify-center ${isActive ? 'bg-gradient-to-br from-blue-500 to-sky-600' : isTrial ? 'bg-gradient-to-br from-amber-500 to-orange-600' : 'bg-gradient-to-br from-red-500 to-rose-600'}`}>
               {isActive ? <CheckCircle className="w-8 h-8 text-white" /> : isTrial ? <Sparkles className="w-8 h-8 text-white" /> : <AlertTriangle className="w-8 h-8 text-white" />}
             </div>
             <div>
@@ -458,9 +458,9 @@ export function LicensePanel({ user, onActivated }: { user: PublicUser; onActiva
           {/* Aktivlik ma'lumotlari */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {/* Qolgan kun */}
-            <div className={`rounded-xl p-4 ${isActive ? 'bg-emerald-50 border border-emerald-200' : isTrial ? 'bg-amber-50 border border-amber-200' : 'bg-red-50 border border-red-200'}`}>
+            <div className={`rounded-xl p-4 ${isActive ? 'bg-blue-50 border border-blue-200' : isTrial ? 'bg-amber-50 border border-amber-200' : 'bg-red-50 border border-red-200'}`}>
               <div className="text-xs text-muted-foreground">Aktivlik kunlari qoldi</div>
-              <div className={`text-2xl font-bold mt-1 ${isActive ? 'text-emerald-700' : isTrial ? 'text-amber-700' : 'text-red-700'}`}>
+              <div className={`text-2xl font-bold mt-1 ${isActive ? 'text-blue-700' : isTrial ? 'text-amber-700' : 'text-red-700'}`}>
                 {user.days_left} kun
               </div>
               <div className="text-[10px] text-muted-foreground mt-1">
@@ -490,9 +490,9 @@ export function LicensePanel({ user, onActivated }: { user: PublicUser; onActiva
             </div>
           )}
           {isActive && (
-            <div className="mt-4 bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-sm">
-              <div className="font-semibold text-emerald-700 flex items-center gap-2"><CheckCircle className="w-4 h-4" /> Tizim faol</div>
-              <div className="text-emerald-900 mt-1">Tizimga kirish huquqingiz aktiv. {user.days_left} kun qoldi.</div>
+            <div className="mt-4 bg-blue-50 border border-blue-200 rounded-xl p-3 text-sm">
+              <div className="font-semibold text-blue-700 flex items-center gap-2"><CheckCircle className="w-4 h-4" /> Tizim faol</div>
+              <div className="text-blue-900 mt-1">Tizimga kirish huquqingiz aktiv. {user.days_left} kun qoldi.</div>
             </div>
           )}
           {isBlocked && (
@@ -513,7 +513,7 @@ export function LicensePanel({ user, onActivated }: { user: PublicUser; onActiva
               <input value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} placeholder="XXXX-XXXX-XXXX-XXXX-XXXX-XXXX" className="erp-input font-mono tracking-wider text-center text-lg" />
             </Field>
             {err && <div className="px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-sm text-red-700">{err}</div>}
-            {success && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="px-4 py-3 rounded-xl bg-emerald-50 border border-emerald-200 text-sm text-emerald-700 flex items-center gap-2"><CheckCircle className="w-4 h-4" /> {success}</motion.div>}
+            {success && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="px-4 py-3 rounded-xl bg-blue-50 border border-blue-200 text-sm text-blue-700 flex items-center gap-2"><CheckCircle className="w-4 h-4" /> {success}</motion.div>}
             <PrimaryButton type="submit" disabled={loading || !code} className="w-full">
               {loading ? 'Tekshirilmoqda...' : <><KeyRound className="w-4 h-4" /> Aktivlashtirish</>}
             </PrimaryButton>
@@ -539,7 +539,7 @@ export function LicensePanel({ user, onActivated }: { user: PublicUser; onActiva
 }
 
 function CodeStatusChip({ status }: { status: string }) {
-  const map: any = { unused: { label: 'Bo\'sh', cls: 'bg-emerald-100 text-emerald-700' }, used: { label: 'Ishlatilgan', cls: 'bg-slate-100 text-slate-700' }, expired: { label: 'Muddati o\'tgan', cls: 'bg-red-100 text-red-700' } }
+  const map: any = { unused: { label: 'Bo\'sh', cls: 'bg-blue-100 text-blue-700' }, used: { label: 'Ishlatilgan', cls: 'bg-slate-100 text-slate-700' }, expired: { label: 'Muddati o\'tgan', cls: 'bg-red-100 text-red-700' } }
   const s = map[status] || map.unused
   return <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${s.cls}`}>{s.label}</span>
 }
