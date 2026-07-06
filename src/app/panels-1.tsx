@@ -55,13 +55,13 @@ export function DashboardPanel({ user, setActiveTab }: { user: any; setActiveTab
       </div>
 
       <div className="grid lg:grid-cols-2 gap-4">
-        <Card>
+        <Card color="blue">
           <CardHeader title="Daromad vs Xarajat" subtitle="So'nggi 6 oy" />
           <div className="p-4 pt-0">
             <DualBarChart data={stats.monthlyRevenue.map((m: any) => ({ label: m.month.slice(5), income: m.total, expense: m.expense }))} />
           </div>
         </Card>
-        <Card>
+        <Card color="violet">
           <CardHeader title="Davomat statistikasi" subtitle={`${stats.attendance.rate}% kelish`} />
           <div className="p-4 pt-0">
             <div className="grid grid-cols-3 gap-3">
@@ -81,7 +81,7 @@ export function DashboardPanel({ user, setActiveTab }: { user: any; setActiveTab
       </div>
 
       <div className="grid lg:grid-cols-2 gap-4">
-        <Card>
+        <Card color="rose">
           <CardHeader title="Xarajatlar tarkibi" subtitle="Kategoriya bo'yicha" />
           <div className="p-4 pt-0 space-y-2">
             {Object.entries(stats.expenseByCategory).length === 0 ? (
@@ -95,12 +95,12 @@ export function DashboardPanel({ user, setActiveTab }: { user: any; setActiveTab
                 const total = Object.values(stats.expenseByCategory).reduce((s: number, v: any) => s + Number(v), 0)
                 const pct = total > 0 ? Math.round((Number(amount) / total) * 100) : 0
                 return (
-                  <div key={cat} className="px-3 py-2 rounded-lg bg-muted/40">
+                  <div key={cat} className="px-3 py-2 rounded-lg bg-rose-50/50 border border-rose-200/50">
                     <div className="flex justify-between items-center mb-1">
                       <span className="text-sm font-medium">{cat}</span>
                       <span className="text-sm font-bold text-rose-600">{formatMoney(amount)} <span className="text-xs text-muted-foreground">({pct}%)</span></span>
                     </div>
-                    <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+                    <div className="h-1.5 rounded-full bg-rose-100 overflow-hidden">
                       <div className="h-full bg-gradient-to-r from-rose-500 to-pink-400 rounded-full" style={{ width: `${pct}%` }} />
                     </div>
                   </div>
@@ -109,7 +109,7 @@ export function DashboardPanel({ user, setActiveTab }: { user: any; setActiveTab
             )}
           </div>
         </Card>
-        <Card>
+        <Card color="amber">
           <CardHeader title="Lidlar funnel" subtitle="Konversiya" />
           <div className="p-4 pt-0 space-y-2">
             <FunnelRow label="Yangi lidlar" value={stats.leads.new} total={stats.leads.total} color="bg-amber-500" />
@@ -120,7 +120,7 @@ export function DashboardPanel({ user, setActiveTab }: { user: any; setActiveTab
       </div>
 
       {user.status === 'trial' && (
-        <Card>
+        <Card color="amber">
           <div className="p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex items-start gap-3">
               <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center"><Sparkles className="w-5 h-5" /></div>

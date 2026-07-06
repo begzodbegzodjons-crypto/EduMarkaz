@@ -5,11 +5,25 @@ import {
   Plus, Trash2, Pencil, Search, X, Spinner,
 } from '@/components/icons'
 
-export function Card({ children, className = '' }: { children: React.ReactNode; className?: string }) {
+export function Card({ children, className = '', color = 'blue' }: { children: React.ReactNode; className?: string; color?: string }) {
+  const colorMap: any = {
+    blue:   { border: 'border-blue-200/70',   glow: 'rgba(59,130,246,0.08)',  grad: 'from-blue-50/40 to-transparent' },
+    sky:    { border: 'border-sky-200/70',    glow: 'rgba(14,165,233,0.08)',  grad: 'from-sky-50/40 to-transparent' },
+    cyan:   { border: 'border-cyan-200/70',   glow: 'rgba(6,182,212,0.08)',   grad: 'from-cyan-50/40 to-transparent' },
+    amber:  { border: 'border-amber-200/70',  glow: 'rgba(245,158,11,0.08)',  grad: 'from-amber-50/40 to-transparent' },
+    rose:   { border: 'border-rose-200/70',   glow: 'rgba(244,63,94,0.08)',   grad: 'from-rose-50/40 to-transparent' },
+    violet: { border: 'border-violet-200/70', glow: 'rgba(139,92,246,0.08)',  grad: 'from-violet-50/40 to-transparent' },
+    indigo: { border: 'border-indigo-200/70', glow: 'rgba(99,102,241,0.08)',  grad: 'from-indigo-50/40 to-transparent' },
+    slate:  { border: 'border-slate-200/70',  glow: 'rgba(100,116,139,0.08)', grad: 'from-slate-50/40 to-transparent' },
+  }
+  const c = colorMap[color] || colorMap.blue
   return (
-    <div className={`relative bg-card rounded-2xl border border-border/50 shadow-sm shadow-blue-500/5 overflow-hidden card-shimmer-wrap ${className}`}>
+    <div
+      className={`relative bg-card rounded-2xl border ${c.border} shadow-sm overflow-hidden card-shimmer-wrap bg-gradient-to-br ${c.grad} ${className}`}
+      style={{ boxShadow: `0 4px 20px -6px ${c.glow}` }}
+    >
       {/* Yaltirash nur effekti */}
-      <div className="card-shimmer" />
+      <div className="card-shimmer" style={{ '--shimmer-color': c.glow.replace('0.08', '0.12') } as any} />
       <div className="relative z-10">{children}</div>
     </div>
   )
