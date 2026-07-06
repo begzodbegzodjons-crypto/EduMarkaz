@@ -249,5 +249,5 @@ export async function requireAdmin(req: any): Promise<{ ok: boolean; error?: str
   if (sess && sess.role === 'admin') {
     return { ok: true }
   }
-  return { ok: false, error: 'Admin huquqi kerak.' }
+  return { ok: false, error: 'Admin huquqi kerak. Parol noto\'g\'ri bo\'lishi mumkin.' }
 }
