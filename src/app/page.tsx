@@ -28,28 +28,28 @@ const TELEGRAM_URL = process.env.NEXT_PUBLIC_TELEGRAM_URL || `https://t.me/${TEL
 const ADMIN_URL_KEYWORD = process.env.NEXT_PUBLIC_ADMIN_URL || 'adminkod'
 
 const NAV_SECTIONS = [
-  { title: 'Boshqaruv', items: [{ id: 'dashboard', label: 'Boshqaruv paneli', icon: LayoutDashboard }] },
-  { title: 'Sotuv va Talabalar', items: [
+  { title: 'Boshqaruv', color: 'blue', items: [{ id: 'dashboard', label: 'Boshqaruv paneli', icon: LayoutDashboard }] },
+  { title: 'Sotuv va Talabalar', color: 'amber', items: [
     { id: 'leads', label: 'Lidlar', icon: Sparkles },
     { id: 'students', label: 'Talabalar', icon: Users },
   ] },
-  { title: 'O\'qitish', items: [
+  { title: 'O\'qitish', color: 'cyan', items: [
     { id: 'teachers', label: 'O\'qituvchilar', icon: UserCog },
     { id: 'groups', label: 'Guruhlar', icon: Users },
     { id: 'courses', label: 'Kurslar', icon: BookOpen },
     { id: 'ratings', label: 'Reyting', icon: Star },
   ] },
-  { title: 'Davomat', items: [
+  { title: 'Davomat', color: 'violet', items: [
     { id: 'attendance', label: 'Davomat', icon: ClipboardCheck },
     { id: 'attendance-report', label: 'Davomatlar hisoboti', icon: BarChart3 },
     { id: 'teacher-attendance', label: 'Ustozlar davomati', icon: UserCog },
   ] },
-  { title: 'Dars va Imtihon', items: [
+  { title: 'Dars va Imtihon', color: 'sky', items: [
     { id: 'schedule', label: 'Dars jadvali', icon: Calendar },
     { id: 'exams', label: 'Imtihonlar', icon: FileText },
     { id: 'certificates', label: 'Sertifikatlar', icon: Award },
   ] },
-  { title: 'Moliya', items: [
+  { title: 'Moliya', color: 'rose', items: [
     { id: 'payments', label: 'To\'lovlar', icon: Wallet },
     { id: 'finance', label: 'Moliya', icon: TrendingUp },
     { id: 'expenses', label: 'Xarajatlar', icon: TrendingDown },
@@ -59,15 +59,15 @@ const NAV_SECTIONS = [
     { id: 'reports', label: 'Hisobotlar', icon: FileText },
     { id: 'reports-export', label: 'Eksport', icon: FileText },
   ] },
-  { title: 'Aloqa', items: [
+  { title: 'Aloqa', color: 'indigo', items: [
     { id: 'notifications', label: 'Ota-onaga xabar', icon: Bell },
   ] },
-  { title: 'Tizim', items: [
+  { title: 'Tizim', color: 'slate', items: [
     { id: 'reminders', label: 'Eslatmalar', icon: Bell },
     { id: 'settings', label: 'Sozlamalar', icon: Settings },
     { id: 'telegram', label: 'Telegram', icon: TelegramIcon },
     { id: 'license', label: 'Litsenziya', icon: KeyRound },
-  ] },
+  ]},
 ]
 
 export default function Home() {
@@ -512,23 +512,41 @@ function SidebarContent({ user, activeTab, setActiveTab, onLogout }: { user: Pub
           <div><div className="font-bold text-sidebar-foreground">EduMarkaz</div><div className="text-[10px] text-sidebar-foreground/60">{user.center_name}</div></div>
         </div>
       </div>
-      <nav className="flex-1 p-3 space-y-4 overflow-y-auto">
-        {NAV_SECTIONS.map((section, si) => (
-          <div key={si}>
-            <div className="text-[10px] font-bold uppercase tracking-wider text-sidebar-foreground/40 px-3 mb-1.5">{section.title}</div>
-            <div className="space-y-1">
-              {section.items.map((item) => {
-                const Icon = item.icon
-                const isActive = activeTab === item.id
-                return (
-                  <button key={item.id} onClick={() => setActiveTab(item.id)} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${isActive ? 'bg-sidebar-primary text-sidebar-primary-foreground shadow-lg shadow-blue-500/20' : 'text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground'}`}>
-                    <Icon className="w-4 h-4 shrink-0" /><span className="truncate">{item.label}</span>{isActive && <ChevronRight className="w-4 h-4 ml-auto" />}
-                  </button>
-                )
-              })}
+      <nav className="flex-1 p-3 space-y-3 overflow-y-auto">
+        {NAV_SECTIONS.map((section, si) => {
+          const sectionColors: any = {
+            blue: 'bg-blue-50/60 border-blue-200/50',
+            amber: 'bg-amber-50/60 border-amber-200/50',
+            cyan: 'bg-cyan-50/60 border-cyan-200/50',
+            violet: 'bg-violet-50/60 border-violet-200/50',
+            sky: 'bg-sky-50/60 border-sky-200/50',
+            rose: 'bg-rose-50/60 border-rose-200/50',
+            indigo: 'bg-indigo-50/60 border-indigo-200/50',
+            slate: 'bg-slate-50/60 border-slate-200/50',
+          }
+          const iconColors: any = {
+            blue: 'text-blue-600', amber: 'text-amber-600', cyan: 'text-cyan-600',
+            violet: 'text-violet-600', sky: 'text-sky-600', rose: 'text-rose-600',
+            indigo: 'text-indigo-600', slate: 'text-slate-600',
+          }
+          const sc = section.color || 'blue'
+          return (
+            <div key={si} className={`rounded-xl border p-2 ${sectionColors[sc] || sectionColors.blue}`}>
+              <div className={`text-[10px] font-bold uppercase tracking-wider px-2 mb-1.5 ${iconColors[sc] || 'text-blue-600'}`}>{section.title}</div>
+              <div className="space-y-0.5">
+                {section.items.map((item) => {
+                  const Icon = item.icon
+                  const isActive = activeTab === item.id
+                  return (
+                    <button key={item.id} onClick={() => setActiveTab(item.id)} className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all ${isActive ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/25' : 'text-slate-700 hover:bg-white/70 hover:text-slate-900'}`}>
+                      <Icon className="w-4 h-4 shrink-0" /><span className="truncate">{item.label}</span>{isActive && <ChevronRight className="w-4 h-4 ml-auto" />}
+                    </button>
+                  )
+                })}
+              </div>
             </div>
-          </div>
-        ))}
+          )
+        })}
       </nav>
       <div className="p-3 border-t border-sidebar-border/50">
         <div className="px-3 py-2 mb-2 rounded-xl bg-sidebar-accent/50">

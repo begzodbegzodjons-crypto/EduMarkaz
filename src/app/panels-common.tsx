@@ -6,11 +6,17 @@ import {
 } from '@/components/icons'
 
 export function Card({ children, className = '' }: { children: React.ReactNode; className?: string }) {
-  return <div className={`bg-card rounded-2xl border border-border/50 shadow-sm overflow-hidden ${className}`}>{children}</div>
+  return (
+    <div className={`relative bg-card rounded-2xl border border-border/50 shadow-sm shadow-blue-500/5 overflow-hidden card-shimmer-wrap ${className}`}>
+      {/* Yaltirash nur effekti */}
+      <div className="card-shimmer" />
+      <div className="relative z-10">{children}</div>
+    </div>
+  )
 }
 export function CardHeader({ title, subtitle, action }: { title: string; subtitle?: string; action?: React.ReactNode }) {
   return (
-    <div className="px-5 py-4 border-b border-border/40 flex items-center justify-between">
+    <div className="px-5 py-4 border-b border-border/40 flex items-center justify-between relative">
       <div>
         <h3 className="font-semibold text-base">{title}</h3>
         {subtitle && <p className="text-xs text-muted-foreground mt-0.5">{subtitle}</p>}

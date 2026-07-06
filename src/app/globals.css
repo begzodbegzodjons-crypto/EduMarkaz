@@ -619,3 +619,53 @@ textarea.erp-input {
 .motion-div:hover .stat-card-shimmer {
   animation-duration: 2s;
 }
+
+/* =====================================================================
+   CARD SHIMMER — barcha kartochkalarda yaltirash effekti
+   ===================================================================== */
+
+.card-shimmer-wrap {
+  position: relative;
+  transition: box-shadow 0.3s ease, transform 0.2s ease;
+}
+
+.card-shimmer-wrap:hover {
+  box-shadow: 0 8px 30px -8px rgba(59, 130, 246, 0.15);
+}
+
+.card-shimmer {
+  position: absolute;
+  top: 0;
+  left: -150%;
+  width: 80%;
+  height: 100%;
+  background: linear-gradient(
+    105deg,
+    transparent 0%,
+    transparent 35%,
+    rgba(59, 130, 246, 0.06) 50%,
+    transparent 65%,
+    transparent 100%
+  );
+  animation: card-shimmer-slide 6s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.card-shimmer-wrap:hover .card-shimmer {
+  animation-duration: 3s;
+  background: linear-gradient(
+    105deg,
+    transparent 0%,
+    transparent 30%,
+    rgba(59, 130, 246, 0.12) 50%,
+    transparent 70%,
+    transparent 100%
+  );
+}
+
+@keyframes card-shimmer-slide {
+  0% { left: -150%; }
+  40% { left: 150%; }
+  100% { left: 150%; }
+}
