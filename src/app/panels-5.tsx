@@ -111,6 +111,13 @@ export function SettingsPanel({ user }: { user: PublicUser }) {
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
 
+  // === YANGI: Login va parolni o'zgartirish state ===
+  const [credForm, setCredForm] = useState<any>({ current_password: '', new_email: '', new_password: '', confirm_password: '' })
+  const [savingCred, setSavingCred] = useState(false)
+  const [credSaved, setCredSaved] = useState(false)
+  const [showCurrentPass, setShowCurrentPass] = useState(false)
+  const [showNewPass, setShowNewPass] = useState(false)
+
   useEffect(() => {
     apiFetch('/api/settings').then(({ ok, data }) => {
       if (ok && data?.settings) {
@@ -128,6 +135,52 @@ export function SettingsPanel({ user }: { user: PublicUser }) {
     if (!ok) return alert(error)
     setSaved(true)
     setTimeout(() => setSaved(false), 2000)
+  }
+
+  // === YANGI: Login va parolni o'zgartirish ===
+  async function handleChangeCredentials() {
+    if (!credForm.current_password) {
+      return alert('Joriy parolni kiriting.')
+    }
+
+    // Email yoki paroldan kamida bittasi o'zgartirilgan bo'lishi kerak
+    const emailChanged = credForm.new_email && credForm.new_email.trim() !== user.email
+    const passwordChanged = credForm.new_password && credForm.new_password.length > 0
+
+    if (!emailChanged && !passwordChanged) {
+      return alert('Yangi email yoki parolni kiriting.')
+    }
+
+    // Parol tasdiqi
+    if (passwordChanged && credForm.new_password !== credForm.confirm_password) {
+      return alert('Yangi parol va tasdiq paroli mos kelmadi.')
+    }
+
+    setSavingCred(true)
+    const { ok, error, data } = await apiFetch('/api/auth/change-credentials', {
+      method: 'POST',
+      body: JSON.stringify({
+        current_password: credForm.current_password,
+        new_email: emailChanged ? credForm.new_email.trim() : undefined,
+        new_password: passwordChanged ? credForm.new_password : undefined,
+      }),
+    })
+    setSavingCred(false)
+
+    if (!ok) {
+      alert(error || 'Xatolik yuz berdi.')
+      return
+    }
+
+    alert(data?.message || 'Ma\'lumotlar muvaffaqiyatli yangilandi!')
+    setCredForm({ current_password: '', new_email: '', new_password: '', confirm_password: '' })
+    setCredSaved(true)
+    setTimeout(() => setCredSaved(false), 3000)
+
+    // Agar email o'zgarsa, sahifani yangilash
+    if (data?.new_email) {
+      setTimeout(() => window.location.reload(), 1500)
+    }
   }
 
   if (loading) return <PanelLoader />
@@ -169,6 +222,101 @@ export function SettingsPanel({ user }: { user: PublicUser }) {
         <PrimaryButton onClick={handleSave} disabled={saving}>{saving ? 'Saqlanmoqda...' : 'Saqlash'}</PrimaryButton>
         {saved && <span className="text-sm text-emerald-600 font-medium flex items-center gap-1"><CheckCircle className="w-4 h-4" /> Saqlandi</span>}
       </div>
+
+      {/* === YANGI: Login va parolni o'zgartirish === */}
+      <Card>
+        <CardHeader title="Login va parolni o'zgartirish" subtitle="Tizimga kirish ma'lumotlarini yangilang" />
+        <div className="p-5 space-y-4">
+          {/* Joriy parol (xavfsizlik uchun) */}
+          <Field label="Joriy parol * (xavfsizlik uchun)">
+            <div className="relative">
+              <input
+                type={showCurrentPass ? 'text' : 'password'}
+                className="erp-input pr-10"
+                value={credForm.current_password}
+                onChange={(e) => setCredForm({ ...credForm, current_password: e.target.value })}
+                placeholder="Joriy parolingizni kiriting"
+              />
+              <button
+                type="button"
+                onClick={() => setShowCurrentPass(!showCurrentPass)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                title={showCurrentPass ? 'Yashirish' : 'Ko\'rsatish'}
+              >
+                {showCurrentPass ? '🙈' : '👁'}
+              </button>
+            </div>
+          </Field>
+
+          <div className="border-t border-border/40 pt-4 space-y-3">
+            <div className="text-xs font-semibold text-muted-foreground">Quyidagilardan kamida bittasini o'zgartiring:</div>
+
+            {/* Yangi email (login) */}
+            <Field label="Yangi login (email)">
+              <input
+                type="email"
+                className="erp-input"
+                value={credForm.new_email}
+                onChange={(e) => setCredForm({ ...credForm, new_email: e.target.value })}
+                placeholder={user.email}
+              />
+              <p className="text-[10px] text-muted-foreground mt-1">Joriy: {user.email}</p>
+            </Field>
+
+            {/* Yangi parol */}
+            <Field label="Yangi parol (kamida 6 belgi)">
+              <div className="relative">
+                <input
+                  type={showNewPass ? 'text' : 'password'}
+                  className="erp-input pr-10"
+                  value={credForm.new_password}
+                  onChange={(e) => setCredForm({ ...credForm, new_password: e.target.value })}
+                  placeholder="Yangi parol"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowNewPass(!showNewPass)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  title={showNewPass ? 'Yashirish' : 'Ko\'rsatish'}
+                >
+                  {showNewPass ? '🙈' : '👁'}
+                </button>
+              </div>
+            </Field>
+
+            {/* Parolni tasdiqlash */}
+            {credForm.new_password && (
+              <Field label="Yangi parolni tasdiqlang">
+                <input
+                  type={showNewPass ? 'text' : 'password'}
+                  className="erp-input"
+                  value={credForm.confirm_password}
+                  onChange={(e) => setCredForm({ ...credForm, confirm_password: e.target.value })}
+                  placeholder="Yangi parolni qayta kiriting"
+                />
+                {credForm.confirm_password && credForm.new_password !== credForm.confirm_password && (
+                  <p className="text-[10px] text-red-600 mt-1">⚠ Parollar mos kelmadi</p>
+                )}
+                {credForm.confirm_password && credForm.new_password === credForm.confirm_password && (
+                  <p className="text-[10px] text-emerald-600 mt-1">✓ Parollar mos</p>
+                )}
+              </Field>
+            )}
+          </div>
+
+          <div className="rounded-lg bg-amber-50 border border-amber-200 p-3 text-xs text-amber-800">
+            ⚠️ <strong>Eslatma:</strong> Login (email) yoki parolni o'zgartirish uchun joriy parolni kiritishingiz shart.
+            Email o'zgarsa, keyingi kirishda yangi email bilan kirishingiz kerak bo'ladi.
+          </div>
+
+          <div className="flex items-center gap-3">
+            <PrimaryButton onClick={handleChangeCredentials} disabled={savingCred}>
+              {savingCred ? 'Saqlanmoqda...' : 'Login va parolni yangilash'}
+            </PrimaryButton>
+            {credSaved && <span className="text-sm text-emerald-600 font-medium flex items-center gap-1"><CheckCircle className="w-4 h-4" /> Yangilandi</span>}
+          </div>
+        </div>
+      </Card>
     </div>
   )
 }
