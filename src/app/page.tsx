@@ -515,31 +515,31 @@ function SidebarContent({ user, activeTab, setActiveTab, onLogout }: { user: Pub
       <nav className="flex-1 p-3 space-y-3 overflow-y-auto">
         {NAV_SECTIONS.map((section, si) => {
           const sectionColors: any = {
-            blue: 'bg-blue-50/60 border-blue-200/50',
-            amber: 'bg-amber-50/60 border-amber-200/50',
-            cyan: 'bg-cyan-50/60 border-cyan-200/50',
-            violet: 'bg-violet-50/60 border-violet-200/50',
-            sky: 'bg-sky-50/60 border-sky-200/50',
-            rose: 'bg-rose-50/60 border-rose-200/50',
-            indigo: 'bg-indigo-50/60 border-indigo-200/50',
-            slate: 'bg-slate-50/60 border-slate-200/50',
+            blue: 'bg-blue-100/80 border-blue-300/70',
+            amber: 'bg-amber-100/80 border-amber-300/70',
+            cyan: 'bg-cyan-100/80 border-cyan-300/70',
+            violet: 'bg-violet-100/80 border-violet-300/70',
+            sky: 'bg-sky-100/80 border-sky-300/70',
+            rose: 'bg-rose-100/80 border-rose-300/70',
+            indigo: 'bg-indigo-100/80 border-indigo-300/70',
+            slate: 'bg-slate-200/80 border-slate-400/70',
           }
           const iconColors: any = {
-            blue: 'text-blue-600', amber: 'text-amber-600', cyan: 'text-cyan-600',
-            violet: 'text-violet-600', sky: 'text-sky-600', rose: 'text-rose-600',
-            indigo: 'text-indigo-600', slate: 'text-slate-600',
+            blue: 'text-blue-700', amber: 'text-amber-700', cyan: 'text-cyan-700',
+            violet: 'text-violet-700', sky: 'text-sky-700', rose: 'text-rose-700',
+            indigo: 'text-indigo-700', slate: 'text-slate-700',
           }
           const sc = section.color || 'blue'
           return (
-            <div key={si} className={`rounded-xl border p-2 ${sectionColors[sc] || sectionColors.blue}`}>
-              <div className={`text-[10px] font-bold uppercase tracking-wider px-2 mb-1.5 ${iconColors[sc] || 'text-blue-600'}`}>{section.title}</div>
-              <div className="space-y-0.5">
+            <div key={si} className={`rounded-xl border p-2.5 ${sectionColors[sc] || sectionColors.blue}`}>
+              <div className={`text-[11px] font-bold uppercase tracking-wider px-2 mb-2 ${iconColors[sc] || 'text-blue-700'}`}>{section.title}</div>
+              <div className="space-y-1">
                 {section.items.map((item) => {
                   const Icon = item.icon
                   const isActive = activeTab === item.id
                   return (
-                    <button key={item.id} onClick={() => setActiveTab(item.id)} className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all ${isActive ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/25' : 'text-slate-700 hover:bg-white/70 hover:text-slate-900'}`}>
-                      <Icon className="w-4 h-4 shrink-0" /><span className="truncate">{item.label}</span>{isActive && <ChevronRight className="w-4 h-4 ml-auto" />}
+                    <button key={item.id} onClick={() => setActiveTab(item.id)} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[15px] font-semibold transition-all ${isActive ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30' : 'text-black hover:bg-white/80 hover:text-black'}`}>
+                      <Icon className="w-[18px] h-[18px] shrink-0" /><span className="truncate">{item.label}</span>{isActive && <ChevronRight className="w-4 h-4 ml-auto" />}
                     </button>
                   )
                 })}
