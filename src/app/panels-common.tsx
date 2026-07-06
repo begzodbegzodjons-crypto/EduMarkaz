@@ -80,29 +80,37 @@ export function Row({ label, value }: { label: string; value: string }) {
   return <div className="flex justify-between gap-2"><span className="text-muted-foreground shrink-0">{label}:</span><span className="font-medium text-right truncate">{value}</span></div>
 }
 export function StatCard({ label, value, sub, icon: Icon, color, trend, onClick }: { label: string; value: any; sub?: string; icon: any; color: string; trend?: 'up' | 'down'; onClick?: () => void }) {
+  // Har bir rang uchun: gradient, shadow, glow, pastel bg, border, icon bg
   const colorMap: any = {
-    blue: 'from-blue-500 to-blue-600 shadow-blue-500/25',
-    sky: 'from-sky-500 to-sky-600 shadow-sky-500/25',
-    cyan: 'from-cyan-500 to-cyan-600 shadow-cyan-500/25',
-    amber: 'from-amber-500 to-orange-600 shadow-amber-500/25',
-    rose: 'from-rose-500 to-pink-600 shadow-rose-500/25',
-    violet: 'from-violet-500 to-purple-600 shadow-violet-500/25',
-    blue: 'from-blue-500 to-indigo-600 shadow-blue-500/25',
+    blue:    { grad: 'from-blue-500 to-blue-600',     shadow: 'shadow-blue-500/30',    glow: 'rgba(59,130,246,0.4)',   bg: 'bg-blue-50',    border: 'border-blue-200',    text: 'text-blue-600' },
+    sky:     { grad: 'from-sky-500 to-sky-600',       shadow: 'shadow-sky-500/30',     glow: 'rgba(14,165,233,0.4)',   bg: 'bg-sky-50',     border: 'border-sky-200',     text: 'text-sky-600' },
+    cyan:    { grad: 'from-cyan-500 to-cyan-600',     shadow: 'shadow-cyan-500/30',    glow: 'rgba(6,182,212,0.4)',    bg: 'bg-cyan-50',    border: 'border-cyan-200',    text: 'text-cyan-600' },
+    amber:   { grad: 'from-amber-500 to-orange-600',  shadow: 'shadow-amber-500/30',   glow: 'rgba(245,158,11,0.4)',   bg: 'bg-amber-50',   border: 'border-amber-200',   text: 'text-amber-600' },
+    rose:    { grad: 'from-rose-500 to-pink-600',     shadow: 'shadow-rose-500/30',    glow: 'rgba(244,63,94,0.4)',    bg: 'bg-rose-50',    border: 'border-rose-200',    text: 'text-rose-600' },
+    violet:  { grad: 'from-violet-500 to-purple-600', shadow: 'shadow-violet-500/30',  glow: 'rgba(139,92,246,0.4)',   bg: 'bg-violet-50',  border: 'border-violet-200',  text: 'text-violet-600' },
+    indigo:  { grad: 'from-indigo-500 to-indigo-600', shadow: 'shadow-indigo-500/30',  glow: 'rgba(99,102,241,0.4)',   bg: 'bg-indigo-50',  border: 'border-indigo-200',  text: 'text-indigo-600' },
   }
+  const c = colorMap[color] || colorMap.blue
   const clickable = !!onClick
   return (
     <motion.div
-      whileHover={clickable ? { y: -3, scale: 1.02 } : { y: -2 }}
+      whileHover={clickable ? { y: -4, scale: 1.03 } : { y: -2 }}
       onClick={onClick}
-      className={`bg-card rounded-2xl border border-border/50 p-4 shadow-sm ${clickable ? 'cursor-pointer hover:shadow-md hover:border-border transition-all' : ''}`}
+      className={`relative overflow-hidden rounded-2xl border ${c.border} ${c.bg} p-4 shadow-md ${c.shadow} ${clickable ? 'cursor-pointer transition-all' : ''}`}
+      style={{ boxShadow: `0 4px 20px -6px ${c.glow}` }}
     >
-      <div className="flex items-start justify-between">
+      {/* Yaltirab turuvchi nur effekti */}
+      <div className="stat-card-shimmer" style={{ '--shimmer-color': c.glow } as any} />
+      {/* Kontent */}
+      <div className="relative z-10 flex items-start justify-between">
         <div className="min-w-0">
           <div className="text-xs text-muted-foreground font-medium">{label}</div>
-          <div className="text-xl lg:text-2xl font-bold mt-1 truncate">{value}</div>
+          <div className={`text-xl lg:text-2xl font-bold mt-1 truncate ${c.text}`}>{value}</div>
           {sub && <div className="text-[10px] text-muted-foreground mt-0.5">{sub}</div>}
         </div>
-        <div className={`shrink-0 w-9 h-9 rounded-xl bg-gradient-to-br ${colorMap[color]} flex items-center justify-center shadow-lg`}><Icon className="w-4 h-4 text-white" /></div>
+        <div className={`shrink-0 w-9 h-9 rounded-xl bg-gradient-to-br ${c.grad} flex items-center justify-center shadow-lg ${c.shadow}`}>
+          <Icon className="w-4 h-4 text-white" />
+        </div>
       </div>
     </motion.div>
   )

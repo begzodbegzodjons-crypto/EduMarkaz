@@ -41,7 +41,7 @@ export function DashboardPanel({ user, setActiveTab }: { user: any; setActiveTab
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="Jami talabalar" value={stats.totalStudents} sub={`${stats.activeStudents} faol`} icon={Users} color="blue" onClick={() => setActiveTab?.('students')} />
+        <StatCard label="Jami talabalar" value={stats.totalStudents} sub={`${stats.activeStudents} faol`} icon={Users} color="indigo" onClick={() => setActiveTab?.('students')} />
         <StatCard label="Lidlar" value={stats.leads.total} sub={`${stats.leads.new} yangi`} icon={Sparkles} color="amber" onClick={() => setActiveTab?.('leads')} />
         <StatCard label="Guruhlar" value={stats.totalGroups} sub={`${stats.totalCourses} kurs`} icon={BookOpen} color="sky" onClick={() => setActiveTab?.('groups')} />
         <StatCard label="O'qituvchilar" value={stats.totalTeachers} sub="murabbiylar" icon={UserCog} color="cyan" onClick={() => setActiveTab?.('teachers')} />
@@ -50,7 +50,7 @@ export function DashboardPanel({ user, setActiveTab }: { user: any; setActiveTab
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard label="Oylik tushum" value={formatMoney(stats.monthRevenue)} sub={`Jami: ${formatMoney(stats.totalRevenue)}`} icon={Wallet} color="blue" trend="up" onClick={() => setActiveTab?.('payments')} />
         <StatCard label="Oylik xarajat" value={formatMoney(stats.monthExpenseTotal)} sub={`Jami: ${formatMoney(stats.totalExpense)}`} icon={TrendingDown} color="rose" trend="down" onClick={() => setActiveTab?.('expenses')} />
-        <StatCard label="Sof foyda (oy)" value={formatMoney(stats.monthNetProfit)} sub={`Jami: ${formatMoney(stats.totalNetProfit)}`} icon={TrendingUp} color={stats.monthNetProfit >= 0 ? 'blue' : 'rose'} trend={stats.monthNetProfit >= 0 ? 'up' : 'down'} onClick={() => setActiveTab?.('finance')} />
+        <StatCard label="Sof foyda (oy)" value={formatMoney(stats.monthNetProfit)} sub={`Jami: ${formatMoney(stats.totalNetProfit)}`} icon={TrendingUp} color={stats.monthNetProfit >= 0 ? 'sky' : 'rose'} trend={stats.monthNetProfit >= 0 ? 'up' : 'down'} onClick={() => setActiveTab?.('finance')} />
         <StatCard label="Davomat darajasi" value={`${stats.attendance.rate}%`} sub={`${stats.attendance.present}/${stats.attendance.total} dars`} icon={ClipboardCheck} color="violet" onClick={() => setActiveTab?.('attendance')} />
       </div>
 
@@ -215,15 +215,15 @@ function DualBarChart({ data }: { data: { label: string; income: number; expense
           )
         })}
 
-        {/* Gradient definitions */}
+        {/* Gradient definitions — zamonaviy ranglar */}
         <defs>
           <linearGradient id="incomeGrad" x1="0" y1="1" x2="0" y2="0">
-            <stop offset="0%" stopColor="#10b981" />
-            <stop offset="100%" stopColor="#2dd4bf" />
+            <stop offset="0%" stopColor="#3b82f6" />
+            <stop offset="100%" stopColor="#60a5fa" />
           </linearGradient>
           <linearGradient id="expenseGrad" x1="0" y1="1" x2="0" y2="0">
             <stop offset="0%" stopColor="#f43f5e" />
-            <stop offset="100%" stopColor="#f472b6" />
+            <stop offset="100%" stopColor="#fb7185" />
           </linearGradient>
         </defs>
       </svg>

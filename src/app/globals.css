@@ -585,3 +585,37 @@ textarea.erp-input {
     font-size: 8px;
   }
 }
+
+/* =====================================================================
+   STAT CARD SHIMMER — yaltirab turuvchi nur effekti
+   ===================================================================== */
+
+.stat-card-shimmer {
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(
+    105deg,
+    transparent 0%,
+    transparent 40%,
+    var(--shimmer-color, rgba(59, 130, 246, 0.15)) 50%,
+    transparent 60%,
+    transparent 100%
+  );
+  animation: shimmer-slide 4s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 1;
+}
+
+@keyframes shimmer-slide {
+  0% { left: -100%; }
+  50% { left: 100%; }
+  100% { left: 100%; }
+}
+
+/* Kartochka hover'da kuchliroq glow */
+.motion-div:hover .stat-card-shimmer {
+  animation-duration: 2s;
+}
