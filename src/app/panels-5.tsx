@@ -60,14 +60,14 @@ export function RemindersPanel() {
         <PrimaryButton onClick={() => setOpenModal(true)}><Plus className="w-4 h-4" /> Yangi eslatma</PrimaryButton>
       </div>
 
-      {loading ? <PanelLoader /> : sorted.length === 0 ? <Card><EmptyState title="Eslatmalar yo'q" description="Muhim narsalarni eslab qolish uchun qo'shing." /></Card> : (
+      {loading ? <PanelLoader /> : sorted.length === 0 ? <Card color="slate"><EmptyState title="Eslatmalar yo'q" description="Muhim narsalarni eslab qolish uchun qo'shing." /></Card> : (
         <div className="space-y-2">
           {sorted.map((r) => {
             const isOverdue = !r.is_done && r.reminder_date < today
             const isToday = !r.is_done && r.reminder_date === today
             return (
               <motion.div key={r.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-                <Card>
+                <Card color="blue">
                   <div className={`p-4 flex items-start gap-3 ${r.is_done ? 'opacity-50' : ''}`}>
                     <button onClick={() => toggleDone(r)} className={`mt-1 w-5 h-5 rounded-md border-2 flex items-center justify-center transition ${r.is_done ? 'bg-blue-500 border-blue-500' : 'border-border hover:border-blue-500'}`}>
                       {r.is_done && <CheckCircle className="w-3 h-3 text-white" />}
@@ -189,7 +189,7 @@ export function SettingsPanel({ user }: { user: PublicUser }) {
     <div className="space-y-5 max-w-2xl">
       <div><h1 className="text-2xl lg:text-3xl font-bold">Sozlamalar</h1><p className="text-muted-foreground text-sm mt-1">Markaz profilingizni boshqaring</p></div>
 
-      <Card>
+      <Card color="amber">
         <CardHeader title="Markaz profili" subtitle="Asosiy ma'lumotlar" />
         <div className="p-5 space-y-3">
           <Field label="Markaz nomi"><input className="erp-input" value={form.center_name} onChange={(e) => setForm({ ...form, center_name: e.target.value })} /></Field>
@@ -201,7 +201,7 @@ export function SettingsPanel({ user }: { user: PublicUser }) {
         </div>
       </Card>
 
-      <Card>
+      <Card color="slate">
         <CardHeader title="Moliyaviy sozlamalar" subtitle="Oylik to'lov summasi" />
         <div className="p-5 space-y-3">
           <Field label="Oylik to'lov summasi (avtomatik hisob uchun)">
@@ -225,7 +225,7 @@ export function SettingsPanel({ user }: { user: PublicUser }) {
         </div>
       </Card>
 
-      <Card>
+      <Card color="blue">
         <CardHeader title="Integratsiyalar" subtitle="Telegram va SMS" />
         <div className="p-5 space-y-3">
           <Field label="Telegram bot tokeni"><input className="erp-input" value={form.telegram_bot_token} onChange={(e) => setForm({ ...form, telegram_bot_token: e.target.value })} placeholder="@BotFather dan oling" /></Field>
@@ -240,7 +240,7 @@ export function SettingsPanel({ user }: { user: PublicUser }) {
       </div>
 
       {/* === YANGI: Login va parolni o'zgartirish === */}
-      <Card>
+      <Card color="amber">
         <CardHeader title="Login va parolni o'zgartirish" subtitle="Tizimga kirish ma'lumotlarini yangilang" />
         <div className="p-5 space-y-4">
           {/* Joriy parol (xavfsizlik uchun) */}
@@ -345,7 +345,7 @@ export function TelegramPanel({ user }: { user: PublicUser }) {
     <div className="space-y-5 max-w-2xl">
       <div><h1 className="text-2xl lg:text-3xl font-bold">Telegram</h1><p className="text-muted-foreground text-sm mt-1">Yordam va qo'llab-quvvatlash</p></div>
 
-      <Card>
+      <Card color="slate">
         <div className="p-6 text-center">
           <div className="w-20 h-20 rounded-2xl bg-[#229ED9] flex items-center justify-center mx-auto mb-4 shadow-lg shadow-blue-500/25">
             <TelegramIcon className="w-12 h-12 text-white" />
@@ -359,7 +359,7 @@ export function TelegramPanel({ user }: { user: PublicUser }) {
         </div>
       </Card>
 
-      <Card>
+      <Card color="blue">
         <CardHeader title="Tez-tez beriladigan savollar" />
         <div className="p-5 space-y-4">
           <FAQItem q="Aktivatsiya kodini qayerdan olaman?" a={`To'lovni amalga oshiring va @${TELEGRAM_HANDLE} telegram akkauntiga yozing. Sizga 30 kunlik aktivatsiya kodi yuboriladi.`} />
@@ -410,7 +410,7 @@ export function LicensePanel({ user, onActivated }: { user: PublicUser; onActiva
     return (
       <div className="space-y-5 max-w-2xl">
         <div><h1 className="text-2xl lg:text-3xl font-bold">Administrator</h1><p className="text-muted-foreground text-sm mt-1">Sayt egasi kabineti</p></div>
-        <Card>
+        <Card color="amber">
           <div className="p-8 text-center">
             <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-amber-500/30">
               <Crown className="w-10 h-10 text-white" />
@@ -441,7 +441,7 @@ export function LicensePanel({ user, onActivated }: { user: PublicUser; onActiva
       <div><h1 className="text-2xl lg:text-3xl font-bold">Litsenziya</h1><p className="text-muted-foreground text-sm mt-1">Tizimga kirish huquqi</p></div>
 
       {/* Hozirgi holat — batafsil */}
-      <Card>
+      <Card color="slate">
         <div className="p-6">
           <div className="flex items-center gap-4 mb-5">
             <div className={`w-16 h-16 rounded-2xl flex items-center justify-center ${isActive ? 'bg-gradient-to-br from-blue-500 to-sky-600' : isTrial ? 'bg-gradient-to-br from-amber-500 to-orange-600' : 'bg-gradient-to-br from-red-500 to-rose-600'}`}>
@@ -505,7 +505,7 @@ export function LicensePanel({ user, onActivated }: { user: PublicUser; onActiva
       </Card>
 
       {/* Aktivatsiya kodi kiritish */}
-      <Card>
+      <Card color="blue">
         <CardHeader title="Aktivatsiya kodi" subtitle="Sotib olingan kodni kiriting" />
         <div className="p-5">
           <form onSubmit={handleActivate} className="space-y-4">

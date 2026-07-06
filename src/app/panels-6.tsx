@@ -129,7 +129,7 @@ export function SchedulePanel() {
 
       {/* Xonalar ro'yxati */}
       {rooms.length > 0 && (
-        <Card>
+        <Card color="sky">
           <CardHeader title="Xonalar" subtitle={`${rooms.length} ta`} />
           <div className="p-4 pt-0 flex flex-wrap gap-2">
             {rooms.map((r) => (
@@ -144,7 +144,7 @@ export function SchedulePanel() {
       )}
 
       {/* Haftalik jadval */}
-      {loading ? <PanelLoader /> : items.length === 0 && rooms.length === 0 ? <Card><EmptyState title="Jadval bo'sh" description="Avval xona yarating, so'ng dars qo'shing." /></Card> : (
+      {loading ? <PanelLoader /> : items.length === 0 && rooms.length === 0 ? <Card color="violet"><EmptyState title="Jadval bo'sh" description="Avval xona yarating, so'ng dars qo'shing." /></Card> : (
         <div className="grid lg:grid-cols-7 gap-3">
           {WEEKDAYS.map((day) => (
             <Card key={day.value}>
@@ -388,7 +388,7 @@ export function ExamsPanel() {
         <PrimaryButton onClick={() => setOpenModal(true)}><Plus className="w-4 h-4" /> Yangi imtihon</PrimaryButton>
       </div>
 
-      {loading ? <PanelLoader /> : items.length === 0 ? <Card><EmptyState title="Imtihonlar yo'q" description="Birinchi imtihonni yarating." /></Card> : (
+      {loading ? <PanelLoader /> : items.length === 0 ? <Card color="cyan"><EmptyState title="Imtihonlar yo'q" description="Birinchi imtihonni yarating." /></Card> : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {items.map((e) => {
             const examGrades = grades.filter((g) => g.exam_id === e.id)
@@ -526,7 +526,7 @@ export function CertificatesPanel() {
         <PrimaryButton onClick={() => setOpenModal(true)}><Plus className="w-4 h-4" /> Yangi sertifikat</PrimaryButton>
       </div>
 
-      {loading ? <PanelLoader /> : items.length === 0 ? <Card><EmptyState title="Sertifikatlar yo'q" description="Bitiruvchilarga sertifikat bering." /></Card> : (
+      {loading ? <PanelLoader /> : items.length === 0 ? <Card color="rose"><EmptyState title="Sertifikatlar yo'q" description="Bitiruvchilarga sertifikat bering." /></Card> : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {items.map((c) => (
             <Card key={c.id}>
@@ -605,7 +605,7 @@ export function DiscountsPanel() {
         <PrimaryButton onClick={() => setOpenModal(true)}><Plus className="w-4 h-4" /> Yangi chegirma</PrimaryButton>
       </div>
 
-      {loading ? <PanelLoader /> : items.length === 0 ? <Card><EmptyState title="Chegirmalar yo'q" description="Aksiyalar va chegirmalar yarating." /></Card> : (
+      {loading ? <PanelLoader /> : items.length === 0 ? <Card color="indigo"><EmptyState title="Chegirmalar yo'q" description="Aksiyalar va chegirmalar yarating." /></Card> : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {items.map((d) => (
             <Card key={d.id}>
@@ -793,7 +793,7 @@ export function DebtsPanel() {
       </div>
 
       {/* === Qarzdor talabalar jadvali === */}
-      <Card>
+      <Card color="amber">
         <CardHeader
           title="Qarzdor talabalar ro'yxati"
           subtitle={`${filtered.length} ta qarzdor · Jami qarz: ${formatMoney(filteredTotalDebt)} · Batafsil uchun qatorni bosing`}
@@ -1021,7 +1021,7 @@ export function TeacherPayoutsPanel() {
         </select>
       </div>
 
-      <Card>
+      <Card color="sky">
         <CardHeader title="Maoshlar tarixi" subtitle={`${items.length} yozuv`} />
         {loading ? <PanelLoader /> : items.length === 0 ? <EmptyState title="Maoshlar yo'q" description="O'qituvchilarga maosh qo'shing." /> : (
           <div className="overflow-x-auto">
@@ -1123,7 +1123,7 @@ export function NotificationsPanel() {
         <PrimaryButton onClick={() => setOpenModal(true)}><Plus className="w-4 h-4" /> Yangi xabar</PrimaryButton>
       </div>
 
-      <Card>
+      <Card color="violet">
         <CardHeader title="Bildirishnomalar tarixi" subtitle="Telegram / SMS orqali yuborilgan" action={<select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="px-3 py-1.5 rounded-lg border border-border/50 text-xs bg-card"><option value="all">Barchasi</option><option value="pending">Kutilmoqda</option><option value="sent">Yuborilgan</option><option value="failed">Xato</option></select>} />
         {loading ? <PanelLoader /> : items.length === 0 ? <EmptyState title="Xabarlar yo'q" description="Ota-onalarga xabar yuboring." /> : (
           <div className="p-4 pt-0 space-y-2 max-h-[500px] overflow-y-auto">
@@ -1146,7 +1146,7 @@ export function NotificationsPanel() {
         )}
       </Card>
 
-      <Card>
+      <Card color="cyan">
         <CardHeader title="Tezkor shablonlar" subtitle="Bir tugma bilan yuborish" />
         <div className="p-4 pt-0 grid sm:grid-cols-2 lg:grid-cols-3 gap-2">
           {[
@@ -1256,7 +1256,7 @@ export function ReportsExportPanel() {
         <ExportCard icon={FileText} title="Moliyaviy hisobot" desc="Tushum, xarajat, foyda" onExport={exportFinance} color="violet" />
       </div>
 
-      <Card>
+      <Card color="rose">
         <CardHeader title="Tezkor statistika" subtitle="Hozirgi oy" />
         <div className="p-4 pt-0 grid grid-cols-2 lg:grid-cols-4 gap-3">
           <div className="rounded-xl bg-blue-50 p-3"><div className="text-xs text-blue-700">Bu oy tushum</div><div className="text-lg font-bold text-blue-900 mt-1">{formatMoney(stats?.monthRevenue || 0)}</div></div>
@@ -1266,7 +1266,7 @@ export function ReportsExportPanel() {
         </div>
       </Card>
 
-      <Card>
+      <Card color="indigo">
         <CardHeader title="Oylik daromad dinamikasi" subtitle="6 oy" />
         <div className="p-4 pt-0">
           <table className="w-full text-sm">
@@ -1286,7 +1286,7 @@ export function ReportsExportPanel() {
 function ExportCard({ icon: Icon, title, desc, onExport, color }: { icon: any; title: string; desc: string; onExport: () => void; color: string }) {
   const colorMap: any = { blue: 'from-blue-500 to-sky-600', rose: 'from-rose-500 to-pink-600', blue: 'from-blue-500 to-indigo-600', violet: 'from-violet-500 to-purple-600' }
   return (
-    <Card><div className="p-5">
+    <Card color="amber"><div className="p-5">
       <div className="flex items-start justify-between mb-3">
         <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${colorMap[color]} flex items-center justify-center text-white shadow-lg`}><Icon className="w-6 h-6" /></div>
       </div>

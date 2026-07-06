@@ -351,11 +351,11 @@ export function LeadsPanel() {
           <option value="all">Barchasi</option><option value="new">Yangi</option><option value="contacted">Bog'lanilgan</option><option value="visited">Tashrif</option><option value="enrolled">Ro'yxatga olingan</option><option value="trial">Sinovdagi</option><option value="rejected">Rad etilgan</option>
         </select>
       </div>
-      {loading ? <PanelLoader /> : filtered.length === 0 ? <Card><EmptyState title="Lidlar yo'q" description="Birinchi potensial talabangizni qo'shing." /></Card> : (
+      {loading ? <PanelLoader /> : filtered.length === 0 ? <Card color="amber"><EmptyState title="Lidlar yo'q" description="Birinchi potensial talabangizni qo'shing." /></Card> : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {filtered.map((s) => (
             <motion.div key={s.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-              <Card><div className="p-4">
+              <Card color="indigo"><div className="p-4">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3 min-w-0"><Avatar name={s.full_name} color="amber" /><div className="min-w-0"><div className="font-semibold truncate">{s.full_name}</div><div className="text-xs text-muted-foreground truncate">{s.phone || '—'}</div></div></div>
                   <div className="flex gap-1">
@@ -538,11 +538,11 @@ export function StudentsPanel() {
           {filteredGroups.map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}
         </select>
       </div>
-      {loading ? <PanelLoader /> : filtered.length === 0 ? <Card><EmptyState title="Talabalar topilmadi" description="Filtrlarni o'zgartiring yoki yangi talaba qo'shing." /></Card> : (
+      {loading ? <PanelLoader /> : filtered.length === 0 ? <Card color="sky"><EmptyState title="Talabalar topilmadi" description="Filtrlarni o'zgartiring yoki yangi talaba qo'shing." /></Card> : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {filtered.map((s) => (
             <motion.div key={s.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-              <Card><div className="p-4">
+              <Card color="violet"><div className="p-4">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3 min-w-0"><Avatar name={s.full_name} /><div className="min-w-0"><div className="font-semibold truncate">{s.full_name}</div><div className="text-xs text-muted-foreground truncate">{s.phone || '—'}</div></div></div>
                   <div className="flex gap-1">

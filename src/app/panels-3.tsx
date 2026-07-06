@@ -161,7 +161,7 @@ export function AttendancePanel() {
       </div>
 
       {/* Tanlovlar */}
-      <Card>
+      <Card color="violet">
         <div className="p-4 grid sm:grid-cols-3 gap-3">
           <Field label="Kurs *"><select className="erp-input" value={courseId} onChange={(e) => { setCourseId(e.target.value); setGroupId('') }}><option value="">— Tanlang —</option>{courses.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</select></Field>
           <Field label="Guruh *"><select className="erp-input" value={groupId} onChange={(e) => setGroupId(e.target.value)} disabled={!courseId}><option value="">— Tanlang —</option>{filteredGroups.map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}</select></Field>
@@ -171,7 +171,7 @@ export function AttendancePanel() {
 
       {/* Talabalar ro'yxati kartochka ko'rinishida */}
       {groupId && (
-        <Card>
+        <Card color="blue">
           <CardHeader title="Guruh talabalari" subtitle={`${groupStudents.length} faol talaba • ${formatDate(lessonDate)}`} action={<PrimaryButton onClick={handleSave} disabled={saving || records.length === 0}>{saving ? 'Saqlanmoqda...' : 'Saqlash'}</PrimaryButton>} />
           {groupStudents.length === 0 ? <EmptyState title="Talabalar yo'q" description="Bu guruhga faol talaba biriktirilmagan." /> : (
             <div className="p-4 pt-3 grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -194,7 +194,7 @@ export function AttendancePanel() {
       )}
 
       {/* === YANGI: O'qituvchilar tomonidan qilingan davomat sessiyalari === */}
-      <Card>
+      <Card color="sky">
         <CardHeader
           title="O'qituvchilar tomonidan qilingan davomatlar"
           subtitle={`${teacherSessions.length} ta sessiya · kim, qachon, qaysi guruhda davomat qilgan`}
@@ -269,7 +269,7 @@ export function AttendancePanel() {
       </Card>
 
       {/* So'nggi davomatlar */}
-      <Card>
+      <Card color="amber">
         <CardHeader title="So'nggi davomatlar" subtitle="Oxirgi 5 kun" />
         {loading ? <PanelLoader /> : recentByDate.length === 0 ? <EmptyState title="Hozircha davomat yo'q" /> : (
           <div className="p-4 pt-0 space-y-3">
@@ -404,7 +404,7 @@ export function AttendanceReportPanel() {
     <div className="space-y-5">
       <div><h1 className="text-2xl lg:text-3xl font-bold">Davomatlar hisoboti</h1><p className="text-muted-foreground text-sm mt-1">Talabalar bo'yicha umumiy statistika</p></div>
 
-      <Card>
+      <Card color="rose">
         <div className="p-4 grid sm:grid-cols-4 gap-3">
           <Field label="Kurs"><select className="erp-input" value={courseId} onChange={(e) => { setCourseId(e.target.value); setGroupId('all') }}><option value="all">Barcha kurslar</option>{courses.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</select></Field>
           <Field label="Guruh"><select className="erp-input" value={groupId} onChange={(e) => setGroupId(e.target.value)}><option value="all">Barcha guruhlar</option>{filteredGroups.map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}</select></Field>
@@ -421,7 +421,7 @@ export function AttendanceReportPanel() {
         <SummaryBox label="Sababli" value={totals.excused} color="bg-violet-50 text-violet-700" />
       </div>
 
-      <Card>
+      <Card color="violet">
         <CardHeader title="Talabalar bo'yicha hisobot" subtitle={`${report.length} talaba`} />
         {loading ? <PanelLoader /> : report.length === 0 ? <EmptyState title="Ma'lumot yo'q" description="Filtrlarni o'zgartiring." /> : (
           <div className="overflow-x-auto">
@@ -459,7 +459,7 @@ export function AttendanceReportPanel() {
       </Card>
 
       {/* === YANGI: Davomat sessiyalari jadvali === */}
-      <Card>
+      <Card color="blue">
         <CardHeader
           title="Davomat sessiyalari (o'qituvchilar tomonidan)"
           subtitle={`${sessionList.length} ta sessiya · kim, qachon, qaysi guruhda davomat qildi`}
@@ -663,7 +663,7 @@ export function TeacherAttendancePanel() {
       </div>
 
       {/* Tanlovlar */}
-      <Card>
+      <Card color="sky">
         <div className="p-4 grid sm:grid-cols-2 gap-3">
           <Field label="Guruh (ixtiyoriy — bo'sh = barchasi)"><select className="erp-input" value={groupId} onChange={(e) => setGroupId(e.target.value)}><option value="">Barcha guruhlar</option>{groups.map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}</select></Field>
           <Field label="Dars sanasi *"><input type="date" className="erp-input" value={lessonDate} onChange={(e) => setLessonDate(e.target.value)} /></Field>
@@ -671,7 +671,7 @@ export function TeacherAttendancePanel() {
       </Card>
 
       {/* O'qituvchilar ro'yxati kartochka ko'rinishida */}
-      <Card>
+      <Card color="amber">
         <CardHeader title="O'qituvchilar" subtitle={`${records.length} murabbiy • ${formatDate(lessonDate)}`} action={<PrimaryButton onClick={handleSave} disabled={saving || records.length === 0}>{saving ? 'Saqlanmoqda...' : 'Saqlash'}</PrimaryButton>} />
         {loading ? <PanelLoader /> : records.length === 0 ? <EmptyState title="O'qituvchilar yo'q" description="Avval O'qituvchilar bo'limidan murabbiy qo'shing." /> : (
           <div className="p-4 pt-3 grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -697,7 +697,7 @@ export function TeacherAttendancePanel() {
       </Card>
 
       {/* So'nggi davomatlar */}
-      <Card>
+      <Card color="rose">
         <CardHeader title="So'nggi davomatlar" subtitle="Oxirgi 5 kun" />
         {recentByDate.length === 0 ? <EmptyState title="Hozircha davomat yo'q" /> : (
           <div className="p-4 pt-0 space-y-3">

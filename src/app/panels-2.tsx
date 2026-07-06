@@ -180,7 +180,7 @@ export function TeachersPanel() {
             </div>
 
             {/* === 3. Guruhlar va talabalar === */}
-            <Card>
+            <Card color="cyan">
               <CardHeader title="Guruhlar va talabalar" subtitle={`${teacherGroups.length} guruh · ${totalStudents} talaba`} />
               {teacherGroups.length === 0 ? (
                 <EmptyState title="Guruhlar yo'q" description="Bu o'qituvchiga guruh biriktirilmagan." />
@@ -221,7 +221,7 @@ export function TeachersPanel() {
             </Card>
 
             {/* === 4. Dars jadvali === */}
-            <Card>
+            <Card color="sky">
               <CardHeader title="Dars jadvali" subtitle={`${teacherSchedule.length} ta dars · haftalik`} />
               {teacherSchedule.length === 0 ? (
                 <EmptyState title="Dars jadvali yo'q" description="Dars jadvali bo'limidan dars qo'shing." />
@@ -267,7 +267,7 @@ export function TeachersPanel() {
             </Card>
 
             {/* === 5. Davomat (ishga kelgan/kelmagan) === */}
-            <Card>
+            <Card color="violet">
               <CardHeader
                 title="Ish davomati"
                 subtitle={`Oxirgi 30 yozuv · Keldi: ${presentCount} · Kelmadi: ${absentCount} · Kechikdi: ${lateCount}`}
@@ -306,7 +306,7 @@ export function TeachersPanel() {
             </Card>
 
             {/* === 6. Maoshlar === */}
-            <Card>
+            <Card color="indigo">
               <CardHeader
                 title="Maoshlar tarixi"
                 subtitle={`To'langan: ${formatMoney(totalPaid)} · Kutilmoqda: ${formatMoney(totalPending)}`}
@@ -399,7 +399,7 @@ export function TeachersPanel() {
         Har bir o'qituvchi uchun <strong>login (telefon)</strong> va <strong>parol</strong> kiriting. Batafsil ma'lumot uchun o'qituvchi kartochkasini bosing.
       </div>
 
-      {loading ? <PanelLoader /> : items.length === 0 ? <Card><EmptyState title="O'qituvchilar yo'q" description="Birinchi murabbiyingizni qo'shing." /></Card> : (
+      {loading ? <PanelLoader /> : items.length === 0 ? <Card color="amber"><EmptyState title="O'qituvchilar yo'q" description="Birinchi murabbiyingizni qo'shing." /></Card> : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {items.map((t) => {
             // O'qituvchining guruhlari soni
@@ -635,7 +635,7 @@ export function GroupsPanel() {
         {loadingDetail ? <PanelLoader /> : (
           <div className="grid lg:grid-cols-2 gap-4">
             {/* === CHAP TOMON: O'quvchilar ro'yxati === */}
-            <Card>
+            <Card color="cyan">
               <CardHeader title="O'quvchilar ro'yxati" subtitle={`${groupStudents.length} ta o'quvchi`} />
               {groupStudents.length === 0 ? (
                 <EmptyState title="O'quvchilar yo'q" description="Bu guruhga talaba qo'shing." />
@@ -678,7 +678,7 @@ export function GroupsPanel() {
             </Card>
 
             {/* === O'NG TOMON: Davomat jadvali === */}
-            <Card>
+            <Card color="sky">
               <CardHeader
                 title="Davomat jadvali"
                 subtitle={`${attendanceDates.length} ta dars kuni · O'qituvchi paneli bilan sinxron`}
@@ -784,7 +784,7 @@ export function GroupsPanel() {
           {courses.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
         </select>
       </div>
-      {loading ? <PanelLoader /> : filtered.length === 0 ? <Card><EmptyState title="Guruhlar yo'q" description="Birinchi guruhingizni yarating." /></Card> : (
+      {loading ? <PanelLoader /> : filtered.length === 0 ? <Card color="violet"><EmptyState title="Guruhlar yo'q" description="Birinchi guruhingizni yarating." /></Card> : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {filtered.map((g) => {
             const count = students.filter((s) => s.group_id === g.id).length
@@ -1037,14 +1037,14 @@ export function CoursesPanel() {
 
         {/* === Tavsif === */}
         {c.description && (
-          <Card>
+          <Card color="indigo">
             <CardHeader title="Kurs tavsifi" />
             <div className="p-4 pt-0 text-sm text-muted-foreground">{c.description}</div>
           </Card>
         )}
 
         {/* === 3. Guruhlar jadvali === */}
-        <Card>
+        <Card color="amber">
           <CardHeader title="Guruhlar" subtitle={`${courseGroups.length} guruh · o'qituvchi va talabalar bilan`} />
           {courseGroups.length === 0 ? (
             <EmptyState title="Guruhlar yo'q" description="Bu kursga guruh qo'shing." />
@@ -1092,7 +1092,7 @@ export function CoursesPanel() {
         </Card>
 
         {/* === 4. Talabalar ro'yxati === */}
-        <Card>
+        <Card color="cyan">
           <CardHeader title="Talabalar ro'yxati" subtitle={`${totalStudents} jami · ${totalActive} faol`} />
           {courseStudents.length === 0 ? (
             <EmptyState title="Talabalar yo'q" description="Bu kursga talaba qo'shing." />
@@ -1139,7 +1139,7 @@ export function CoursesPanel() {
         </Card>
 
         {/* === 5. Dars jadvali === */}
-        <Card>
+        <Card color="sky">
           <CardHeader title="Dars jadvali" subtitle={`${courseSchedule.length} ta dars · haftalik`} />
           {courseSchedule.length === 0 ? (
             <EmptyState title="Dars jadvali yo'q" description="Dars jadvali bo'limidan dars qo'shing." />
@@ -1180,7 +1180,7 @@ export function CoursesPanel() {
         </Card>
 
         {/* === 6. Moliyaviy ma'lumot === */}
-        <Card>
+        <Card color="violet">
           <CardHeader
             title="Moliyaviy ma'lumot"
             subtitle={`Jami to'lovlar: ${formatMoney(totalPaid)} · ${coursePayments.length} ta to'lov yozuvi`}
@@ -1221,7 +1221,7 @@ export function CoursesPanel() {
         <div><h1 className="text-2xl lg:text-3xl font-bold">Kurslar</h1><p className="text-muted-foreground text-sm mt-1">{items.length} kurs · batafsil uchun kursni bosing</p></div>
         <PrimaryButton onClick={() => { setEditing(null); setForm({ name: '', description: '', duration_months: 3, price: 0 }); setOpenModal(true) }}><Plus className="w-4 h-4" /> Yangi kurs</PrimaryButton>
       </div>
-      {loading ? <PanelLoader /> : items.length === 0 ? <Card><EmptyState title="Kurslar yo'q" description="Birinchi kursingizni yarating." /></Card> : (
+      {loading ? <PanelLoader /> : items.length === 0 ? <Card color="indigo"><EmptyState title="Kurslar yo'q" description="Birinchi kursingizni yarating." /></Card> : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {items.map((c) => {
             const groupCount = groups.filter((g) => g.course_id === c.id).length
@@ -1324,7 +1324,7 @@ export function RatingsPanel() {
         <PrimaryButton onClick={() => setOpenModal(true)}><Plus className="w-4 h-4" /> Yangi baho</PrimaryButton>
       </div>
       <div className="grid lg:grid-cols-2 gap-4">
-        <Card>
+        <Card color="amber">
           <CardHeader title="Reyting jadvali" subtitle="Talabalar bo'yicha o'rtacha ball" />
           {avgByStudent.length === 0 ? <EmptyState title="Reyting yo'q" description="Talabalarga baho qo'ying." /> : (
             <div className="p-4 pt-0 space-y-2 max-h-96 overflow-y-auto">
@@ -1338,7 +1338,7 @@ export function RatingsPanel() {
             </div>
           )}
         </Card>
-        <Card>
+        <Card color="cyan">
           <CardHeader title="So'nggi baholar" subtitle="Eng so'nggi yozuvlar" />
           {items.length === 0 ? <EmptyState title="Baho yo'q" /> : (
             <div className="p-4 pt-0 space-y-2 max-h-96 overflow-y-auto">

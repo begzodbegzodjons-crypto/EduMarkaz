@@ -280,7 +280,7 @@ export function PaymentsPanel() {
       </div>
 
       {/* === Tayyor ro'yxat === */}
-      <Card>
+      <Card color="blue">
         <CardHeader
           title={
             viewMode === 'debtors' ? 'Qarzdor talabalar ro\'yxati'
@@ -757,7 +757,7 @@ export function FinancePanel() {
       </div>
 
       {/* Hisob-kitob */}
-      <Card>
+      <Card color="rose">
         <CardHeader title="Avtomatik hisob-kitob" subtitle="Tushum - Xarajat = Sof foyda" />
         <div className="p-4 pt-0 space-y-3">
           <FinanceRow label="Bu oygi tushum" value={stats.monthRevenue} color="text-blue-600" sign="+" />
@@ -773,7 +773,7 @@ export function FinancePanel() {
       </Card>
 
       {/* Oylik dinamika */}
-      <Card>
+      <Card color="amber">
         <CardHeader title="Oylik dinamika" subtitle="Daromad vs Xarajat (6 oy)" />
         <div className="p-4 pt-0">
           <div className="space-y-2">
@@ -869,7 +869,7 @@ export function ExpensesPanel() {
       </div>
 
       {/* Kategoriya bo'yicha */}
-      <Card>
+      <Card color="indigo">
         <CardHeader title="Kategoriya bo'yicha" />
         <div className="p-4 pt-0 grid grid-cols-2 lg:grid-cols-4 gap-2">
           {byCategory.length === 0 ? <div className="col-span-full text-sm text-muted-foreground text-center py-4">Xarajatlar yo'q</div> : byCategory.map(([cat, amount]) => (
@@ -888,7 +888,7 @@ export function ExpensesPanel() {
         </select>
       </div>
 
-      <Card>
+      <Card color="violet">
         <CardHeader title="Xarajatlar tarixi" subtitle={`${items.length} yozuv`} />
         {loading ? <PanelLoader /> : items.length === 0 ? <EmptyState title="Xarajatlar yo'q" description="Birinchi xarajatingizni qo'shing." /> : (
           <div className="overflow-x-auto">
@@ -993,7 +993,7 @@ export function ReportsPanel() {
       <div><h1 className="text-2xl lg:text-3xl font-bold">Hisobotlar</h1><p className="text-muted-foreground text-sm mt-1">Batafsil moliyaviy va o'quv hisobotlari</p></div>
 
       {/* Moliyaviy hisobot */}
-      <Card>
+      <Card color="sky">
         <CardHeader title="Moliyaviy hisobot" subtitle="Tushum, xarajat, sof foyda" />
         <div className="p-4 pt-0">
           <table className="w-full text-sm">
@@ -1012,7 +1012,7 @@ export function ReportsPanel() {
       </Card>
 
       {/* Xarajatlar tahlili */}
-      <Card>
+      <Card color="blue">
         <CardHeader title="Xarajatlar tahlili" subtitle="Kategoriya bo'yicha" />
         <div className="p-4 pt-0 space-y-2">
           {Object.entries(stats.expenseByCategory).length === 0 ? <div className="text-sm text-muted-foreground text-center py-4">Xarajatlar yo'q</div> : Object.entries(stats.expenseByCategory).map(([cat, amount]: any) => {
@@ -1029,7 +1029,7 @@ export function ReportsPanel() {
 
       {/* O'quv hisoboti */}
       <div className="grid lg:grid-cols-2 gap-4">
-        <Card>
+        <Card color="rose">
           <CardHeader title="O'quv hisoboti" />
           <div className="p-4 pt-0 space-y-2">
             <ReportRow label="Jami talabalar" value={stats.totalStudents} />
@@ -1039,7 +1039,7 @@ export function ReportsPanel() {
             <ReportRow label="O'qituvchilar" value={stats.totalTeachers} />
           </div>
         </Card>
-        <Card>
+        <Card color="amber">
           <CardHeader title="Davomat hisoboti" />
           <div className="p-4 pt-0 space-y-2">
             <ReportRow label="Jami darslar" value={stats.attendance.total} />
@@ -1052,7 +1052,7 @@ export function ReportsPanel() {
       </div>
 
       {/* Lidlar hisoboti */}
-      <Card>
+      <Card color="indigo">
         <CardHeader title="Sotuv hisoboti (Lidlar)" subtitle="Konversiya bo'yicha" />
         <div className="p-4 pt-0 space-y-2">
           <ReportRow label="Jami lidlar" value={stats.leads.total} />
@@ -1066,7 +1066,7 @@ export function ReportsPanel() {
       </Card>
 
       {/* === YANGI: To'lovlar jadvali hisoboti === */}
-      <Card>
+      <Card color="violet">
         <CardHeader title="To'lovlar jadvali" subtitle={`${filteredPayments.length} ta to'lov · Jami: ${formatMoney(paymentsTotal)}`} />
         {/* Filtrlar */}
         <div className="p-4 pt-0 flex gap-2 flex-wrap mb-3">
