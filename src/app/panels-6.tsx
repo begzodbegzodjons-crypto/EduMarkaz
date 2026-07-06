@@ -147,7 +147,7 @@ export function SchedulePanel() {
       {loading ? <PanelLoader /> : items.length === 0 && rooms.length === 0 ? <Card color="violet"><EmptyState title="Jadval bo'sh" description="Avval xona yarating, so'ng dars qo'shing." /></Card> : (
         <div className="grid lg:grid-cols-7 gap-3">
           {WEEKDAYS.map((day) => (
-            <Card key={day.value}>
+            <Card key={day.value} color="sky">
               <CardHeader title={day.short} subtitle={`${byDay[day.value].length} dars`} />
               <div className="p-3 pt-2 space-y-2 min-h-[100px]">
                 {byDay[day.value].length === 0 ? (
@@ -394,7 +394,7 @@ export function ExamsPanel() {
             const examGrades = grades.filter((g) => g.exam_id === e.id)
             const avg = examGrades.length > 0 ? examGrades.reduce((s, g) => s + Number(g.score), 0) / examGrades.length / Number(e.max_score) * 100 : 0
             return (
-              <Card key={e.id}>
+              <Card key={e.id} color="amber">
                 <div className="p-4">
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3"><Avatar name={e.title} color="violet" /><div><div className="font-semibold">{e.title}</div><div className="text-xs text-muted-foreground">{formatDate(e.exam_date)} • Max: {e.max_score}</div></div></div>
@@ -529,7 +529,7 @@ export function CertificatesPanel() {
       {loading ? <PanelLoader /> : items.length === 0 ? <Card color="rose"><EmptyState title="Sertifikatlar yo'q" description="Bitiruvchilarga sertifikat bering." /></Card> : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {items.map((c) => (
-            <Card key={c.id}>
+            <Card key={c.id} color="indigo">
               <div className="p-4">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3"><div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-600 flex items-center justify-center text-white"><Award className="w-6 h-6" /></div><div><div className="font-semibold truncate">{c.student?.full_name || '—'}</div><div className="text-xs text-muted-foreground truncate">{c.course?.name || '—'}</div></div></div>
@@ -608,7 +608,7 @@ export function DiscountsPanel() {
       {loading ? <PanelLoader /> : items.length === 0 ? <Card color="indigo"><EmptyState title="Chegirmalar yo'q" description="Aksiyalar va chegirmalar yarating." /></Card> : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {items.map((d) => (
-            <Card key={d.id}>
+            <Card key={d.id} color="rose">
               <div className="p-4">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3"><div className="w-10 h-10 rounded-xl bg-gradient-to-br from-rose-500 to-pink-600 flex items-center justify-center text-white"><Percent className="w-5 h-5" /></div><div><div className="font-semibold">{d.name}</div><div className="text-xs text-muted-foreground">{d.discount_type === 'percent' ? `${d.value}%` : formatMoney(d.value)}</div></div></div>

@@ -408,7 +408,7 @@ export function TeachersPanel() {
               s.status === 'active' && groups.some((g) => g.id === s.group_id && g.teacher_id === t.id)
             ).length
             return (
-              <Card key={t.id}>
+              <Card key={t.id} color="cyan">
                 <div
                   className="p-4 cursor-pointer hover:bg-muted/30 transition-colors"
                   onClick={() => openTeacherDetail(t)}
@@ -790,7 +790,7 @@ export function GroupsPanel() {
             const count = students.filter((s) => s.group_id === g.id).length
             const isFull = count >= g.max_students
             return (
-              <Card key={g.id}>
+              <Card key={g.id} color="sky">
                 <div
                   className="p-4 cursor-pointer hover:bg-muted/30 transition-colors"
                   onClick={() => openGroupDetail(g)}
@@ -1227,7 +1227,7 @@ export function CoursesPanel() {
             const groupCount = groups.filter((g) => g.course_id === c.id).length
             const studentCount = students.filter((s) => s.course_id === c.id && s.status === 'active').length
             return (
-              <Card key={c.id}>
+              <Card key={c.id} color="violet">
                 <div
                   className="p-4 cursor-pointer hover:bg-muted/30 transition-colors"
                   onClick={() => setSelectedCourse(c)}
