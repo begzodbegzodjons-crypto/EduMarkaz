@@ -41,17 +41,17 @@ export function DashboardPanel({ user, setActiveTab }: { user: any; setActiveTab
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="Jami talabalar" value={stats.totalStudents} sub={`${stats.activeStudents} faol`} icon={Users} color="emerald" />
-        <StatCard label="Lidlar" value={stats.leads.total} sub={`${stats.leads.new} yangi`} icon={Sparkles} color="amber" />
-        <StatCard label="Guruhlar" value={stats.totalGroups} sub={`${stats.totalCourses} kurs`} icon={BookOpen} color="teal" />
-        <StatCard label="O'qituvchilar" value={stats.totalTeachers} sub="murabbiylar" icon={UserCog} color="cyan" />
+        <StatCard label="Jami talabalar" value={stats.totalStudents} sub={`${stats.activeStudents} faol`} icon={Users} color="emerald" onClick={() => setActiveTab?.('students')} />
+        <StatCard label="Lidlar" value={stats.leads.total} sub={`${stats.leads.new} yangi`} icon={Sparkles} color="amber" onClick={() => setActiveTab?.('leads')} />
+        <StatCard label="Guruhlar" value={stats.totalGroups} sub={`${stats.totalCourses} kurs`} icon={BookOpen} color="teal" onClick={() => setActiveTab?.('groups')} />
+        <StatCard label="O'qituvchilar" value={stats.totalTeachers} sub="murabbiylar" icon={UserCog} color="cyan" onClick={() => setActiveTab?.('teachers')} />
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="Oylik tushum" value={formatMoney(stats.monthRevenue)} sub={`Jami: ${formatMoney(stats.totalRevenue)}`} icon={Wallet} color="emerald" trend="up" />
-        <StatCard label="Oylik xarajat" value={formatMoney(stats.monthExpenseTotal)} sub={`Jami: ${formatMoney(stats.totalExpense)}`} icon={TrendingDown} color="rose" trend="down" />
-        <StatCard label="Sof foyda (oy)" value={formatMoney(stats.monthNetProfit)} sub={`Jami: ${formatMoney(stats.totalNetProfit)}`} icon={TrendingUp} color={stats.monthNetProfit >= 0 ? 'emerald' : 'rose'} trend={stats.monthNetProfit >= 0 ? 'up' : 'down'} />
-        <StatCard label="Davomat darajasi" value={`${stats.attendance.rate}%`} sub={`${stats.attendance.present}/${stats.attendance.total} dars`} icon={ClipboardCheck} color="violet" />
+        <StatCard label="Oylik tushum" value={formatMoney(stats.monthRevenue)} sub={`Jami: ${formatMoney(stats.totalRevenue)}`} icon={Wallet} color="emerald" trend="up" onClick={() => setActiveTab?.('payments')} />
+        <StatCard label="Oylik xarajat" value={formatMoney(stats.monthExpenseTotal)} sub={`Jami: ${formatMoney(stats.totalExpense)}`} icon={TrendingDown} color="rose" trend="down" onClick={() => setActiveTab?.('expenses')} />
+        <StatCard label="Sof foyda (oy)" value={formatMoney(stats.monthNetProfit)} sub={`Jami: ${formatMoney(stats.totalNetProfit)}`} icon={TrendingUp} color={stats.monthNetProfit >= 0 ? 'emerald' : 'rose'} trend={stats.monthNetProfit >= 0 ? 'up' : 'down'} onClick={() => setActiveTab?.('finance')} />
+        <StatCard label="Davomat darajasi" value={`${stats.attendance.rate}%`} sub={`${stats.attendance.present}/${stats.attendance.total} dars`} icon={ClipboardCheck} color="violet" onClick={() => setActiveTab?.('attendance')} />
       </div>
 
       <div className="grid lg:grid-cols-2 gap-4">
@@ -85,14 +85,27 @@ export function DashboardPanel({ user, setActiveTab }: { user: any; setActiveTab
           <CardHeader title="Xarajatlar tarkibi" subtitle="Kategoriya bo'yicha" />
           <div className="p-4 pt-0 space-y-2">
             {Object.entries(stats.expenseByCategory).length === 0 ? (
-              <div className="text-sm text-muted-foreground text-center py-6">Xarajatlar yo'q</div>
+              <div className="flex flex-col items-center justify-center text-center py-8">
+                <TrendingDown className="w-8 h-8 text-muted-foreground/40 mb-2" />
+                <div className="text-sm text-muted-foreground">Hozircha xarajatlar yo'q</div>
+                <div className="text-xs text-muted-foreground/70 mt-1">Xarajatlar bo'limidan yangi xarajat qo'shing</div>
+              </div>
             ) : (
-              Object.entries(stats.expenseByCategory).map(([cat, amount]: any) => (
-                <div key={cat} className="flex justify-between items-center px-3 py-2 rounded-lg bg-muted/40">
-                  <span className="text-sm font-medium">{cat}</span>
-                  <span className="text-sm font-bold text-rose-600">{formatMoney(amount)}</span>
-                </div>
-              ))
+              Object.entries(stats.expenseByCategory).map(([cat, amount]: any) => {
+                const total = Object.values(stats.expenseByCategory).reduce((s: number, v: any) => s + Number(v), 0)
+                const pct = total > 0 ? Math.round((Number(amount) / total) * 100) : 0
+                return (
+                  <div key={cat} className="px-3 py-2 rounded-lg bg-muted/40">
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="text-sm font-medium">{cat}</span>
+                      <span className="text-sm font-bold text-rose-600">{formatMoney(amount)} <span className="text-xs text-muted-foreground">({pct}%)</span></span>
+                    </div>
+                    <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+                      <div className="h-full bg-gradient-to-r from-rose-500 to-pink-400 rounded-full" style={{ width: `${pct}%` }} />
+                    </div>
+                  </div>
+                )
+              })
             )}
           </div>
         </Card>
@@ -139,18 +152,92 @@ function FunnelRow({ label, value, total, color }: { label: string; value: numbe
 }
 function DualBarChart({ data }: { data: { label: string; income: number; expense: number }[] }) {
   const max = Math.max(...data.flatMap((d) => [d.income, d.expense]), 1)
+  const hasData = data.some((d) => d.income > 0 || d.expense > 0)
+  if (!hasData) {
+    return (
+      <div className="h-40 flex flex-col items-center justify-center text-center">
+        <BarChart3 className="w-8 h-8 text-muted-foreground/40 mb-2" />
+        <div className="text-sm text-muted-foreground">Hozircha daromad va xarajatlar ma'lumotlari yo'q</div>
+        <div className="text-xs text-muted-foreground/70 mt-1">To'lovlar va xarajatlar qo'shilganda diagramma ko'rinadi</div>
+      </div>
+    )
+  }
+  // SVG bilan diagramma - barlar aniq ko'rinadi
+  const chartHeight = 160
+  const chartWidth = 480
+  const barWidth = 18
+  const groupGap = 12
+  const groupWidth = barWidth * 2 + 4
+  const totalWidth = data.length * (groupWidth + groupGap) - groupGap
+  const startX = 40
+
   return (
-    <div className="flex items-end gap-2 h-40">
-      {data.map((d, i) => (
-        <div key={i} className="flex-1 flex flex-col items-center gap-1.5">
-          <div className="text-[10px] text-muted-foreground font-medium">{d.income > 0 ? Math.round(d.income / 1000) + 'k' : ''}</div>
-          <div className="w-full flex items-end gap-0.5" style={{ height: '100%' }}>
-            <div className="flex-1 bg-muted rounded-t-lg overflow-hidden flex items-end"><motion.div initial={{ height: 0 }} animate={{ height: `${(d.income / max) * 100}%` }} transition={{ duration: 0.6, delay: i * 0.05 }} className="w-full bg-gradient-to-t from-emerald-500 to-teal-400 rounded-t-lg" /></div>
-            <div className="flex-1 bg-muted rounded-t-lg overflow-hidden flex items-end"><motion.div initial={{ height: 0 }} animate={{ height: `${(d.expense / max) * 100}%` }} transition={{ duration: 0.6, delay: i * 0.05 + 0.1 }} className="w-full bg-gradient-to-t from-rose-500 to-pink-400 rounded-t-lg" /></div>
-          </div>
-          <div className="text-[10px] text-muted-foreground">{d.label}</div>
+    <div className="w-full">
+      <svg viewBox={`0 0 ${startX + totalWidth + 20} ${chartHeight + 30}`} className="w-full" style={{ maxHeight: '220px' }}>
+        {/* Y o'qi belgilari */}
+        <text x="2" y="14" fontSize="9" fill="currentColor" opacity="0.6">{Math.round(max / 1000)}k</text>
+        <text x="2" y={chartHeight / 2 + 4} fontSize="9" fill="currentColor" opacity="0.6">{Math.round(max / 2000)}k</text>
+        <text x="8" y={chartHeight + 4} fontSize="9" fill="currentColor" opacity="0.6">0</text>
+
+        {/* Y o'qi chiziqlari */}
+        <line x1="35" y1="10" x2={startX + totalWidth} y2="10" stroke="currentColor" strokeWidth="0.5" opacity="0.1" />
+        <line x1="35" y1={chartHeight / 2} x2={startX + totalWidth} y2={chartHeight / 2} stroke="currentColor" strokeWidth="0.5" opacity="0.1" />
+        <line x1="35" y1={chartHeight} x2={startX + totalWidth} y2={chartHeight} stroke="currentColor" strokeWidth="1" opacity="0.3" />
+
+        {/* Barlar */}
+        {data.map((d, i) => {
+          const x = startX + i * (groupWidth + groupGap)
+          const incomeHeight = (d.income / max) * chartHeight
+          const expenseHeight = (d.expense / max) * chartHeight
+          return (
+            <g key={i}>
+              {/* Income bar */}
+              <rect
+                x={x}
+                y={chartHeight - incomeHeight}
+                width={barWidth}
+                height={incomeHeight}
+                fill="url(#incomeGrad)"
+                rx="2"
+              />
+              {/* Expense bar */}
+              <rect
+                x={x + barWidth + 4}
+                y={chartHeight - expenseHeight}
+                width={barWidth}
+                height={expenseHeight}
+                fill="url(#expenseGrad)"
+                rx="2"
+              />
+              {/* Label */}
+              <text x={x + groupWidth / 2} y={chartHeight + 15} fontSize="9" fill="currentColor" opacity="0.7" textAnchor="middle">{d.label}</text>
+            </g>
+          )
+        })}
+
+        {/* Gradient definitions */}
+        <defs>
+          <linearGradient id="incomeGrad" x1="0" y1="1" x2="0" y2="0">
+            <stop offset="0%" stopColor="#10b981" />
+            <stop offset="100%" stopColor="#2dd4bf" />
+          </linearGradient>
+          <linearGradient id="expenseGrad" x1="0" y1="1" x2="0" y2="0">
+            <stop offset="0%" stopColor="#f43f5e" />
+            <stop offset="100%" stopColor="#f472b6" />
+          </linearGradient>
+        </defs>
+      </svg>
+      {/* Legenda */}
+      <div className="flex items-center gap-4 justify-center mt-2 text-xs">
+        <div className="flex items-center gap-1.5">
+          <div className="w-3 h-3 rounded-sm bg-gradient-to-t from-emerald-500 to-teal-400" />
+          <span className="text-muted-foreground">Daromad</span>
         </div>
-      ))}
+        <div className="flex items-center gap-1.5">
+          <div className="w-3 h-3 rounded-sm bg-gradient-to-t from-rose-500 to-pink-400" />
+          <span className="text-muted-foreground">Xarajat</span>
+        </div>
+      </div>
     </div>
   )
 }
@@ -261,7 +348,7 @@ export function LeadsPanel() {
           <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Ism yoki telefon bo'yicha..." className="flex-1 bg-transparent outline-none text-sm" />
         </div>
         <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="px-3 py-2 rounded-xl border border-border/50 text-sm bg-card">
-          <option value="all">Barchasi</option><option value="new">Yangi</option><option value="contacted">Bog'lanilgan</option><option value="visited">Tashrif</option><option value="enrolled">Ro'yxatga olingan</option><option value="rejected">Rad etilgan</option>
+          <option value="all">Barchasi</option><option value="new">Yangi</option><option value="contacted">Bog'lanilgan</option><option value="visited">Tashrif</option><option value="enrolled">Ro'yxatga olingan</option><option value="trial">Sinovdagi</option><option value="rejected">Rad etilgan</option>
         </select>
       </div>
       {loading ? <PanelLoader /> : filtered.length === 0 ? <Card><EmptyState title="Lidlar yo'q" description="Birinchi potensial talabangizni qo'shing." /></Card> : (
@@ -304,7 +391,7 @@ export function LeadsPanel() {
           </div>
           <div className="grid sm:grid-cols-2 gap-3">
             <Field label="Manba"><input className="erp-input" value={form.source} onChange={(e) => setForm({ ...form, source: e.target.value })} placeholder="Reklama, tanish, ijtimoiy tarmoq" /></Field>
-            <Field label="Holat"><select className="erp-input" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}><option value="new">Yangi</option><option value="contacted">Bog'lanilgan</option><option value="visited">Tashrif buyurgan</option><option value="enrolled">Ro'yxatga olingan</option><option value="rejected">Rad etilgan</option></select></Field>
+            <Field label="Holat"><select className="erp-input" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}><option value="new">Yangi</option><option value="contacted">Bog'lanilgan</option><option value="visited">Tashrif buyurgan</option><option value="enrolled">Ro'yxatga olingan</option><option value="trial">Sinovdagi</option><option value="rejected">Rad etilgan</option></select></Field>
           </div>
           <Field label="Qiziqqan kurs"><select className="erp-input" value={form.interested_course_id} onChange={(e) => setForm({ ...form, interested_course_id: e.target.value })}><option value="">— Tanlang —</option>{courses.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</select></Field>
           <Field label="Izoh"><textarea className="erp-input" rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} /></Field>
@@ -380,7 +467,7 @@ export function LeadsPanel() {
   )
 }
 function LeadStatusChip({ status }: { status: string }) {
-  const map: any = { new: { label: 'Yangi', cls: 'bg-amber-100 text-amber-700' }, contacted: { label: 'Bog\'lanilgan', cls: 'bg-blue-100 text-blue-700' }, visited: { label: 'Tashrif', cls: 'bg-violet-100 text-violet-700' }, enrolled: { label: 'Ro\'yxatga olingan', cls: 'bg-emerald-100 text-emerald-700' }, rejected: { label: 'Rad etilgan', cls: 'bg-red-100 text-red-700' } }
+  const map: any = { new: { label: 'Yangi', cls: 'bg-amber-100 text-amber-700' }, contacted: { label: 'Bog\'lanilgan', cls: 'bg-blue-100 text-blue-700' }, visited: { label: 'Tashrif', cls: 'bg-violet-100 text-violet-700' }, enrolled: { label: 'Ro\'yxatga olingan', cls: 'bg-emerald-100 text-emerald-700' }, trial: { label: 'Sinovdagi', cls: 'bg-slate-200 text-slate-700' }, rejected: { label: 'Rad etilgan', cls: 'bg-red-100 text-red-700' } }
   const s = map[status] || map.new
   return <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${s.cls}`}>{s.label}</span>
 }

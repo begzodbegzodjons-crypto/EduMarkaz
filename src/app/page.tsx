@@ -16,6 +16,7 @@ import { TeachersPanel, GroupsPanel, CoursesPanel, RatingsPanel } from './panels
 import { AttendancePanel, AttendanceReportPanel, TeacherAttendancePanel } from './panels-3'
 import { PaymentsPanel, FinancePanel, ExpensesPanel, ReportsPanel } from './panels-4'
 import { RemindersPanel, SettingsPanel, TelegramPanel, LicensePanel } from './panels-5'
+import { ForestClock } from '@/components/ForestClock'
 import {
   SchedulePanel, ExamsPanel, CertificatesPanel, DiscountsPanel, DebtsPanel,
   TeacherPayoutsPanel, NotificationsPanel, ReportsExportPanel,
@@ -465,16 +466,27 @@ function AppShell({ user, onRefresh, onLogout }: { user: PublicUser; onRefresh: 
         )}
       </AnimatePresence>
       <main className="flex-1 flex flex-col min-w-0">
-        <header className="sticky top-0 z-30 glass border-b border-border/40 px-4 lg:px-8 py-3.5 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+        <header className="sticky top-0 z-30 glass border-b border-border/40 px-4 lg:px-8 py-3 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 shrink-0">
             <button onClick={() => setMobileNav(true)} className="lg:hidden p-2 rounded-lg hover:bg-muted"><Menu className="w-5 h-5" /></button>
-            <div><div className="text-xs text-muted-foreground">Assalomu alaykum,</div><div className="font-semibold text-sm">{user.full_name}</div></div>
+            <div>
+              <div className="text-xs text-muted-foreground">Assalomu alaykum,</div>
+              <div className="font-semibold text-sm">{user.center_name || user.full_name}</div>
+            </div>
           </div>
-          <div className="flex items-center gap-3">
+          {/* === Zamonaviy soat (o'rtonda, kattaroq) === */}
+          <div className="hidden md:flex flex-1 justify-center">
+            <ForestClock />
+          </div>
+          <div className="flex items-center gap-3 shrink-0">
             <StatusBadge user={user} />
             <button onClick={onLogout} className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition"><LogOut className="w-3.5 h-3.5" /> Chiqish</button>
           </div>
         </header>
+        {/* Mobil versiyada soat header ostida */}
+        <div className="md:hidden px-4 pt-3 flex justify-center">
+          <ForestClock />
+        </div>
         <div className="flex-1 p-4 lg:p-8">
           <AnimatePresence mode="wait">
             <motion.div key={activeTab} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.2 }}>

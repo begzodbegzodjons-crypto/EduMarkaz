@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useState, useCallback, useMemo } from 'react'
+import React, { useEffect, useState, useCallback, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { apiFetch, formatDate, formatMoney } from '@/lib/client'
 import {
@@ -22,7 +22,7 @@ const WEEKDAYS = [
 ]
 
 // ============================================================================
-//  DARS JADVALI (Schedule) — haftalik + xona bandligi
+//  DARS JADVALI (Schedule) — haftalik + xona bandligi + bir nechta kun
 // ============================================================================
 export function SchedulePanel() {
   const [items, setItems] = useState<any[]>([])
@@ -32,8 +32,10 @@ export function SchedulePanel() {
   const [loading, setLoading] = useState(true)
   const [openModal, setOpenModal] = useState(false)
   const [openRoomsModal, setOpenRoomsModal] = useState(false)
-  const [form, setForm] = useState<any>({ group_id: '', room_id: '', teacher_id: '', weekday: 0, start_time: '14:00', end_time: '16:00' })
+  // Yangi format: slots array (har bir kun uchun alohida vaqt)
+  const [form, setForm] = useState<any>({ group_id: '', room_id: '', teacher_id: '', slots: [{ weekday: 0, start_time: '14:00', end_time: '16:00' }] })
   const [roomForm, setRoomForm] = useState<any>({ name: '', capacity: 20, notes: '' })
+  const [saving, setSaving] = useState(false)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -47,11 +49,52 @@ export function SchedulePanel() {
 
   useEffect(() => { load() }, [load])
 
+  // === Slot boshqaruvi funksiyalari ===
+  function addSlot() {
+    setForm({ ...form, slots: [...form.slots, { weekday: 0, start_time: '14:00', end_time: '16:00' }] })
+  }
+  function removeSlot(idx: number) {
+    if (form.slots.length === 1) return alert('Kamida bitta kun bo\'lishi kerak.')
+    setForm({ ...form, slots: form.slots.filter((_: any, i: number) => i !== idx) })
+  }
+  function updateSlot(idx: number, field: string, value: any) {
+    const newSlots = [...form.slots]
+    newSlots[idx] = { ...newSlots[idx], [field]: value }
+    setForm({ ...form, slots: newSlots })
+  }
+  // Bir xil kun takrorlanmasligi uchun tekshiruv
+  function isWeekdayTaken(weekday: number, currentIdx: number): boolean {
+    return form.slots.some((s: any, i: number) => i !== currentIdx && s.weekday === weekday)
+  }
+
   async function handleSave() {
-    const { ok, error } = await apiFetch('/api/schedule', { method: 'POST', body: JSON.stringify(form) })
+    if (!form.group_id) return alert('Guruhni tanlang.')
+    if (form.slots.length === 0) return alert('Kamida bitta kun qo\'shing.')
+
+    // Takrorlanadigan kunlar borligini tekshirish
+    const weekdays = form.slots.map((s: any) => s.weekday)
+    const duplicates = weekdays.filter((w: number, i: number) => weekdays.indexOf(w) !== i)
+    if (duplicates.length > 0) {
+      const names = duplicates.map((w: number) => WEEKDAYS.find((d) => d.value === w)?.label).join(', ')
+      return alert(`Takrorlanadigan kunlar bor: ${names}. Har bir kun faqat bir marta tanlanishi kerak.`)
+    }
+
+    setSaving(true)
+    const { ok, error } = await apiFetch('/api/schedule', {
+      method: 'POST',
+      body: JSON.stringify({
+        group_id: form.group_id,
+        room_id: form.room_id || null,
+        teacher_id: form.teacher_id || null,
+        slots: form.slots,
+      }),
+    })
+    setSaving(false)
     if (!ok) return alert(error)
+
+    alert(`${form.slots.length} ta dars muvaffaqiyatli qo'shildi!`)
     setOpenModal(false)
-    setForm({ group_id: '', room_id: '', teacher_id: '', weekday: 0, start_time: '14:00', end_time: '16:00' })
+    setForm({ group_id: '', room_id: '', teacher_id: '', slots: [{ weekday: 0, start_time: '14:00', end_time: '16:00' }] })
     load()
   }
   async function handleDelete(id: string) { if (!confirm('O\'chirmoqchimisiz?')) return; const { ok, error } = await apiFetch(`/api/schedule?id=${id}`, { method: 'DELETE' }); if (!ok) return alert(error); load() }
@@ -80,7 +123,7 @@ export function SchedulePanel() {
         <div><h1 className="text-2xl lg:text-3xl font-bold">Dars jadvali</h1><p className="text-muted-foreground text-sm mt-1">{items.length} dars • {rooms.length} xona</p></div>
         <div className="flex gap-2">
           <GhostButton onClick={() => setOpenRoomsModal(true)}><Plus className="w-4 h-4" /> Xona</GhostButton>
-          <PrimaryButton onClick={() => setOpenModal(true)}><Plus className="w-4 h-4" /> Yangi dars</PrimaryButton>
+          <PrimaryButton onClick={() => { setForm({ group_id: '', room_id: '', teacher_id: '', slots: [{ weekday: 0, start_time: '14:00', end_time: '16:00' }] }); setOpenModal(true) }}><Plus className="w-4 h-4" /> Yangi dars</PrimaryButton>
         </div>
       </div>
 
@@ -124,20 +167,139 @@ export function SchedulePanel() {
         </div>
       )}
 
-      <Modal open={openModal} onClose={() => setOpenModal(false)} title="Yangi dars qo'shish">
-        <div className="space-y-3">
-          <Field label="Guruh *"><select className="erp-input" value={form.group_id} onChange={(e) => setForm({ ...form, group_id: e.target.value })}><option value="">— Tanlang —</option>{groups.map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}</select></Field>
+      {/* === Yangi modal: bir nechta kun tanlash bilan === */}
+      <Modal open={openModal} onClose={() => { if (!saving) setOpenModal(false) }} title="Yangi dars qo'shish" size="lg">
+        <div className="space-y-4">
+          {/* Guruh, o'qituvchi, xona */}
+          <Field label="Guruh *">
+            <select className="erp-input" value={form.group_id} onChange={(e) => setForm({ ...form, group_id: e.target.value })}>
+              <option value="">— Tanlang —</option>
+              {groups.map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}
+            </select>
+          </Field>
           <div className="grid sm:grid-cols-2 gap-3">
-            <Field label="O'qituvchi"><select className="erp-input" value={form.teacher_id} onChange={(e) => setForm({ ...form, teacher_id: e.target.value })}><option value="">— Tanlang —</option>{teachers.map((t) => <option key={t.id} value={t.id}>{t.full_name}</option>)}</select></Field>
-            <Field label="Xona"><select className="erp-input" value={form.room_id} onChange={(e) => setForm({ ...form, room_id: e.target.value })}><option value="">— Tanlang —</option>{rooms.map((r) => <option key={r.id} value={r.id}>{r.name} ({r.capacity} o'rin)</option>)}</select></Field>
+            <Field label="O'qituvchi">
+              <select className="erp-input" value={form.teacher_id} onChange={(e) => setForm({ ...form, teacher_id: e.target.value })}>
+                <option value="">— Tanlang —</option>
+                {teachers.map((t) => <option key={t.id} value={t.id}>{t.full_name}</option>)}
+              </select>
+            </Field>
+            <Field label="Xona">
+              <select className="erp-input" value={form.room_id} onChange={(e) => setForm({ ...form, room_id: e.target.value })}>
+                <option value="">— Tanlang —</option>
+                {rooms.map((r) => <option key={r.id} value={r.id}>{r.name} ({r.capacity} o'rin)</option>)}
+              </select>
+            </Field>
           </div>
-          <Field label="Hafta kuni *"><select className="erp-input" value={form.weekday} onChange={(e) => setForm({ ...form, weekday: Number(e.target.value) })}>{WEEKDAYS.map((d) => <option key={d.value} value={d.value}>{d.label}</option>)}</select></Field>
-          <div className="grid sm:grid-cols-2 gap-3">
-            <Field label="Boshlanish"><input type="time" className="erp-input" value={form.start_time} onChange={(e) => setForm({ ...form, start_time: e.target.value })} /></Field>
-            <Field label="Tugash"><input type="time" className="erp-input" value={form.end_time} onChange={(e) => setForm({ ...form, end_time: e.target.value })} /></Field>
+
+          {/* Dars kunlari va vaqtlari — bir nechta qo'shish mumkin */}
+          <div className="rounded-xl border border-border/50 p-3 bg-muted/20">
+            <div className="flex items-center justify-between mb-2">
+              <div>
+                <div className="text-sm font-semibold">Dars kunlari va vaqtlari *</div>
+                <div className="text-[11px] text-muted-foreground">Bir nechta kun qo'shing — har biri uchun alohida vaqt</div>
+              </div>
+              <button
+                type="button"
+                onClick={addSlot}
+                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-semibold border border-emerald-200"
+              >
+                <Plus className="w-3.5 h-3.5" /> Kun qo'shish
+              </button>
+            </div>
+
+            <div className="space-y-2">
+              {form.slots.map((slot: any, idx: number) => {
+                const isTaken = isWeekdayTaken(slot.weekday, idx)
+                return (
+                  <div key={idx} className="flex gap-2 items-end flex-wrap bg-card p-2 rounded-lg border border-border/40">
+                    <div className="flex-1 min-w-[140px]">
+                      <label className="text-[10px] text-muted-foreground block mb-1">Hafta kuni</label>
+                      <select
+                        className={`erp-input text-sm ${isTaken ? 'border-red-400 bg-red-50' : ''}`}
+                        value={slot.weekday}
+                        onChange={(e) => updateSlot(idx, 'weekday', Number(e.target.value))}
+                      >
+                        {WEEKDAYS.map((d) => <option key={d.value} value={d.value}>{d.label}</option>)}
+                      </select>
+                      {isTaken && <div className="text-[10px] text-red-600 mt-0.5">Bu kun allaqachon tanlangan!</div>}
+                    </div>
+                    <div className="min-w-[100px]">
+                      <label className="text-[10px] text-muted-foreground block mb-1">Boshlanish</label>
+                      <input type="time" className="erp-input text-sm" value={slot.start_time} onChange={(e) => updateSlot(idx, 'start_time', e.target.value)} />
+                    </div>
+                    <div className="min-w-[100px]">
+                      <label className="text-[10px] text-muted-foreground block mb-1">Tugash</label>
+                      <input type="time" className="erp-input text-sm" value={slot.end_time} onChange={(e) => updateSlot(idx, 'end_time', e.target.value)} />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => removeSlot(idx)}
+                      title="Bu kuni o'chirish"
+                      className="p-2 rounded-lg bg-red-50 hover:bg-red-100 text-red-600"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                )
+              })}
+            </div>
+
+            {/* Tezkor tugmalar — tipik hafta sxemalari */}
+            <div className="mt-3 pt-3 border-t border-border/40">
+              <div className="text-[11px] text-muted-foreground mb-2">Tezkor sxemalar:</div>
+              <div className="flex gap-2 flex-wrap">
+                <button
+                  type="button"
+                  onClick={() => setForm({ ...form, slots: [
+                    { weekday: 0, start_time: '14:00', end_time: '16:00' },
+                    { weekday: 2, start_time: '14:00', end_time: '16:00' },
+                    { weekday: 4, start_time: '14:00', end_time: '16:00' },
+                  ] })}
+                  className="px-2.5 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 text-[11px] font-semibold border border-blue-200"
+                >
+                  Du-Chor-Juma (toq)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setForm({ ...form, slots: [
+                    { weekday: 1, start_time: '14:00', end_time: '16:00' },
+                    { weekday: 3, start_time: '14:00', end_time: '16:00' },
+                    { weekday: 5, start_time: '14:00', end_time: '16:00' },
+                  ] })}
+                  className="px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-[11px] font-semibold border border-emerald-200"
+                >
+                  Se-Pay-Shan (juft)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setForm({ ...form, slots: [
+                    { weekday: 0, start_time: '09:00', end_time: '11:00' },
+                    { weekday: 1, start_time: '09:00', end_time: '11:00' },
+                    { weekday: 2, start_time: '09:00', end_time: '11:00' },
+                    { weekday: 3, start_time: '09:00', end_time: '11:00' },
+                    { weekday: 4, start_time: '09:00', end_time: '11:00' },
+                  ] })}
+                  className="px-2.5 py-1 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-700 text-[11px] font-semibold border border-amber-200"
+                >
+                  Har kuni (5 kun)
+                </button>
+              </div>
+            </div>
           </div>
+
           <p className="text-xs text-muted-foreground">⚠ Xona yoki o'qituvchi band bo'lsa, tizim avtomatik ogohlantiradi.</p>
-          <div className="flex gap-2 pt-2"><PrimaryButton onClick={handleSave} className="flex-1">Saqlash</PrimaryButton><GhostButton onClick={() => setOpenModal(false)}>Bekor</GhostButton></div>
+          <div className="flex gap-2 pt-2">
+            <PrimaryButton onClick={handleSave} className="flex-1" disabled={saving}>
+              {saving ? (
+                <span className="flex items-center gap-2 justify-center">
+                  <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M21 12a9 9 0 1 1-6.219-8.56" /></svg>
+                  Saqlanmoqda...
+                </span>
+              ) : `Saqlash (${form.slots.length} ta dars)`}
+            </PrimaryButton>
+            <GhostButton onClick={() => setOpenModal(false)} disabled={saving}>Bekor</GhostButton>
+          </div>
         </div>
       </Modal>
 
@@ -490,83 +652,317 @@ export function DiscountsPanel() {
 }
 
 // ============================================================================
-//  TALABA QARZLARI (Debts) — avtomatik hisob
+//  TALABA QARZLARI (Debts) — avtomatik hisob (To'lovlar bilan bir xil)
+//  + Oylik breakdown (qaysi oy to'langan, qaysi oy qarz)
 // ============================================================================
 export function DebtsPanel() {
-  const [data, setData] = useState<any>(null)
+  const [balances, setBalances] = useState<any[]>([])
+  const [totals, setTotals] = useState<any>(null)
+  const [courses, setCourses] = useState<any[]>([])
+  const [groups, setGroups] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
-  const [month, setMonth] = useState(new Date().toISOString().slice(0, 7))
+
+  // Filtrlar
+  const [courseFilter, setCourseFilter] = useState('all')
+  const [groupFilter, setGroupFilter] = useState('all')
+  const [search, setSearch] = useState('')
+
+  // Oylik breakdown ko'rsatish uchun (expand/qisqartirish)
+  const [expandedStudent, setExpandedStudent] = useState<string | null>(null)
 
   const load = useCallback(async () => {
     setLoading(true)
-    const { ok, data } = await apiFetch(`/api/debts?month=${month}`)
-    if (ok && data) setData(data)
+    const [b, c, g] = await Promise.all([
+      apiFetch('/api/payments/balances'),
+      apiFetch('/api/courses'),
+      apiFetch('/api/groups'),
+    ])
+    if (b.ok && b.data) {
+      setBalances(b.data.balances || [])
+      setTotals(b.data.totals || null)
+    }
+    if (c.ok) setCourses(c.data?.courses || [])
+    if (g.ok) setGroups(g.data?.groups || [])
     setLoading(false)
-  }, [month])
+  }, [])
 
   useEffect(() => { load() }, [load])
 
+  // Filtrlangan guruhlar (kurs bo'yicha)
+  const filteredGroups = useMemo(
+    () => courseFilter === 'all' ? groups : groups.filter((g) => g.course_id === courseFilter),
+    [groups, courseFilter]
+  )
+
+  // FAQAT QARZDOR talabalar ko'rinadi (remaining > 0)
+  const filtered = useMemo(() => {
+    return balances.filter((b) => {
+      if (b.remaining <= 0) return false // faqat qarzdorlar
+      if (search) {
+        const name = (b.full_name || '').toLowerCase()
+        const phone = (b.phone || '').toLowerCase()
+        if (!name.includes(search.toLowerCase()) && !phone.includes(search.toLowerCase())) return false
+      }
+      if (courseFilter !== 'all' && b.course_id !== courseFilter) return false
+      if (groupFilter !== 'all' && b.group_id !== groupFilter) return false
+      return true
+    })
+  }, [balances, search, courseFilter, groupFilter])
+
+  // Filtrlangan qarzdorlar umumiy summasi
+  const filteredTotalDebt = filtered.reduce((s, b) => s + Math.max(0, b.remaining), 0)
+
   function exportCSV() {
-    if (!data?.debts?.length) return alert('Eksport qilish uchun ma\'lumot yo\'q')
-    const headers = ['Talaba', 'Telefon', 'Ota-ona telefoni', 'Guruh', 'Kurs narxi', 'To\'lagan', 'Qarz']
-    const rows = data.debts.map((d: any) => [d.full_name, d.phone || '', d.parent_phone || '', d.group_name || '', d.expected_amount, d.paid_amount, d.debt_amount])
+    if (filtered.length === 0) return alert('Eksport qilish uchun ma\'lumot yo\'q')
+    const headers = ['#', 'Talaba', 'Telefon', 'Kurs', 'Guruh', 'Qabul sanasi', 'Oylik to\'lov', 'O\'tgan oylar', 'To\'lash kerak', 'To\'langan', 'Qarz']
+    const rows = filtered.map((b, idx) => [
+      idx + 1,
+      b.full_name,
+      b.phone || '',
+      b.course_name || '',
+      b.group_name || '',
+      b.enrollment_date || '',
+      b.monthly_fee,
+      b.months_enrolled,
+      b.total_due,
+      b.total_paid,
+      Math.max(0, b.remaining),
+    ])
     const csv = [headers, ...rows].map((r) => r.map((c: any) => `"${c}"`).join(',')).join('\n')
     const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
-    a.href = url; a.download = `qarzlar-${month}.csv`; a.click()
+    a.href = url; a.download = `qarzlar-${new Date().toISOString().slice(0, 10)}.csv`; a.click()
     URL.revokeObjectURL(url)
   }
 
   if (loading) return <PanelLoader />
-  const s = data?.summary || {}
+
+  const debtorsCount = balances.filter((b) => b.remaining > 0).length
 
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between flex-wrap gap-3">
-        <div><h1 className="text-2xl lg:text-3xl font-bold">Talaba qarzlari</h1><p className="text-muted-foreground text-sm mt-1">Avtomatik hisob — {month}</p></div>
-        <div className="flex gap-2">
-          <input type="month" className="px-3 py-2 rounded-xl border border-border/50 text-sm bg-card" value={month} onChange={(e) => setMonth(e.target.value)} />
-          <GhostButton onClick={exportCSV}><Download className="w-4 h-4" /> CSV</GhostButton>
+        <div>
+          <h1 className="text-2xl lg:text-3xl font-bold">Talaba qarzlari</h1>
+          <p className="text-muted-foreground text-sm mt-1">Avtomatik hisob-kitob — {debtorsCount} qarzdor talaba</p>
         </div>
+        <GhostButton onClick={exportCSV}><Download className="w-4 h-4" /> CSV eksport</GhostButton>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="Jami talabalar" value={s.total_students || 0} sub="shu oy" icon={Calendar} color="blue" />
-        <StatCard label="To'laganlar" value={s.paid_count || 0} sub="to'liq" icon={CheckCircle} color="emerald" />
-        <StatCard label="Qarzdorlar" value={s.debt_count || 0} sub="qarz bor" icon={AlertTriangle} color="rose" />
-        <StatCard label="Umumiy qarz" value={formatMoney(s.total_debt || 0)} sub={`Kutilgan: ${formatMoney(s.total_expected || 0)}`} icon={Wallet} color="amber" />
+      {/* === Statistika kartochkalari === */}
+      {totals && (
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <StatCard label="Jami talabalar" value={totals.students_count || 0} sub={`${totals.active_students || 0} faol`} icon={Calendar} color="blue" />
+          <StatCard label="To'laganlar" value={(totals.students_count || 0) - debtorsCount} sub="to'liq to'lagan" icon={CheckCircle} color="emerald" />
+          <StatCard label="Qarzdorlar" value={debtorsCount} sub="qarz bor" icon={AlertTriangle} color="rose" />
+          <StatCard label="Umumiy qarz" value={formatMoney(totals.total_remaining || 0)} sub={`To'lash kerak: ${formatMoney(totals.total_due || 0)}`} icon={Wallet} color="amber" />
+        </div>
+      )}
+
+      {/* === Qizil ogohlantirish (qarzdorlar bor bo'lsa) === */}
+      {debtorsCount > 0 && (
+        <div className="rounded-xl bg-rose-50 border border-rose-200 p-4 flex items-start gap-3">
+          <div className="w-9 h-9 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center shrink-0">
+            <AlertTriangle className="w-5 h-5" />
+          </div>
+          <div className="flex-1">
+            <div className="font-semibold text-rose-900">{debtorsCount} ta talaba to'lov qilmagan</div>
+            <div className="text-xs text-rose-700 mt-0.5">
+              Jami qarz: <strong>{formatMoney(totals?.total_remaining || 0)}</strong> · Avtomatik hisob-kitob: talabaning qabul sanasidan boshlab har oy uchun oylik to'lov (kurs narxi) hisoblanadi.
+              To'lov qabul qilish uchun <strong>To'lovlar</strong> bo'limiga o'ting.
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* === Filtrlar === */}
+      <div className="flex gap-2 flex-wrap">
+        <div className="flex items-center gap-2 px-3 py-2 bg-card rounded-xl border border-border/50 flex-1 min-w-[200px]">
+          <svg className="w-4 h-4 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></svg>
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Ism yoki telefon bo'yicha qidirish..." className="flex-1 bg-transparent outline-none text-sm" />
+        </div>
+        <select value={courseFilter} onChange={(e) => { setCourseFilter(e.target.value); setGroupFilter('all') }} className="px-3 py-2 rounded-xl border border-border/50 text-sm bg-card">
+          <option value="all">Barcha kurslar</option>
+          {courses.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+        </select>
+        <select value={groupFilter} onChange={(e) => setGroupFilter(e.target.value)} className="px-3 py-2 rounded-xl border border-border/50 text-sm bg-card">
+          <option value="all">Barcha guruhlar</option>
+          {filteredGroups.map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}
+        </select>
       </div>
 
+      {/* === Qarzdor talabalar jadvali === */}
       <Card>
-        <CardHeader title="Qarzdor talabalar ro'yxati" subtitle={`${data?.debts?.length || 0} talaba`} />
-        {data?.debts?.length === 0 ? <EmptyState title="Bu oyga ma'lumot yo'q" /> : (
+        <CardHeader
+          title="Qarzdor talabalar ro'yxati"
+          subtitle={`${filtered.length} ta qarzdor · Jami qarz: ${formatMoney(filteredTotalDebt)} · Batafsil uchun qatorni bosing`}
+        />
+        {filtered.length === 0 ? (
+          <EmptyState
+            title="Qarzdor talabalar yo'q"
+            description="Barcha talabalar to'lovlarini to'liq qilgan! 🎉"
+          />
+        ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead><tr className="border-b border-border/40 text-xs text-muted-foreground">
-                <th className="text-left px-4 py-3 font-medium">Talaba</th>
-                <th className="text-left px-4 py-3 font-medium">Guruh</th>
-                <th className="text-right px-4 py-3 font-medium">Kurs narxi</th>
-                <th className="text-right px-4 py-3 font-medium">To'lagan</th>
-                <th className="text-right px-4 py-3 font-medium">Qarz</th>
-                <th className="text-center px-4 py-3 font-medium">Holat</th>
-              </tr></thead>
+              <thead>
+                <tr className="border-b border-border/40 text-xs text-muted-foreground">
+                  <th className="text-left px-4 py-3 font-medium">#</th>
+                  <th className="text-left px-4 py-3 font-medium">Talaba</th>
+                  <th className="text-left px-4 py-3 font-medium">Kurs / Guruh</th>
+                  <th className="text-left px-4 py-3 font-medium">Qabul sana</th>
+                  <th className="text-right px-4 py-3 font-medium">Oylik</th>
+                  <th className="text-center px-4 py-3 font-medium">Oylar</th>
+                  <th className="text-right px-4 py-3 font-medium">To'lash kerak</th>
+                  <th className="text-right px-4 py-3 font-medium">To'langan</th>
+                  <th className="text-right px-4 py-3 font-medium">Qarz</th>
+                  <th className="text-center px-4 py-3 font-medium">Holat</th>
+                </tr>
+              </thead>
               <tbody>
-                {data?.debts?.map((d: any) => (
-                  <tr key={d.student_id} className={`border-b border-border/20 hover:bg-muted/40 ${d.debt_amount > 0 ? 'bg-red-50/30' : ''}`}>
-                    <td className="px-4 py-3"><div className="font-medium">{d.full_name}</div>{d.parent_phone && <div className="text-[10px] text-muted-foreground">👤 {d.parent_phone}</div>}</td>
-                    <td className="px-4 py-3 text-muted-foreground">{d.group_name || '—'}</td>
-                    <td className="px-4 py-3 text-right">{formatMoney(d.expected_amount)}</td>
-                    <td className="px-4 py-3 text-right text-emerald-600 font-medium">{formatMoney(d.paid_amount)}</td>
-                    <td className="px-4 py-3 text-right font-bold text-red-600">{formatMoney(d.debt_amount)}</td>
-                    <td className="px-4 py-3 text-center">{d.is_paid ? <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 text-emerald-700">To'langan</span> : <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-red-100 text-red-700">Qarz</span>}</td>
-                  </tr>
-                ))}
+                {filtered.map((b, idx) => {
+                  // Qarz oylar sonini hisoblaymiz
+                  const debtMonths = b.monthly_fee > 0 ? Math.floor(b.remaining / b.monthly_fee) : 0
+                  const isExpanded = expandedStudent === b.student_id
+                  return (
+                    <React.Fragment key={b.student_id}>
+                      <tr
+                        className={`border-b border-border/20 hover:bg-muted/40 bg-rose-50/30 cursor-pointer ${isExpanded ? 'bg-rose-100/40' : ''}`}
+                        onClick={() => setExpandedStudent(isExpanded ? null : b.student_id)}
+                      >
+                        <td className="px-4 py-3 text-muted-foreground text-xs">
+                          <div className="flex items-center gap-1">
+                            {idx + 1}
+                            <svg className={`w-3 h-3 transition-transform ${isExpanded ? 'rotate-90' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><polyline points="9 18 15 12 9 6" /></svg>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="font-medium">{b.full_name}</div>
+                          {b.phone && <div className="text-[10px] text-muted-foreground">📞 {b.phone}</div>}
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="text-muted-foreground">{b.course_name || '—'}</div>
+                          <div className="text-[10px] text-muted-foreground">{b.group_name || '—'}</div>
+                        </td>
+                        <td className="px-4 py-3 text-muted-foreground text-xs">{formatDate(b.enrollment_date)}</td>
+                        <td className="px-4 py-3 text-right font-medium">{formatMoney(b.monthly_fee)}</td>
+                        <td className="px-4 py-3 text-center text-muted-foreground">{b.months_enrolled}</td>
+                        <td className="px-4 py-3 text-right font-semibold text-amber-600">{formatMoney(b.total_due)}</td>
+                        <td className="px-4 py-3 text-right font-semibold text-emerald-600">{formatMoney(b.total_paid)}</td>
+                        <td className="px-4 py-3 text-right font-bold text-rose-600">{formatMoney(Math.max(0, b.remaining))}</td>
+                        <td className="px-4 py-3 text-center">
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${debtMonths >= 2 ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>
+                            {debtMonths >= 2 ? `${debtMonths} oy qarz` : 'Qarz'}
+                          </span>
+                        </td>
+                      </tr>
+                      {/* === Oylik breakdown (expand qilinganda) === */}
+                      {isExpanded && (
+                        <tr className="bg-card">
+                          <td colSpan={10} className="px-4 py-4">
+                            <div className="rounded-xl border border-border/50 overflow-hidden">
+                              <div className="bg-muted/40 px-4 py-2 text-xs font-semibold text-muted-foreground flex items-center justify-between">
+                                <span>📅 Oylik hisob-kitob ({b.full_name})</span>
+                                <span className="text-[10px]">Qabul: {formatDate(b.enrollment_date)} · {b.months_enrolled} oy o'tgan</span>
+                              </div>
+                              {b.monthly_breakdown && b.monthly_breakdown.length > 0 ? (
+                                <div className="overflow-x-auto">
+                                  <table className="w-full text-xs">
+                                    <thead>
+                                      <tr className="border-b border-border/40 text-[10px] text-muted-foreground">
+                                        <th className="text-left px-3 py-2 font-medium">Oy</th>
+                                        <th className="text-right px-3 py-2 font-medium">To'lash kerak</th>
+                                        <th className="text-right px-3 py-2 font-medium">To'langan</th>
+                                        <th className="text-right px-3 py-2 font-medium">Qoldiq</th>
+                                        <th className="text-center px-3 py-2 font-medium">Holat</th>
+                                      </tr>
+                                    </thead>
+                                    <tbody>
+                                      {b.monthly_breakdown.map((m: any, mi: number) => {
+                                        // Bu oy uchun to'lov (for_month yoki payment_date bo'yicha)
+                                        const monthPaid = m.paid || 0
+                                        const monthRemaining = Math.max(0, m.due - monthPaid)
+                                        const status = m.status || (monthPaid >= m.due ? 'paid' : monthPaid > 0 ? 'partial' : 'unpaid')
+                                        const statusLabel = status === 'paid' ? '✓ To\'langan' : status === 'partial' ? 'Qisman' : '✗ To\'lanmagan'
+                                        const statusCls = status === 'paid'
+                                          ? 'bg-emerald-100 text-emerald-700'
+                                          : status === 'partial'
+                                          ? 'bg-amber-100 text-amber-700'
+                                          : 'bg-rose-100 text-rose-700'
+                                        return (
+                                          <tr key={mi} className="border-b border-border/20 last:border-b-0">
+                                            <td className="px-3 py-2 font-medium">
+                                              {m.month_label || m.month}
+                                              {m.is_partial && (
+                                                <span className="ml-1 px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 text-[9px] font-semibold">
+                                                  {Math.round(m.proportion * 100)}%
+                                                </span>
+                                              )}
+                                            </td>
+                                            <td className="px-3 py-2 text-right text-amber-600">{formatMoney(m.due)}</td>
+                                            <td className="px-3 py-2 text-right text-emerald-600 font-medium">{formatMoney(monthPaid)}</td>
+                                            <td className="px-3 py-2 text-right text-rose-600 font-bold">{formatMoney(monthRemaining)}</td>
+                                            <td className="px-3 py-2 text-center">
+                                              <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${statusCls}`}>
+                                                {statusLabel}
+                                              </span>
+                                            </td>
+                                          </tr>
+                                        )
+                                      })}
+                                    </tbody>
+                                    <tfoot>
+                                      <tr className="border-t-2 border-border/60 bg-muted/30 font-bold">
+                                        <td className="px-3 py-2">JAMI:</td>
+                                        <td className="px-3 py-2 text-right text-amber-700">{formatMoney(b.total_due)}</td>
+                                        <td className="px-3 py-2 text-right text-emerald-700">{formatMoney(b.total_paid)}</td>
+                                        <td className="px-3 py-2 text-right text-rose-700">{formatMoney(Math.max(0, b.remaining))}</td>
+                                        <td></td>
+                                      </tr>
+                                    </tfoot>
+                                  </table>
+                                </div>
+                              ) : (
+                                <div className="p-4 text-center text-xs text-muted-foreground">
+                                  Oylik breakdown mavjud emas
+                                </div>
+                              )}
+                              <div className="bg-muted/20 px-4 py-2 text-[10px] text-muted-foreground border-t border-border/40">
+                                💡 <strong>Birinchi oy</strong> proportional hisoblanadi (qabul qilingan kunga qarab). To'lov qilish uchun <strong>To'lovlar</strong> bo'limiga o'ting.
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
+                  )
+                })}
               </tbody>
+              <tfoot>
+                <tr className="border-t-2 border-border/60 bg-muted/30 font-semibold">
+                  <td colSpan={8} className="px-4 py-3 text-right">Jami ({filtered.length} ta qarzdor):</td>
+                  <td className="px-4 py-3 text-right text-rose-600">{formatMoney(filteredTotalDebt)}</td>
+                  <td></td>
+                </tr>
+              </tfoot>
             </table>
           </div>
         )}
       </Card>
+
+      {/* === Ma'lumot kartochkasi === */}
+      <div className="rounded-xl bg-blue-50 border border-blue-200 p-4 text-sm text-blue-800">
+        <div className="font-semibold mb-1">ℹ️ Qarz qanday hisoblanadi?</div>
+        <ul className="text-xs space-y-1 text-blue-700">
+          <li>• Talabaning <strong>qabul sanasidan</strong> boshlab har oy uchun <strong>oylik to'lov</strong> (kurs narxi) avtomatik hisoblanadi</li>
+          <li>• Birinchi oy uchun <strong>proportional hisob</strong> (qabul qilingan kunga qarab)</li>
+          <li>• <strong>To'lash kerak</strong> = o'tgan oylar soni × oylik to'lov summasi</li>
+          <li>• <strong>Qarz</strong> = to'lash kerak − to'langan summa</li>
+          <li>• To'lov qabul qilish uchun <strong>To'lovlar</strong> bo'limiga o'ting</li>
+          <li>• Bu ro'yxat To'lovlar bo'limidagi avtomatik hisob-kitobga to'liq mos keladi</li>
+        </ul>
+      </div>
     </div>
   )
 }

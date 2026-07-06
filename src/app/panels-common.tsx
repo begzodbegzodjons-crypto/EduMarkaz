@@ -79,7 +79,7 @@ export function Avatar({ name, color = 'emerald' }: { name: string; color?: stri
 export function Row({ label, value }: { label: string; value: string }) {
   return <div className="flex justify-between gap-2"><span className="text-muted-foreground shrink-0">{label}:</span><span className="font-medium text-right truncate">{value}</span></div>
 }
-export function StatCard({ label, value, sub, icon: Icon, color, trend }: { label: string; value: any; sub?: string; icon: any; color: string; trend?: 'up' | 'down' }) {
+export function StatCard({ label, value, sub, icon: Icon, color, trend, onClick }: { label: string; value: any; sub?: string; icon: any; color: string; trend?: 'up' | 'down'; onClick?: () => void }) {
   const colorMap: any = {
     emerald: 'from-emerald-500 to-emerald-600 shadow-emerald-500/25',
     teal: 'from-teal-500 to-teal-600 shadow-teal-500/25',
@@ -89,8 +89,13 @@ export function StatCard({ label, value, sub, icon: Icon, color, trend }: { labe
     violet: 'from-violet-500 to-purple-600 shadow-violet-500/25',
     blue: 'from-blue-500 to-indigo-600 shadow-blue-500/25',
   }
+  const clickable = !!onClick
   return (
-    <motion.div whileHover={{ y: -2 }} className="bg-card rounded-2xl border border-border/50 p-4 shadow-sm">
+    <motion.div
+      whileHover={clickable ? { y: -3, scale: 1.02 } : { y: -2 }}
+      onClick={onClick}
+      className={`bg-card rounded-2xl border border-border/50 p-4 shadow-sm ${clickable ? 'cursor-pointer hover:shadow-md hover:border-border transition-all' : ''}`}
+    >
       <div className="flex items-start justify-between">
         <div className="min-w-0">
           <div className="text-xs text-muted-foreground font-medium">{label}</div>

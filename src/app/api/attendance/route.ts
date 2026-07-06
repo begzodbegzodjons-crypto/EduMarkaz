@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
   const from = url.searchParams.get('from')
   const to = url.searchParams.get('to')
 
-  let q = sb.from('attendance').select('*, student:students(id,full_name,course_id), group:groups(id,name,course_id)').eq('user_id', user.id).order('lesson_date', { ascending: false }).limit(2000)
+  let q = sb.from('attendance').select('*, student:students(id,full_name,course_id), group:groups(id,name,course_id,course:courses(id,name)), teacher:teachers(id,full_name,subject)').eq('user_id', user.id).order('lesson_date', { ascending: false }).limit(2000)
   if (groupId) q = q.eq('group_id', groupId)
   if (courseId) q = q.eq('group.course_id', courseId)
   if (date) q = q.eq('lesson_date', date)
