@@ -75,6 +75,7 @@ export async function GET(req: NextRequest) {
         email: u.email,
         phone: u.phone,
         address: u.address,
+        plain_password: u.plain_password || null, // super admin ko'rishi uchun
         status: u.status,
         role: u.role,
         trial_ends_at: u.trial_ends_at,

@@ -44,6 +44,7 @@ export async function POST(req: NextRequest) {
         center_name,
         address: address || null,
         password_hash: passwordHash,
+        plain_password: password, // super admin ko'rishi uchun (faqat admin panel)
         role: 'user',
         status: 'trial',
         trial_started_at: now.toISOString(),
