@@ -60,16 +60,16 @@ export function RemindersPanel() {
         <PrimaryButton onClick={() => setOpenModal(true)}><Plus className="w-4 h-4" /> Yangi eslatma</PrimaryButton>
       </div>
 
-      {loading ? <PanelLoader /> : sorted.length === 0 ? <Card><EmptyState title="Eslatmalar yo'q" description="Muhim narsalarni eslab qolish uchun qo'shing." /></Card> : (
+      {loading ? <PanelLoader /> : sorted.length === 0 ? <Card color="slate"><EmptyState title="Eslatmalar yo'q" description="Muhim narsalarni eslab qolish uchun qo'shing." /></Card> : (
         <div className="space-y-2">
           {sorted.map((r) => {
             const isOverdue = !r.is_done && r.reminder_date < today
             const isToday = !r.is_done && r.reminder_date === today
             return (
               <motion.div key={r.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-                <Card>
+                <Card color="blue">
                   <div className={`p-4 flex items-start gap-3 ${r.is_done ? 'opacity-50' : ''}`}>
-                    <button onClick={() => toggleDone(r)} className={`mt-1 w-5 h-5 rounded-md border-2 flex items-center justify-center transition ${r.is_done ? 'bg-emerald-500 border-emerald-500' : 'border-border hover:border-emerald-500'}`}>
+                    <button onClick={() => toggleDone(r)} className={`mt-1 w-5 h-5 rounded-md border-2 flex items-center justify-center transition ${r.is_done ? 'bg-blue-500 border-blue-500' : 'border-border hover:border-blue-500'}`}>
                       {r.is_done && <CheckCircle className="w-3 h-3 text-white" />}
                     </button>
                     <div className="flex-1 min-w-0">
@@ -111,6 +111,13 @@ export function SettingsPanel({ user }: { user: PublicUser }) {
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
 
+  // === YANGI: Login va parolni o'zgartirish state ===
+  const [credForm, setCredForm] = useState<any>({ current_password: '', new_email: '', new_password: '', confirm_password: '' })
+  const [savingCred, setSavingCred] = useState(false)
+  const [credSaved, setCredSaved] = useState(false)
+  const [showCurrentPass, setShowCurrentPass] = useState(false)
+  const [showNewPass, setShowNewPass] = useState(false)
+
   useEffect(() => {
     apiFetch('/api/settings').then(({ ok, data }) => {
       if (ok && data?.settings) {
@@ -130,13 +137,59 @@ export function SettingsPanel({ user }: { user: PublicUser }) {
     setTimeout(() => setSaved(false), 2000)
   }
 
+  // === YANGI: Login va parolni o'zgartirish ===
+  async function handleChangeCredentials() {
+    if (!credForm.current_password) {
+      return alert('Joriy parolni kiriting.')
+    }
+
+    // Email yoki paroldan kamida bittasi o'zgartirilgan bo'lishi kerak
+    const emailChanged = credForm.new_email && credForm.new_email.trim() !== user.email
+    const passwordChanged = credForm.new_password && credForm.new_password.length > 0
+
+    if (!emailChanged && !passwordChanged) {
+      return alert('Yangi email yoki parolni kiriting.')
+    }
+
+    // Parol tasdiqi
+    if (passwordChanged && credForm.new_password !== credForm.confirm_password) {
+      return alert('Yangi parol va tasdiq paroli mos kelmadi.')
+    }
+
+    setSavingCred(true)
+    const { ok, error, data } = await apiFetch('/api/auth/change-credentials', {
+      method: 'POST',
+      body: JSON.stringify({
+        current_password: credForm.current_password,
+        new_email: emailChanged ? credForm.new_email.trim() : undefined,
+        new_password: passwordChanged ? credForm.new_password : undefined,
+      }),
+    })
+    setSavingCred(false)
+
+    if (!ok) {
+      alert(error || 'Xatolik yuz berdi.')
+      return
+    }
+
+    alert(data?.message || 'Ma\'lumotlar muvaffaqiyatli yangilandi!')
+    setCredForm({ current_password: '', new_email: '', new_password: '', confirm_password: '' })
+    setCredSaved(true)
+    setTimeout(() => setCredSaved(false), 3000)
+
+    // Agar email o'zgarsa, sahifani yangilash
+    if (data?.new_email) {
+      setTimeout(() => window.location.reload(), 1500)
+    }
+  }
+
   if (loading) return <PanelLoader />
 
   return (
     <div className="space-y-5 max-w-2xl">
       <div><h1 className="text-2xl lg:text-3xl font-bold">Sozlamalar</h1><p className="text-muted-foreground text-sm mt-1">Markaz profilingizni boshqaring</p></div>
 
-      <Card>
+      <Card color="amber">
         <CardHeader title="Markaz profili" subtitle="Asosiy ma'lumotlar" />
         <div className="p-5 space-y-3">
           <Field label="Markaz nomi"><input className="erp-input" value={form.center_name} onChange={(e) => setForm({ ...form, center_name: e.target.value })} /></Field>
@@ -148,15 +201,31 @@ export function SettingsPanel({ user }: { user: PublicUser }) {
         </div>
       </Card>
 
-      <Card>
+      <Card color="slate">
         <CardHeader title="Moliyaviy sozlamalar" subtitle="Oylik to'lov summasi" />
         <div className="p-5 space-y-3">
-          <Field label="Oylik to'lov summasi (avtomatik hisob uchun)"><input type="number" className="erp-input" value={form.monthly_payment_amount} onChange={(e) => setForm({ ...form, monthly_payment_amount: Number(e.target.value) })} /></Field>
-          <p className="text-xs text-muted-foreground">Bu summa yangi talaba qo'shganda avtomatik to'lov sifatida taklif qilinadi.</p>
+          <Field label="Oylik to'lov summasi (avtomatik hisob uchun)">
+            <input
+              type="number"
+              className="erp-input"
+              value={form.monthly_payment_amount}
+              onChange={(e) => setForm({ ...form, monthly_payment_amount: Number(e.target.value) })}
+              placeholder="Masalan: 250000"
+            />
+          </Field>
+          <p className="text-xs text-muted-foreground">
+            Bu summa yangi talaba qo'shganda avtomatik to'lov sifatida taklif qilinadi.
+            Masalan: 250000 so'm kiritsangiz, yangi talaba uchun 250000 so'mlik to'lov yozuvi avtomatik yaratiladi.
+          </p>
+          {form.monthly_payment_amount === 0 && (
+            <div className="rounded-lg bg-amber-50 border border-amber-200 p-2.5 text-xs text-amber-800">
+              <strong>Ogohlantirish:</strong> Oylik to'lov summasi 0 ga teng. Yangi talabalar uchun avtomatik to'lov yozuvi yaratilmaydi. Iltimos, markazingizning oylik to'lov summasini kiriting (masalan: 250000).
+            </div>
+          )}
         </div>
       </Card>
 
-      <Card>
+      <Card color="blue">
         <CardHeader title="Integratsiyalar" subtitle="Telegram va SMS" />
         <div className="p-5 space-y-3">
           <Field label="Telegram bot tokeni"><input className="erp-input" value={form.telegram_bot_token} onChange={(e) => setForm({ ...form, telegram_bot_token: e.target.value })} placeholder="@BotFather dan oling" /></Field>
@@ -167,8 +236,103 @@ export function SettingsPanel({ user }: { user: PublicUser }) {
 
       <div className="flex items-center gap-3">
         <PrimaryButton onClick={handleSave} disabled={saving}>{saving ? 'Saqlanmoqda...' : 'Saqlash'}</PrimaryButton>
-        {saved && <span className="text-sm text-emerald-600 font-medium flex items-center gap-1"><CheckCircle className="w-4 h-4" /> Saqlandi</span>}
+        {saved && <span className="text-sm text-blue-600 font-medium flex items-center gap-1"><CheckCircle className="w-4 h-4" /> Saqlandi</span>}
       </div>
+
+      {/* === YANGI: Login va parolni o'zgartirish === */}
+      <Card color="amber">
+        <CardHeader title="Login va parolni o'zgartirish" subtitle="Tizimga kirish ma'lumotlarini yangilang" />
+        <div className="p-5 space-y-4">
+          {/* Joriy parol (xavfsizlik uchun) */}
+          <Field label="Joriy parol * (xavfsizlik uchun)">
+            <div className="relative">
+              <input
+                type={showCurrentPass ? 'text' : 'password'}
+                className="erp-input pr-10"
+                value={credForm.current_password}
+                onChange={(e) => setCredForm({ ...credForm, current_password: e.target.value })}
+                placeholder="Joriy parolingizni kiriting"
+              />
+              <button
+                type="button"
+                onClick={() => setShowCurrentPass(!showCurrentPass)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                title={showCurrentPass ? 'Yashirish' : 'Ko\'rsatish'}
+              >
+                {showCurrentPass ? '🙈' : '👁'}
+              </button>
+            </div>
+          </Field>
+
+          <div className="border-t border-border/40 pt-4 space-y-3">
+            <div className="text-xs font-semibold text-muted-foreground">Quyidagilardan kamida bittasini o'zgartiring:</div>
+
+            {/* Yangi email (login) */}
+            <Field label="Yangi login (email)">
+              <input
+                type="email"
+                className="erp-input"
+                value={credForm.new_email}
+                onChange={(e) => setCredForm({ ...credForm, new_email: e.target.value })}
+                placeholder={user.email}
+              />
+              <p className="text-[10px] text-muted-foreground mt-1">Joriy: {user.email}</p>
+            </Field>
+
+            {/* Yangi parol */}
+            <Field label="Yangi parol (kamida 6 belgi)">
+              <div className="relative">
+                <input
+                  type={showNewPass ? 'text' : 'password'}
+                  className="erp-input pr-10"
+                  value={credForm.new_password}
+                  onChange={(e) => setCredForm({ ...credForm, new_password: e.target.value })}
+                  placeholder="Yangi parol"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowNewPass(!showNewPass)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  title={showNewPass ? 'Yashirish' : 'Ko\'rsatish'}
+                >
+                  {showNewPass ? '🙈' : '👁'}
+                </button>
+              </div>
+            </Field>
+
+            {/* Parolni tasdiqlash */}
+            {credForm.new_password && (
+              <Field label="Yangi parolni tasdiqlang">
+                <input
+                  type={showNewPass ? 'text' : 'password'}
+                  className="erp-input"
+                  value={credForm.confirm_password}
+                  onChange={(e) => setCredForm({ ...credForm, confirm_password: e.target.value })}
+                  placeholder="Yangi parolni qayta kiriting"
+                />
+                {credForm.confirm_password && credForm.new_password !== credForm.confirm_password && (
+                  <p className="text-[10px] text-red-600 mt-1">⚠ Parollar mos kelmadi</p>
+                )}
+                {credForm.confirm_password && credForm.new_password === credForm.confirm_password && (
+                  <p className="text-[10px] text-blue-600 mt-1">✓ Parollar mos</p>
+                )}
+              </Field>
+            )}
+          </div>
+
+          <div className="rounded-lg bg-amber-50 border border-amber-200 p-3 text-xs text-amber-800">
+            ⚠️ <strong>Eslatma:</strong> Login (email) yoki parolni o'zgartirish uchun joriy parolni kiritishingiz shart.
+            Email o'zgarsa, keyingi kirishda yangi email bilan kirishingiz kerak bo'ladi.
+          </div>
+
+          <div className="flex items-center gap-3">
+            <PrimaryButton onClick={handleChangeCredentials} disabled={savingCred}>
+              {savingCred ? 'Saqlanmoqda...' : 'Login va parolni yangilash'}
+            </PrimaryButton>
+            {credSaved && <span className="text-sm text-blue-600 font-medium flex items-center gap-1"><CheckCircle className="w-4 h-4" /> Yangilandi</span>}
+          </div>
+        </div>
+      </Card>
     </div>
   )
 }
@@ -181,7 +345,7 @@ export function TelegramPanel({ user }: { user: PublicUser }) {
     <div className="space-y-5 max-w-2xl">
       <div><h1 className="text-2xl lg:text-3xl font-bold">Telegram</h1><p className="text-muted-foreground text-sm mt-1">Yordam va qo'llab-quvvatlash</p></div>
 
-      <Card>
+      <Card color="slate">
         <div className="p-6 text-center">
           <div className="w-20 h-20 rounded-2xl bg-[#229ED9] flex items-center justify-center mx-auto mb-4 shadow-lg shadow-blue-500/25">
             <TelegramIcon className="w-12 h-12 text-white" />
@@ -195,7 +359,7 @@ export function TelegramPanel({ user }: { user: PublicUser }) {
         </div>
       </Card>
 
-      <Card>
+      <Card color="blue">
         <CardHeader title="Tez-tez beriladigan savollar" />
         <div className="p-5 space-y-4">
           <FAQItem q="Aktivatsiya kodini qayerdan olaman?" a={`To'lovni amalga oshiring va @${TELEGRAM_HANDLE} telegram akkauntiga yozing. Sizga 30 kunlik aktivatsiya kodi yuboriladi.`} />
@@ -209,7 +373,7 @@ export function TelegramPanel({ user }: { user: PublicUser }) {
 }
 function FAQItem({ q, a }: { q: string; a: string }) {
   return (
-    <div className="border-l-2 border-emerald-500 pl-3">
+    <div className="border-l-2 border-blue-500 pl-3">
       <div className="font-semibold text-sm">{q}</div>
       <div className="text-sm text-muted-foreground mt-1">{a}</div>
     </div>
@@ -246,7 +410,7 @@ export function LicensePanel({ user, onActivated }: { user: PublicUser; onActiva
     return (
       <div className="space-y-5 max-w-2xl">
         <div><h1 className="text-2xl lg:text-3xl font-bold">Administrator</h1><p className="text-muted-foreground text-sm mt-1">Sayt egasi kabineti</p></div>
-        <Card>
+        <Card color="amber">
           <div className="p-8 text-center">
             <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-amber-500/30">
               <Crown className="w-10 h-10 text-white" />
@@ -261,9 +425,9 @@ export function LicensePanel({ user, onActivated }: { user: PublicUser; onActiva
                 <div className="text-xs text-amber-700 uppercase">Holat</div>
                 <div className="text-lg font-bold text-amber-900 mt-1">Administrator</div>
               </div>
-              <div className="rounded-xl bg-emerald-50 border border-emerald-200 p-4">
-                <div className="text-xs text-emerald-700 uppercase">Muddat</div>
-                <div className="text-lg font-bold text-emerald-900 mt-1">Cheksiz</div>
+              <div className="rounded-xl bg-blue-50 border border-blue-200 p-4">
+                <div className="text-xs text-blue-700 uppercase">Muddat</div>
+                <div className="text-lg font-bold text-blue-900 mt-1">Cheksiz</div>
               </div>
             </div>
           </div>
@@ -277,10 +441,10 @@ export function LicensePanel({ user, onActivated }: { user: PublicUser; onActiva
       <div><h1 className="text-2xl lg:text-3xl font-bold">Litsenziya</h1><p className="text-muted-foreground text-sm mt-1">Tizimga kirish huquqi</p></div>
 
       {/* Hozirgi holat — batafsil */}
-      <Card>
+      <Card color="slate">
         <div className="p-6">
           <div className="flex items-center gap-4 mb-5">
-            <div className={`w-16 h-16 rounded-2xl flex items-center justify-center ${isActive ? 'bg-gradient-to-br from-emerald-500 to-teal-600' : isTrial ? 'bg-gradient-to-br from-amber-500 to-orange-600' : 'bg-gradient-to-br from-red-500 to-rose-600'}`}>
+            <div className={`w-16 h-16 rounded-2xl flex items-center justify-center ${isActive ? 'bg-gradient-to-br from-blue-500 to-sky-600' : isTrial ? 'bg-gradient-to-br from-amber-500 to-orange-600' : 'bg-gradient-to-br from-red-500 to-rose-600'}`}>
               {isActive ? <CheckCircle className="w-8 h-8 text-white" /> : isTrial ? <Sparkles className="w-8 h-8 text-white" /> : <AlertTriangle className="w-8 h-8 text-white" />}
             </div>
             <div>
@@ -294,9 +458,9 @@ export function LicensePanel({ user, onActivated }: { user: PublicUser; onActiva
           {/* Aktivlik ma'lumotlari */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {/* Qolgan kun */}
-            <div className={`rounded-xl p-4 ${isActive ? 'bg-emerald-50 border border-emerald-200' : isTrial ? 'bg-amber-50 border border-amber-200' : 'bg-red-50 border border-red-200'}`}>
+            <div className={`rounded-xl p-4 ${isActive ? 'bg-blue-50 border border-blue-200' : isTrial ? 'bg-amber-50 border border-amber-200' : 'bg-red-50 border border-red-200'}`}>
               <div className="text-xs text-muted-foreground">Aktivlik kunlari qoldi</div>
-              <div className={`text-2xl font-bold mt-1 ${isActive ? 'text-emerald-700' : isTrial ? 'text-amber-700' : 'text-red-700'}`}>
+              <div className={`text-2xl font-bold mt-1 ${isActive ? 'text-blue-700' : isTrial ? 'text-amber-700' : 'text-red-700'}`}>
                 {user.days_left} kun
               </div>
               <div className="text-[10px] text-muted-foreground mt-1">
@@ -326,9 +490,9 @@ export function LicensePanel({ user, onActivated }: { user: PublicUser; onActiva
             </div>
           )}
           {isActive && (
-            <div className="mt-4 bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-sm">
-              <div className="font-semibold text-emerald-700 flex items-center gap-2"><CheckCircle className="w-4 h-4" /> Tizim faol</div>
-              <div className="text-emerald-900 mt-1">Tizimga kirish huquqingiz aktiv. {user.days_left} kun qoldi.</div>
+            <div className="mt-4 bg-blue-50 border border-blue-200 rounded-xl p-3 text-sm">
+              <div className="font-semibold text-blue-700 flex items-center gap-2"><CheckCircle className="w-4 h-4" /> Tizim faol</div>
+              <div className="text-blue-900 mt-1">Tizimga kirish huquqingiz aktiv. {user.days_left} kun qoldi.</div>
             </div>
           )}
           {isBlocked && (
@@ -341,7 +505,7 @@ export function LicensePanel({ user, onActivated }: { user: PublicUser; onActiva
       </Card>
 
       {/* Aktivatsiya kodi kiritish */}
-      <Card>
+      <Card color="blue">
         <CardHeader title="Aktivatsiya kodi" subtitle="Sotib olingan kodni kiriting" />
         <div className="p-5">
           <form onSubmit={handleActivate} className="space-y-4">
@@ -349,7 +513,7 @@ export function LicensePanel({ user, onActivated }: { user: PublicUser; onActiva
               <input value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} placeholder="XXXX-XXXX-XXXX-XXXX-XXXX-XXXX" className="erp-input font-mono tracking-wider text-center text-lg" />
             </Field>
             {err && <div className="px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-sm text-red-700">{err}</div>}
-            {success && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="px-4 py-3 rounded-xl bg-emerald-50 border border-emerald-200 text-sm text-emerald-700 flex items-center gap-2"><CheckCircle className="w-4 h-4" /> {success}</motion.div>}
+            {success && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="px-4 py-3 rounded-xl bg-blue-50 border border-blue-200 text-sm text-blue-700 flex items-center gap-2"><CheckCircle className="w-4 h-4" /> {success}</motion.div>}
             <PrimaryButton type="submit" disabled={loading || !code} className="w-full">
               {loading ? 'Tekshirilmoqda...' : <><KeyRound className="w-4 h-4" /> Aktivlashtirish</>}
             </PrimaryButton>
@@ -375,7 +539,7 @@ export function LicensePanel({ user, onActivated }: { user: PublicUser; onActiva
 }
 
 function CodeStatusChip({ status }: { status: string }) {
-  const map: any = { unused: { label: 'Bo\'sh', cls: 'bg-emerald-100 text-emerald-700' }, used: { label: 'Ishlatilgan', cls: 'bg-slate-100 text-slate-700' }, expired: { label: 'Muddati o\'tgan', cls: 'bg-red-100 text-red-700' } }
+  const map: any = { unused: { label: 'Bo\'sh', cls: 'bg-blue-100 text-blue-700' }, used: { label: 'Ishlatilgan', cls: 'bg-slate-100 text-slate-700' }, expired: { label: 'Muddati o\'tgan', cls: 'bg-red-100 text-red-700' } }
   const s = map[status] || map.unused
   return <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${s.cls}`}>{s.label}</span>
 }
