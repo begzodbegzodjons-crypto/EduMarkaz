@@ -41,17 +41,17 @@ export function DashboardPanel({ user, setActiveTab }: { user: any; setActiveTab
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="Jami talabalar" value={stats.totalStudents} sub={`${stats.activeStudents} faol`} icon={Users} color="emerald" />
-        <StatCard label="Lidlar" value={stats.leads.total} sub={`${stats.leads.new} yangi`} icon={Sparkles} color="amber" />
-        <StatCard label="Guruhlar" value={stats.totalGroups} sub={`${stats.totalCourses} kurs`} icon={BookOpen} color="teal" />
-        <StatCard label="O'qituvchilar" value={stats.totalTeachers} sub="murabbiylar" icon={UserCog} color="cyan" />
+        <StatCard label="Jami talabalar" value={stats.totalStudents} sub={`${stats.activeStudents} faol`} icon={Users} color="indigo" onClick={() => setActiveTab?.('students')} />
+        <StatCard label="Lidlar" value={stats.leads.total} sub={`${stats.leads.new} yangi`} icon={Sparkles} color="amber" onClick={() => setActiveTab?.('leads')} />
+        <StatCard label="Guruhlar" value={stats.totalGroups} sub={`${stats.totalCourses} kurs`} icon={BookOpen} color="sky" onClick={() => setActiveTab?.('groups')} />
+        <StatCard label="O'qituvchilar" value={stats.totalTeachers} sub="murabbiylar" icon={UserCog} color="cyan" onClick={() => setActiveTab?.('teachers')} />
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="Oylik tushum" value={formatMoney(stats.monthRevenue)} sub={`Jami: ${formatMoney(stats.totalRevenue)}`} icon={Wallet} color="emerald" trend="up" />
-        <StatCard label="Oylik xarajat" value={formatMoney(stats.monthExpenseTotal)} sub={`Jami: ${formatMoney(stats.totalExpense)}`} icon={TrendingDown} color="rose" trend="down" />
-        <StatCard label="Sof foyda (oy)" value={formatMoney(stats.monthNetProfit)} sub={`Jami: ${formatMoney(stats.totalNetProfit)}`} icon={TrendingUp} color={stats.monthNetProfit >= 0 ? 'emerald' : 'rose'} trend={stats.monthNetProfit >= 0 ? 'up' : 'down'} />
-        <StatCard label="Davomat darajasi" value={`${stats.attendance.rate}%`} sub={`${stats.attendance.present}/${stats.attendance.total} dars`} icon={ClipboardCheck} color="violet" />
+        <StatCard label="Oylik tushum" value={formatMoney(stats.monthRevenue)} sub={`Jami: ${formatMoney(stats.totalRevenue)}`} icon={Wallet} color="blue" trend="up" onClick={() => setActiveTab?.('payments')} />
+        <StatCard label="Oylik xarajat" value={formatMoney(stats.monthExpenseTotal)} sub={`Jami: ${formatMoney(stats.totalExpense)}`} icon={TrendingDown} color="rose" trend="down" onClick={() => setActiveTab?.('expenses')} />
+        <StatCard label="Sof foyda (oy)" value={formatMoney(stats.monthNetProfit)} sub={`Jami: ${formatMoney(stats.totalNetProfit)}`} icon={TrendingUp} color={stats.monthNetProfit >= 0 ? 'sky' : 'rose'} trend={stats.monthNetProfit >= 0 ? 'up' : 'down'} onClick={() => setActiveTab?.('finance')} />
+        <StatCard label="Davomat darajasi" value={`${stats.attendance.rate}%`} sub={`${stats.attendance.present}/${stats.attendance.total} dars`} icon={ClipboardCheck} color="violet" onClick={() => setActiveTab?.('attendance')} />
       </div>
 
       <div className="grid lg:grid-cols-2 gap-4">
@@ -161,6 +161,7 @@ function DualBarChart({ data }: { data: { label: string; income: number; expense
 export function LeadsPanel() {
   const [items, setItems] = useState<any[]>([])
   const [courses, setCourses] = useState<any[]>([])
+  const [allGroups, setAllGroups] = useState<any[]>([]) // barcha guruhlar (kurs bo'yicha filtrlash uchun)
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
@@ -168,17 +169,34 @@ export function LeadsPanel() {
   const [editing, setEditing] = useState<any>(null)
   const [form, setForm] = useState<any>({ full_name: '', phone: '', source: '', interested_course_id: '', status: 'new', notes: '' })
 
+  // Qabul qilish modali uchun state
+  const [acceptModal, setAcceptModal] = useState(false)
+  const [acceptingLead, setAcceptingLead] = useState<any>(null)
+  const [acceptForm, setAcceptForm] = useState<{ course_id: string; group_id: string }>({ course_id: '', group_id: '' })
+  const [accepting, setAccepting] = useState(false)
+
   const load = useCallback(async () => {
     setLoading(true)
-    const [l, c] = await Promise.all([apiFetch(`/api/leads?status=${statusFilter}`), apiFetch('/api/courses')])
+    const [l, c, g] = await Promise.all([
+      apiFetch(`/api/leads?status=${statusFilter}`),
+      apiFetch('/api/courses'),
+      apiFetch('/api/groups'),
+    ])
     if (l.ok) setItems(l.data?.leads || [])
     if (c.ok) setCourses(c.data?.courses || [])
+    if (g.ok) setAllGroups(g.data?.groups || [])
     setLoading(false)
   }, [statusFilter])
 
   useEffect(() => { load() }, [load])
 
   const filtered = items.filter((s) => !search || s.full_name?.toLowerCase().includes(search.toLowerCase()) || s.phone?.includes(search))
+
+  // Qabul qilish modali uchun: tanlangan kursga mos guruhlar
+  const acceptGroups = useMemo(() => {
+    if (!acceptForm.course_id) return []
+    return allGroups.filter((g) => g.course_id === acceptForm.course_id)
+  }, [acceptForm.course_id, allGroups])
 
   async function handleSave() {
     if (editing) {
@@ -191,6 +209,45 @@ export function LeadsPanel() {
     setOpenModal(false); setEditing(null); load()
   }
   async function handleDelete(id: string) { if (!confirm('O\'chirmoqchimisiz?')) return; const { ok, error } = await apiFetch(`/api/leads?id=${id}`, { method: 'DELETE' }); if (!ok) return alert(error); load() }
+
+  // === YANGI: Lidni talabaga aylantirish (Qabul qilish) ===
+  function openAcceptModal(lead: any) {
+    setAcceptingLead(lead)
+    // Agar lidning qiziqqan kursi bo'lsa, avtomatik tanlab qo'yamiz
+    setAcceptForm({
+      course_id: lead.interested_course_id || '',
+      group_id: '',
+    })
+    setAcceptModal(true)
+  }
+
+  async function handleAccept() {
+    if (!acceptingLead) return
+    if (!acceptForm.course_id) return alert('Iltimos, kursni tanlang.')
+    if (!acceptForm.group_id) return alert('Iltimos, guruhni tanlang.')
+
+    setAccepting(true)
+    const { ok, error, data } = await apiFetch('/api/leads/accept', {
+      method: 'POST',
+      body: JSON.stringify({
+        lead_id: acceptingLead.id,
+        course_id: acceptForm.course_id,
+        group_id: acceptForm.group_id,
+      }),
+    })
+    setAccepting(false)
+
+    if (!ok) {
+      alert(error || 'Qabul qilishda xatolik yuz berdi.')
+      return
+    }
+
+    alert(`${acceptingLead.full_name} muvaffaqiyatli talabalar ro'yxatiga qo'shildi!`)
+    setAcceptModal(false)
+    setAcceptingLead(null)
+    setAcceptForm({ course_id: '', group_id: '' })
+    load()
+  }
 
   return (
     <div className="space-y-5">
@@ -223,7 +280,17 @@ export function LeadsPanel() {
                   {s.source && <Row label="Manba" value={s.source} />}
                   {s.course && <Row label="Qiziqqan kurs" value={s.course.name} />}
                 </div>
-                <div className="mt-3 pt-3 border-t border-border/40"><LeadStatusChip status={s.status} /></div>
+                <div className="mt-3 pt-3 border-t border-border/40 flex items-center justify-between gap-2">
+                  <LeadStatusChip status={s.status} />
+                  <button
+                    onClick={() => openAcceptModal(s)}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition-colors shadow-sm"
+                    title="Lidni talabalar ro'yxatiga qo'shish"
+                  >
+                    <CheckCircle className="w-3.5 h-3.5" />
+                    Qabul qilish
+                  </button>
+                </div>
               </div></Card>
             </motion.div>
           ))}
@@ -244,6 +311,71 @@ export function LeadsPanel() {
           <div className="flex gap-2 pt-2"><PrimaryButton onClick={handleSave} className="flex-1">Saqlash</PrimaryButton><GhostButton onClick={() => setOpenModal(false)}>Bekor</GhostButton></div>
         </div>
       </Modal>
+
+      {/* === YANGI: Qabul qilish modali === */}
+      <Modal
+        open={acceptModal}
+        onClose={() => { if (!accepting) { setAcceptModal(false); setAcceptingLead(null) } }}
+        title={acceptingLead ? `Qabul qilish: ${acceptingLead.full_name}` : 'Qabul qilish'}
+      >
+        <div className="space-y-4">
+          {acceptingLead && (
+            <div className="rounded-xl bg-amber-50 border border-amber-200 p-3 text-sm">
+              <div className="font-semibold text-amber-900">{acceptingLead.full_name}</div>
+              {acceptingLead.phone && <div className="text-amber-700 text-xs mt-0.5">Telefon: {acceptingLead.phone}</div>}
+              {acceptingLead.course && <div className="text-amber-700 text-xs">Qiziqqan kurs: {acceptingLead.course.name}</div>}
+            </div>
+          )}
+
+          <div className="space-y-3">
+            <Field label="Kursni tanlang *">
+              <select
+                className="erp-input"
+                value={acceptForm.course_id}
+                onChange={(e) => setAcceptForm({ course_id: e.target.value, group_id: '' })}
+                disabled={accepting}
+              >
+                <option value="">— Tanlang —</option>
+                {courses.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+              </select>
+            </Field>
+
+            <Field label="Guruhni tanlang *">
+              <select
+                className="erp-input"
+                value={acceptForm.group_id}
+                onChange={(e) => setAcceptForm({ ...acceptForm, group_id: e.target.value })}
+                disabled={accepting || !acceptForm.course_id}
+              >
+                <option value="">— Tanlang —</option>
+                {acceptGroups.map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}
+                {acceptForm.course_id && acceptGroups.length === 0 && (
+                  <option value="" disabled>Bu kurs uchun guruhlar yo'q</option>
+                )}
+              </select>
+              {acceptForm.course_id && acceptGroups.length === 0 && (
+                <p className="text-xs text-red-600 mt-1">
+                  Bu kurs uchun guruhlar mavjud emas. Avval &quot;Guruhlar&quot; bo'limida yangi guruh qo'shing.
+                </p>
+              )}
+            </Field>
+          </div>
+
+          <div className="rounded-lg bg-blue-50 border border-blue-200 p-3 text-xs text-blue-800">
+            <strong>Eslatma:</strong> Qabul qilingan lid &quot;Talabalar&quot; ro'yxatiga o&apos;tadi va &quot;Lidlar&quot; ro&apos;yxatidan o&apos;chiriladi.
+          </div>
+
+          <div className="flex gap-2 pt-2">
+            <PrimaryButton onClick={handleAccept} className="flex-1" disabled={accepting || !acceptForm.course_id || !acceptForm.group_id}>
+              {accepting ? 'Qabul qilinmoqda...' : 'Qabul qilish'}
+            </PrimaryButton>
+            <GhostButton onClick={() => { if (!accepting) { setAcceptModal(false); setAcceptingLead(null) } }}>
+              Bekor
+            </GhostButton>
+          </div>
+        </div>
+      </Modal>
+      {/* === END: Qabul qilish modali === */}
     </div>
   )
 }
