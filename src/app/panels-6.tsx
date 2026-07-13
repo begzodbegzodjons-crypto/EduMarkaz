@@ -249,7 +249,7 @@ export function ExamsPanel() {
                   {examGrades.length > 0 && (
                     <div className="mt-3 pt-3 border-t border-border/40">
                       <div className="text-xs text-muted-foreground mb-1">O'rtacha natija</div>
-                      <div className="h-2 rounded-full bg-muted overflow-hidden"><div className="h-full bg-gradient-to-r from-emerald-500 to-teal-500" style={{ width: `${avg}%` }} /></div>
+                      <div className="h-2 rounded-full bg-muted overflow-hidden"><div className="h-full bg-gradient-to-r from-slate-600 to-teal-500" style={{ width: `${avg}%` }} /></div>
                       <div className="text-right text-xs font-bold mt-1 text-emerald-600">{avg.toFixed(1)}%</div>
                     </div>
                   )}
@@ -370,7 +370,7 @@ export function CertificatesPanel() {
             <Card key={c.id}>
               <div className="p-4">
                 <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3"><div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-600 flex items-center justify-center text-white"><Award className="w-6 h-6" /></div><div><div className="font-semibold truncate">{c.student?.full_name || '—'}</div><div className="text-xs text-muted-foreground truncate">{c.course?.name || '—'}</div></div></div>
+                  <div className="flex items-center gap-3"><div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-slate-700 flex items-center justify-center text-white"><Award className="w-6 h-6" /></div><div><div className="font-semibold truncate">{c.student?.full_name || '—'}</div><div className="text-xs text-muted-foreground truncate">{c.course?.name || '—'}</div></div></div>
                   <div className="flex gap-1">
                     <IconButton title="Chop etish" onClick={() => printCert(c)}><FileText className="w-3.5 h-3.5" /></IconButton>
                     <IconButton title="O'chirish" danger onClick={() => handleDelete(c.id)}><Trash2 className="w-3.5 h-3.5" /></IconButton>
@@ -449,7 +449,7 @@ export function DiscountsPanel() {
             <Card key={d.id}>
               <div className="p-4">
                 <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3"><div className="w-10 h-10 rounded-xl bg-gradient-to-br from-rose-500 to-pink-600 flex items-center justify-center text-white"><Percent className="w-5 h-5" /></div><div><div className="font-semibold">{d.name}</div><div className="text-xs text-muted-foreground">{d.discount_type === 'percent' ? `${d.value}%` : formatMoney(d.value)}</div></div></div>
+                  <div className="flex items-center gap-3"><div className="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-600 to-slate-700 flex items-center justify-center text-white"><Percent className="w-5 h-5" /></div><div><div className="font-semibold">{d.name}</div><div className="text-xs text-muted-foreground">{d.discount_type === 'percent' ? `${d.value}%` : formatMoney(d.value)}</div></div></div>
                   <div className="flex gap-1">
                     <IconButton title={d.is_active ? 'O\'chirish' : 'Yoqish'} onClick={() => toggleActive(d)}><CheckCircle className={`w-3.5 h-3.5 ${d.is_active ? 'text-emerald-500' : 'text-muted-foreground'}`} /></IconButton>
                     <IconButton title="O'chirish" danger onClick={() => handleDelete(d.id)}><Trash2 className="w-3.5 h-3.5" /></IconButton>
@@ -888,7 +888,7 @@ export function ReportsExportPanel() {
   )
 }
 function ExportCard({ icon: Icon, title, desc, onExport, color }: { icon: any; title: string; desc: string; onExport: () => void; color: string }) {
-  const colorMap: any = { emerald: 'from-emerald-500 to-teal-600', rose: 'from-rose-500 to-pink-600', blue: 'from-blue-500 to-indigo-600', violet: 'from-violet-500 to-purple-600' }
+  const colorMap: any = { emerald: 'from-slate-600 to-slate-700', rose: 'from-slate-600 to-slate-700', blue: 'from-slate-700 to-slate-700', violet: 'from-slate-600 to-slate-700' }
   return (
     <Card><div className="p-5">
       <div className="flex items-start justify-between mb-3">

@@ -394,7 +394,7 @@ function BlockedScreen({ user, onActivated, onLogout }: { user: PublicUser; onAc
           </form>
 
           {/* Eslatma */}
-          <div className="mt-5 p-3 rounded-xl bg-blue-500/10 border border-blue-500/30">
+          <div className="mt-5 p-3 rounded-xl bg-slate-500/10 border border-blue-500/30">
             <div className="text-xs text-blue-200 leading-relaxed">
               <strong className="text-blue-100">Adminga murojaat qiling</strong> va aktivatsiya kodini sotib oling. Kod Telegram orqali yuboriladi. Kod kiritilgandan so'ng tizim 30 kunga aktiv bo'ladi.
             </div>
@@ -509,7 +509,7 @@ function SidebarContent({ user, activeTab, setActiveTab, onLogout }: { user: Pub
                 const Icon = item.icon
                 const isActive = activeTab === item.id
                 return (
-                  <button key={item.id} onClick={() => setActiveTab(item.id)} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${isActive ? 'bg-sidebar-primary text-sidebar-primary-foreground shadow-lg shadow-emerald-500/20' : 'text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground'}`}>
+                  <button key={item.id} onClick={() => setActiveTab(item.id)} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${isActive ? 'bg-foreground text-background' : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`}>
                     <Icon className="w-4 h-4 shrink-0" /><span className="truncate">{item.label}</span>{isActive && <ChevronRight className="w-4 h-4 ml-auto" />}
                   </button>
                 )

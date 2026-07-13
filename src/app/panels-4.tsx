@@ -186,12 +186,12 @@ export function FinancePanel() {
 
       {/* Asosiy ko'rsatkichlar */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl p-6 text-white shadow-lg shadow-emerald-500/25">
+        <div className="bg-gradient-to-br from-slate-600 to-slate-700 rounded-2xl p-6 text-white shadow-lg shadow-emerald-500/25">
           <div className="text-sm opacity-90">Bu oygi sof foyda</div>
           <div className="text-3xl lg:text-4xl font-bold mt-2">{formatMoney(stats.monthNetProfit)}</div>
           <div className="text-xs opacity-75 mt-2">Tushum: {formatMoney(stats.monthRevenue)} • Xarajat: {formatMoney(stats.monthExpenseTotal)}</div>
         </div>
-        <div className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl p-6 text-white shadow-lg shadow-blue-500/25">
+        <div className="bg-gradient-to-br from-slate-700 to-slate-700 rounded-2xl p-6 text-white shadow-lg ">
           <div className="text-sm opacity-90">Jami sof foyda</div>
           <div className="text-3xl lg:text-4xl font-bold mt-2">{formatMoney(stats.totalNetProfit)}</div>
           <div className="text-xs opacity-75 mt-2">Tushum: {formatMoney(stats.totalRevenue)} • Xarajat: {formatMoney(stats.totalExpense)}</div>
@@ -428,7 +428,7 @@ export function ReportsPanel() {
             return (
               <div key={cat}>
                 <div className="flex justify-between text-xs mb-1"><span className="font-medium">{cat}</span><span className="font-bold text-red-600">{formatMoney(amount)} ({pct}%)</span></div>
-                <div className="h-2 rounded-full bg-muted overflow-hidden"><div className="h-full bg-gradient-to-r from-rose-500 to-red-500" style={{ width: `${pct}%` }} /></div>
+                <div className="h-2 rounded-full bg-muted overflow-hidden"><div className="h-full bg-gradient-to-r from-slate-600 to-red-500" style={{ width: `${pct}%` }} /></div>
               </div>
             )
           })}

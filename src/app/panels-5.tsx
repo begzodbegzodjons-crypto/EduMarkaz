@@ -183,7 +183,7 @@ export function TelegramPanel({ user }: { user: PublicUser }) {
 
       <Card>
         <div className="p-6 text-center">
-          <div className="w-20 h-20 rounded-2xl bg-[#229ED9] flex items-center justify-center mx-auto mb-4 shadow-lg shadow-blue-500/25">
+          <div className="w-20 h-20 rounded-2xl bg-[#229ED9] flex items-center justify-center mx-auto mb-4 shadow-lg ">
             <TelegramIcon className="w-12 h-12 text-white" />
           </div>
           <h2 className="text-xl font-bold mb-2">NorinKomp Yordam Markazi</h2>
@@ -248,7 +248,7 @@ export function LicensePanel({ user, onActivated }: { user: PublicUser; onActiva
         <div><h1 className="text-2xl lg:text-3xl font-bold">Administrator</h1><p className="text-muted-foreground text-sm mt-1">Sayt egasi kabineti</p></div>
         <Card>
           <div className="p-8 text-center">
-            <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-amber-500/30">
+            <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-slate-600 to-slate-700 flex items-center justify-center mx-auto mb-4 shadow-lg ">
               <Crown className="w-10 h-10 text-white" />
             </div>
             <h2 className="text-2xl font-bold">Administrator rejimi</h2>
@@ -280,7 +280,7 @@ export function LicensePanel({ user, onActivated }: { user: PublicUser; onActiva
       <Card>
         <div className="p-6">
           <div className="flex items-center gap-4 mb-5">
-            <div className={`w-16 h-16 rounded-2xl flex items-center justify-center ${isActive ? 'bg-gradient-to-br from-emerald-500 to-teal-600' : isTrial ? 'bg-gradient-to-br from-amber-500 to-orange-600' : 'bg-gradient-to-br from-red-500 to-rose-600'}`}>
+            <div className={`w-16 h-16 rounded-2xl flex items-center justify-center ${isActive ? 'bg-gradient-to-br from-slate-600 to-slate-700' : isTrial ? 'bg-gradient-to-br from-slate-600 to-slate-700' : 'bg-gradient-to-br from-red-500 to-rose-600'}`}>
               {isActive ? <CheckCircle className="w-8 h-8 text-white" /> : isTrial ? <Sparkles className="w-8 h-8 text-white" /> : <AlertTriangle className="w-8 h-8 text-white" />}
             </div>
             <div>
@@ -365,7 +365,7 @@ export function LicensePanel({ user, onActivated }: { user: PublicUser; onActiva
           </div>
 
           {/* Telegram murojaat */}
-          <a href={TELEGRAM_URL} target="_blank" rel="noreferrer" className="mt-4 block w-full py-3.5 rounded-xl bg-[#229ED9] hover:bg-[#1d8bc4] text-white text-center font-semibold transition-all hover:scale-[1.01] active:scale-[0.99] shadow-lg shadow-blue-500/25">
+          <a href={TELEGRAM_URL} target="_blank" rel="noreferrer" className="mt-4 block w-full py-3.5 rounded-xl bg-[#229ED9] hover:bg-[#1d8bc4] text-white text-center font-semibold transition-all hover:scale-[1.01] active:scale-[0.99] shadow-lg ">
             <TelegramIcon className="w-5 h-5 inline mr-2" />Adminga murojaat qiling: @{TELEGRAM_HANDLE}
           </a>
         </div>
