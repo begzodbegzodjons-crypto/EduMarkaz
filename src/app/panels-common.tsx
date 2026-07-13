@@ -85,7 +85,7 @@ export function StatCard({ label, value, sub, icon: Icon, color, trend, onClick 
       <div className="flex items-start justify-between">
         <div className="min-w-0">
           <div className="text-xs text-muted-foreground font-medium">{label}</div>
-          <div className={`text-xl lg:text-2xl font-bold mt-1 truncate ${c.text}`}>{value}</div>
+          <div className="text-xl lg:text-2xl font-bold mt-1 truncate">{value}</div>
           {sub && <div className="text-[10px] text-muted-foreground mt-0.5">{sub}</div>}
         </div>
         <div className="shrink-0 w-9 h-9 rounded-xl bg-muted flex items-center justify-center"><Icon className="w-4 h-4 text-muted-foreground" /></div>
