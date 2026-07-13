@@ -500,7 +500,7 @@ function SidebarContent({ user, activeTab, setActiveTab, onLogout }: { user: Pub
     <>
       <div className="p-5 border-b border-sidebar-border/50">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-500 to-slate-600 flex items-center justify-center shadow-lg "><GraduationCap className="w-6 h-6 text-white" /></div>
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br bg-muted flex items-center justify-center shadow-lg "><GraduationCap className="w-6 h-6 text-white" /></div>
           <div><div className="font-bold text-sidebar-foreground">EduMarkaz</div><div className="text-[10px] text-sidebar-foreground/60">{user.center_name}</div></div>
         </div>
       </div>
