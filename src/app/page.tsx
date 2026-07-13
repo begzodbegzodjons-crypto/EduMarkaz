@@ -539,7 +539,6 @@ function SidebarContent({ user, activeTab, setActiveTab, onLogout }: { user: Pub
     </>
   )
 }
-
 }
 function StatusBadge({ user }: { user: PublicUser }) {
   if (user.role === 'admin') return <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 text-xs font-semibold"><Crown className="w-3 h-3" /> Admin</div>
