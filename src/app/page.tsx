@@ -330,10 +330,10 @@ export function SubmitButton({ loading, label, icon, size = 'md' }: { loading: b
       {loading ? <Spinner className="w-5 h-5" /> : icon}{loading ? 'Biroz kuting...' : label}
     </button>
   )
+}
+
 // BLOCKED SCREEN
 function BlockedScreen({ user, onActivated, onLogout }: { user: PublicUser; onActivated: () => void; onLogout: () => void }) {
-// //  BLOCKED SCREEN
-// function BlockedScreen({ user, onActivated, onLogout }: { user: PublicUser; onActivated: () => void; onLogout: () => void }) {
   const [code, setCode] = useState('')
   const [loading, setLoading] = useState(false)
   const [err, setErr] = useState<string | null>(null)
@@ -539,7 +539,7 @@ function SidebarContent({ user, activeTab, setActiveTab, onLogout }: { user: Pub
     </>
   )
 }
-}
+
 function StatusBadge({ user }: { user: PublicUser }) {
   if (user.role === 'admin') return <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 text-xs font-semibold"><Crown className="w-3 h-3" /> Admin</div>
   if (user.status === 'trial') return <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 text-xs font-semibold"><Sparkles className="w-3 h-3" /> Sinov: {user.days_left}k</div>
