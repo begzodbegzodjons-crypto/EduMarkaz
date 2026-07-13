@@ -113,7 +113,7 @@ function FullScreenLoader() {
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-slate-50 via-slate-50 to-slate-100">
       <AuroraBackground />
       <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="relative z-10 flex flex-col items-center gap-4">
-        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-slate-700 to-slate-700 flex items-center justify-center shadow-xl "><Spinner className="w-8 h-8 text-white" /></div>
+        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-600 to-indigo-700 flex items-center justify-center shadow-xl "><Spinner className="w-8 h-8 text-white" /></div>
         <div className="text-slate-700 font-medium">Yuklanmoqda...</div>
       </motion.div>
     </div>
@@ -161,7 +161,7 @@ function AuthScreen({ mode, onModeChange, onSuccess }: { mode: 'login' | 'regist
       <div className="relative z-10 w-full grid lg:grid-cols-2 items-stretch">
         <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.6 }} className="hidden lg:flex flex-col gap-7 p-12 xl:p-16 2xl:p-20 justify-center">
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-slate-700 to-slate-700 flex items-center justify-center shadow-xl "><GraduationCap className="w-10 h-10 text-white" /></div>
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-600 to-indigo-700 flex items-center justify-center shadow-xl "><GraduationCap className="w-10 h-10 text-white" /></div>
             <div><div className="text-3xl font-bold tracking-tight">EduMarkaz</div><div className="text-base text-slate-700 font-medium">ERP Boshqaruv Tizimi</div></div>
           </div>
           <h1 className="text-5xl xl:text-6xl 2xl:text-7xl font-bold leading-tight tracking-tight">O'quv markazingizni <span className="shimmer-text">bir tizimda</span> boshqaring</h1>
@@ -181,7 +181,7 @@ function AuthScreen({ mode, onModeChange, onSuccess }: { mode: 'login' | 'regist
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.1 }} className="w-full flex items-center justify-center p-6 sm:p-10 lg:p-12 xl:p-16 2xl:p-20">
           <div className="glass rounded-3xl shadow-2xl shadow-slate-900/10 border border-slate-200/50 p-8 sm:p-10 lg:p-10 xl:p-12 w-full max-w-2xl">
             <div className="lg:hidden flex items-center gap-3 mb-8">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-slate-700 to-slate-700 flex items-center justify-center"><GraduationCap className="w-7 h-7 text-white" /></div>
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-600 to-indigo-700 flex items-center justify-center"><GraduationCap className="w-7 h-7 text-white" /></div>
               <div className="text-2xl font-bold">EduMarkaz</div>
             </div>
             <div className="flex p-1.5 bg-muted rounded-2xl mb-8">
@@ -196,7 +196,7 @@ function AuthScreen({ mode, onModeChange, onSuccess }: { mode: 'login' | 'regist
                   {err && <ErrorBanner message={err} />}
                   <SubmitButton loading={loading} label="Kirish" size="lg" />
                   <div className="text-center">
-                    <button type="button" onClick={() => setForgotOpen(true)} className="text-sm text-slate-700 hover:text-slate-700 hover:underline">Parolni unutdingizmi?</button>
+                    <button type="button" onClick={() => setForgotOpen(true)} className="text-sm text-slate-700 hover:text-indigo-600 hover:underline">Parolni unutdingizmi?</button>
                   </div>
                 </motion.form>
               ) : (
@@ -215,7 +215,7 @@ function AuthScreen({ mode, onModeChange, onSuccess }: { mode: 'login' | 'regist
               )}
             </AnimatePresence>
             <div className="mt-8 pt-6 border-t border-border/50 text-center">
-              <a href={TELEGRAM_URL} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 text-base text-muted-foreground hover:text-slate-700 transition"><TelegramIcon className="w-5 h-5" />Yordam: @{TELEGRAM_HANDLE}</a>
+              <a href={TELEGRAM_URL} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 text-base text-muted-foreground hover:text-indigo-600 transition"><TelegramIcon className="w-5 h-5" />Yordam: @{TELEGRAM_HANDLE}</a>
             </div>
           </div>
         </motion.div>
@@ -290,7 +290,7 @@ function ForgotPasswordModal({ open, onClose }: { open: boolean; onClose: () => 
                     <Field label="Email"><input type="email" className="erp-input" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="markaz@example.com" /></Field>
                     {err && <div className="px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm text-red-700">{err}</div>}
                     {msg && <div className="px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm text-slate-700">{msg}</div>}
-                    <button onClick={handleRequest} disabled={loading} className="w-full py-3 rounded-xl bg-gradient-to-r from-slate-700 to-slate-700 text-white font-semibold disabled:opacity-50 flex items-center justify-center gap-2">
+                    <button onClick={handleRequest} disabled={loading} className="w-full py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-700 text-white font-semibold disabled:opacity-50 flex items-center justify-center gap-2">
                       {loading && <Spinner className="w-4 h-4" />}{loading ? 'Yuborilmoqda...' : 'Kod so\'rash'}
                     </button>
                   </>
@@ -302,7 +302,7 @@ function ForgotPasswordModal({ open, onClose }: { open: boolean; onClose: () => 
                     <Field label="Yangi parol"><input type="password" className="erp-input" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="••••••••" /></Field>
                     {err && <div className="px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm text-red-700">{err}</div>}
                     {msg && <div className="px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm text-slate-700 flex items-center gap-2"><CheckCircle className="w-4 h-4" /> {msg}</div>}
-                    <button onClick={handleReset} disabled={loading} className="w-full py-3 rounded-xl bg-gradient-to-r from-slate-700 to-slate-700 text-white font-semibold disabled:opacity-50 flex items-center justify-center gap-2">
+                    <button onClick={handleReset} disabled={loading} className="w-full py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-700 text-white font-semibold disabled:opacity-50 flex items-center justify-center gap-2">
                       {loading && <Spinner className="w-4 h-4" />}{loading ? 'O\'zgartirilmoqda...' : 'Parolni o\'zgartirish'}
                     </button>
                     <button onClick={() => setStep(1)} className="w-full text-center text-xs text-muted-foreground hover:text-foreground">← Orqaga</button>
@@ -326,7 +326,7 @@ export function ErrorBanner({ message }: { message: string }) {
 export function SubmitButton({ loading, label, icon, size = 'md' }: { loading: boolean; label: string; icon?: React.ReactNode; size?: 'md' | 'lg' }) {
   const pad = size === 'lg' ? 'py-4 text-lg' : 'py-3 text-sm'
   return (
-    <button type="submit" disabled={loading} className={`w-full ${pad} rounded-xl bg-gradient-to-r from-slate-700 to-slate-700 text-white font-semibold shadow-lg  hover: transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2`}>
+    <button type="submit" disabled={loading} className={`w-full ${pad} rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-700 text-white font-semibold shadow-lg  hover: transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2`}>
       {loading ? <Spinner className="w-5 h-5" /> : icon}{loading ? 'Biroz kuting...' : label}
     </button>
   )
@@ -382,7 +382,7 @@ function BlockedScreen({ user, onActivated, onLogout }: { user: PublicUser; onAc
             </div>
             {err && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="px-4 py-2.5 rounded-xl bg-slate-500/20 border border-red-500/30 text-sm text-red-200">{err}</motion.div>}
             {success && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="px-4 py-2.5 rounded-xl bg-slate-700/20 border border-slate-200/30 text-sm text-slate-700 flex items-center gap-2"><CheckCircle className="w-4 h-4" /> {success}</motion.div>}
-            <button type="submit" disabled={loading} className="w-full py-3 rounded-xl bg-gradient-to-r from-slate-700 to-slate-700 text-white font-semibold shadow-lg  hover: transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 flex items-center justify-center gap-2">
+            <button type="submit" disabled={loading} className="w-full py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-700 text-white font-semibold shadow-lg  hover: transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 flex items-center justify-center gap-2">
               {loading ? <Spinner className="w-4 h-4" /> : <KeyRound className="w-4 h-4" />}
               {loading ? 'Tekshirilmoqda...' : 'Aktivlashtirish'}
             </button>
@@ -488,7 +488,7 @@ function AppShell({ user, onRefresh, onLogout }: { user: PublicUser; onRefresh: 
         </div>
         <footer className="px-4 lg:px-8 py-4 text-center text-xs text-muted-foreground border-t border-border/40">
           <span>EduMarkaz ERP v2.0 • </span>
-          <a href={TELEGRAM_URL} target="_blank" rel="noreferrer" className="hover:text-slate-700 transition inline-flex items-center gap-1"><TelegramIcon className="w-3 h-3" /> @{TELEGRAM_HANDLE}</a>
+          <a href={TELEGRAM_URL} target="_blank" rel="noreferrer" className="hover:text-indigo-600 transition inline-flex items-center gap-1"><TelegramIcon className="w-3 h-3" /> @{TELEGRAM_HANDLE}</a>
         </footer>
       </main>
     </div>
@@ -500,7 +500,7 @@ function SidebarContent({ user, activeTab, setActiveTab, onLogout }: { user: Pub
     <>
       <div className="p-5 border-b border-sidebar-border/50">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br bg-muted flex items-center justify-center shadow-lg "><GraduationCap className="w-6 h-6 text-white" /></div>
+          <div className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center shadow-lg "><GraduationCap className="w-6 h-6 text-white" /></div>
           <div><div className="font-bold text-sidebar-foreground">EduMarkaz</div><div className="text-[10px] text-sidebar-foreground/60">{user.center_name}</div></div>
         </div>
       </div>
@@ -513,7 +513,7 @@ function SidebarContent({ user, activeTab, setActiveTab, onLogout }: { user: Pub
                 const Icon = item.icon
                 const isActive = activeTab === item.id
                 return (
-                  <button key={item.id} onClick={() => setActiveTab(item.id)} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[15px] font-semibold transition-colors ${isActive ? 'bg-foreground text-background' : 'text-foreground hover:bg-muted'}`}>
+                  <button key={item.id} onClick={() => setActiveTab(item.id)} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[15px] font-semibold transition-colors ${isActive ? 'bg-indigo-600 text-white' : 'text-slate-700 hover:bg-slate-100'}`}>
                     <Icon className="w-[18px] h-[18px] shrink-0" /><span className="truncate">{item.label}</span>{isActive && <ChevronRight className="w-4 h-4 ml-auto" />}
                   </button>
                 )

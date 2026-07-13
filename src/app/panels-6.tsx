@@ -111,10 +111,10 @@ export function SchedulePanel() {
                   <div className="text-[10px] text-muted-foreground text-center py-3">Bo'sh</div>
                 ) : byDay[day.value].map((s) => (
                   <motion.div key={s.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="p-2 rounded-lg bg-gradient-to-br from-slate-50 to-slate-100 border border-slate-200">
-                    <div className="text-[11px] font-bold text-slate-700">{s.start_time?.slice(0, 5)} - {s.end_time?.slice(0, 5)}</div>
+                    <div className="text-[11px] font-bold text-indigo-700">{s.start_time?.slice(0, 5)} - {s.end_time?.slice(0, 5)}</div>
                     <div className="text-xs font-semibold mt-0.5 truncate">{s.group?.name || '—'}</div>
                     <div className="text-[10px] text-muted-foreground truncate">{s.teacher?.full_name || '—'}</div>
-                    {s.room?.name && <div className="text-[10px] text-slate-700 truncate">📍 {s.room.name}</div>}
+                    {s.room?.name && <div className="text-[10px] text-indigo-700 truncate">📍 {s.room.name}</div>}
                     <div className="flex justify-end mt-1"><IconButton danger onClick={() => handleDelete(s.id)}><Trash2 className="w-3 h-3" /></IconButton></div>
                   </motion.div>
                 ))}
@@ -250,7 +250,7 @@ export function ExamsPanel() {
                     <div className="mt-3 pt-3 border-t border-border/40">
                       <div className="text-xs text-muted-foreground mb-1">O'rtacha natija</div>
                       <div className="h-2 rounded-full bg-muted overflow-hidden"><div className="h-full bg-gradient-to-r from-slate-600 to-slate-600" style={{ width: `${avg}%` }} /></div>
-                      <div className="text-right text-xs font-bold mt-1 text-slate-700">{avg.toFixed(1)}%</div>
+                      <div className="text-right text-xs font-bold mt-1 text-indigo-700">{avg.toFixed(1)}%</div>
                     </div>
                   )}
                 </div>
@@ -370,19 +370,19 @@ export function CertificatesPanel() {
             <Card key={c.id}>
               <div className="p-4">
                 <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3"><div className="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-500 to-slate-700 flex items-center justify-center text-white"><Award className="w-6 h-6" /></div><div><div className="font-semibold truncate">{c.student?.full_name || '—'}</div><div className="text-xs text-muted-foreground truncate">{c.course?.name || '—'}</div></div></div>
+                  <div className="flex items-center gap-3"><div className="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-500 to-indigo-700 flex items-center justify-center text-white"><Award className="w-6 h-6" /></div><div><div className="font-semibold truncate">{c.student?.full_name || '—'}</div><div className="text-xs text-muted-foreground truncate">{c.course?.name || '—'}</div></div></div>
                   <div className="flex gap-1">
                     <IconButton title="Chop etish" onClick={() => printCert(c)}><FileText className="w-3.5 h-3.5" /></IconButton>
                     <IconButton title="O'chirish" danger onClick={() => handleDelete(c.id)}><Trash2 className="w-3.5 h-3.5" /></IconButton>
                   </div>
                 </div>
                 <div className="mt-3 p-2 rounded-lg bg-slate-50 border border-slate-200">
-                  <div className="text-[10px] text-slate-700 font-medium">SERTIFIKAT RAQAMI</div>
+                  <div className="text-[10px] text-indigo-700 font-medium">SERTIFIKAT RAQAMI</div>
                   <div className="font-mono text-xs font-bold tracking-wider text-slate-900">{c.certificate_number}</div>
                 </div>
                 <div className="mt-2 flex items-center justify-between">
                   <span className="text-[10px] text-muted-foreground">{formatDate(c.issue_date)}</span>
-                  <button onClick={() => copyNum(c.certificate_number)} className="text-[10px] text-slate-700 hover:underline flex items-center gap-1">{copied === c.certificate_number ? <><CheckCircle className="w-3 h-3" /> Nusxalandi</> : <><FileText className="w-3 h-3" /> Nusxa</>}</button>
+                  <button onClick={() => copyNum(c.certificate_number)} className="text-[10px] text-indigo-700 hover:underline flex items-center gap-1">{copied === c.certificate_number ? <><CheckCircle className="w-3 h-3" /> Nusxalandi</> : <><FileText className="w-3 h-3" /> Nusxa</>}</button>
                 </div>
               </div>
             </Card>
@@ -476,7 +476,7 @@ export function DiscountsPanel() {
         <PrimaryButton onClick={() => { setEditing(null); setForm({ name: '', discount_type: 'percent', value: 10, valid_from: '', valid_until: '', applies_to: 'all', course_id: '', student_id: '', is_active: true }); setOpenModal(true) }}><Plus className="w-4 h-4" /> Yangi chegirma</PrimaryButton>
       </div>
 
-      <div className="rounded-xl bg-slate-50 border border-slate-200 p-3 text-xs text-slate-700">
+      <div className="rounded-xl bg-slate-50 border border-slate-200 p-3 text-xs text-indigo-700">
         <strong>ℹ️ Chegirma qanday ishlaydi:</strong> Aktiv chegirma avtomatik ravishda talabaning "To'lash kerak" summasidan ayriladi.
         <br />• <strong>Foiz (%)</strong> — to'lash kerak summadan foiz ayriladi (masalan: 10% = 350,000'dan 35,000 ayriladi)
         <br />• <strong>Summa (so'm)</strong> — to'g'ridan-to'g'ri summa ayriladi (masalan: 50,000 so'm)
@@ -489,7 +489,7 @@ export function DiscountsPanel() {
             <Card key={d.id}>
               <div className="p-4">
                 <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3"><div className="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-600 to-slate-700 flex items-center justify-center text-white"><Percent className="w-5 h-5" /></div><div><div className="font-semibold">{d.name}</div><div className="text-xs text-muted-foreground">{d.discount_type === 'percent' ? `${d.value}%` : formatMoney(d.value)}</div></div></div>
+                  <div className="flex items-center gap-3"><div className="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-600 to-indigo-700 flex items-center justify-center text-white"><Percent className="w-5 h-5" /></div><div><div className="font-semibold">{d.name}</div><div className="text-xs text-muted-foreground">{d.discount_type === 'percent' ? `${d.value}%` : formatMoney(d.value)}</div></div></div>
                   <div className="flex gap-1">
                     <IconButton title="Tahrirlash" onClick={() => openEdit(d)}><Pencil className="w-3.5 h-3.5" /></IconButton>
                     <IconButton title={d.is_active ? 'O\'chirish' : 'Yoqish'} onClick={() => toggleActive(d)}><CheckCircle className={`w-3.5 h-3.5 ${d.is_active ? 'text-slate-500' : 'text-muted-foreground'}`} /></IconButton>
@@ -502,7 +502,7 @@ export function DiscountsPanel() {
                   <Row label="Holat" value={d.is_active ? 'Aktiv ✓' : 'Nofaol'} />
                 </div>
                 <div className="mt-3 pt-3 border-t border-border/40">
-                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${d.is_active ? 'bg-slate-100 text-slate-700' : 'bg-slate-100 text-slate-700'}`}>{d.is_active ? 'Aktiv' : 'Nofaol'}</span>
+                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${d.is_active ? 'bg-indigo-100 text-indigo-700' : 'bg-indigo-100 text-indigo-700'}`}>{d.is_active ? 'Aktiv' : 'Nofaol'}</span>
                 </div>
               </div>
             </Card>
@@ -524,7 +524,7 @@ export function DiscountsPanel() {
             <Field label="Boshlanish"><input type="date" className="erp-input" value={form.valid_from} onChange={(e) => setForm({ ...form, valid_from: e.target.value })} /></Field>
             <Field label="Tugash"><input type="date" className="erp-input" value={form.valid_until} onChange={(e) => setForm({ ...form, valid_until: e.target.value })} /></Field>
           </div>
-          <div className="rounded-lg bg-slate-50 border border-slate-200 p-2.5 text-[11px] text-slate-700">
+          <div className="rounded-lg bg-slate-50 border border-slate-200 p-2.5 text-[11px] text-indigo-700">
             💡 <strong>Misol:</strong> Agar oylik to'lov 350,000 so'm bo'lsa va chegirma 10% bo'lsa,
             talabaning to'lash kerak summasidan 35,000 so'm ayriladi.
           </div>
@@ -603,9 +603,9 @@ export function DebtsPanel() {
                     <td className="px-4 py-3"><div className="font-medium">{d.full_name}</div>{d.parent_phone && <div className="text-[10px] text-muted-foreground">👤 {d.parent_phone}</div>}</td>
                     <td className="px-4 py-3 text-muted-foreground">{d.group_name || '—'}</td>
                     <td className="px-4 py-3 text-right">{formatMoney(d.expected_amount)}</td>
-                    <td className="px-4 py-3 text-right text-slate-700 font-medium">{formatMoney(d.paid_amount)}</td>
+                    <td className="px-4 py-3 text-right text-indigo-700 font-medium">{formatMoney(d.paid_amount)}</td>
                     <td className="px-4 py-3 text-right font-bold text-red-600">{formatMoney(d.debt_amount)}</td>
-                    <td className="px-4 py-3 text-center">{d.is_paid ? <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-700">To'langan</span> : <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-red-100 text-red-700">Qarz</span>}</td>
+                    <td className="px-4 py-3 text-center">{d.is_paid ? <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-indigo-100 text-indigo-700">To'langan</span> : <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-red-100 text-red-700">Qarz</span>}</td>
                   </tr>
                 ))}
               </tbody>
@@ -694,13 +694,13 @@ export function TeacherPayoutsPanel() {
                     <tr key={p.id} className="border-b border-border/20 hover:bg-muted/40">
                       <td className="px-4 py-3 font-medium">{p.teacher?.full_name || '—'}</td>
                       <td className="px-4 py-3 text-right">{formatMoney(p.amount)}</td>
-                      <td className="px-4 py-3 text-right text-slate-700">+{formatMoney(p.bonus)}</td>
+                      <td className="px-4 py-3 text-right text-indigo-700">+{formatMoney(p.bonus)}</td>
                       <td className="px-4 py-3 text-right text-red-600">-{formatMoney(p.deduction)}</td>
                       <td className="px-4 py-3 text-right font-bold">{formatMoney(net)}</td>
                       <td className="px-4 py-3 text-muted-foreground">{p.period_month}</td>
                       <td className="px-4 py-3 text-center">{p.lesson_count}</td>
-                      <td className="px-4 py-3 text-center">{p.status === 'paid' ? <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-700">To'langan</span> : <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-700">Kutilmoqda</span>}</td>
-                      <td className="px-4 py-3 text-right"><div className="flex gap-1">{p.status === 'pending' && <IconButton title="To'langan deb belgilash" onClick={() => markPaid(p)}><CheckCircle className="w-3.5 h-3.5 text-slate-700" /></IconButton>}<IconButton danger onClick={() => handleDelete(p.id)}><Trash2 className="w-3.5 h-3.5" /></IconButton></div></td>
+                      <td className="px-4 py-3 text-center">{p.status === 'paid' ? <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-indigo-100 text-indigo-700">To'langan</span> : <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-indigo-100 text-indigo-700">Kutilmoqda</span>}</td>
+                      <td className="px-4 py-3 text-right"><div className="flex gap-1">{p.status === 'pending' && <IconButton title="To'langan deb belgilash" onClick={() => markPaid(p)}><CheckCircle className="w-3.5 h-3.5 text-indigo-700" /></IconButton>}<IconButton danger onClick={() => handleDelete(p.id)}><Trash2 className="w-3.5 h-3.5" /></IconButton></div></td>
                     </tr>
                   )
                 })}
@@ -831,7 +831,7 @@ export function NotificationsPanel() {
   )
 }
 function NotifTypeChip({ type }: { type: string }) {
-  const map: any = { absent: { label: 'Kelmadi', cls: 'bg-red-100 text-red-700' }, payment_reminder: { label: 'To\'lov eslatma', cls: 'bg-slate-100 text-slate-700' }, payment_received: { label: 'To\'lov qabul', cls: 'bg-slate-100 text-slate-700' }, exam: { label: 'Imtihon', cls: 'bg-slate-100 text-slate-700' }, event: { label: 'Tadbir', cls: 'bg-slate-100 text-slate-700' }, custom: { label: 'Boshqa', cls: 'bg-slate-100 text-slate-700' } }
+  const map: any = { absent: { label: 'Kelmadi', cls: 'bg-red-100 text-red-700' }, payment_reminder: { label: 'To\'lov eslatma', cls: 'bg-indigo-100 text-indigo-700' }, payment_received: { label: 'To\'lov qabul', cls: 'bg-indigo-100 text-indigo-700' }, exam: { label: 'Imtihon', cls: 'bg-indigo-100 text-indigo-700' }, event: { label: 'Tadbir', cls: 'bg-indigo-100 text-indigo-700' }, custom: { label: 'Boshqa', cls: 'bg-indigo-100 text-indigo-700' } }
   const s = map[type] || map.custom
   return <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${s.cls}`}>{s.label}</span>
 }
@@ -909,10 +909,10 @@ export function ReportsExportPanel() {
       <Card>
         <CardHeader title="Tezkor statistika" subtitle="Hozirgi oy" />
         <div className="p-4 pt-0 grid grid-cols-2 lg:grid-cols-4 gap-3">
-          <div className="rounded-xl bg-slate-50 p-3"><div className="text-xs text-slate-700">Bu oy tushum</div><div className="text-lg font-bold text-slate-700 mt-1">{formatMoney(stats?.monthRevenue || 0)}</div></div>
+          <div className="rounded-xl bg-slate-50 p-3"><div className="text-xs text-indigo-700">Bu oy tushum</div><div className="text-lg font-bold text-indigo-700 mt-1">{formatMoney(stats?.monthRevenue || 0)}</div></div>
           <div className="rounded-xl bg-slate-50 p-3"><div className="text-xs text-red-700">Bu oy xarajat</div><div className="text-lg font-bold text-red-900 mt-1">{formatMoney(stats?.monthExpenseTotal || 0)}</div></div>
-          <div className="rounded-xl bg-slate-50 p-3"><div className="text-xs text-slate-700">Sof foyda</div><div className="text-lg font-bold text-slate-900 mt-1">{formatMoney(stats?.monthNetProfit || 0)}</div></div>
-          <div className="rounded-xl bg-slate-50 p-3"><div className="text-xs text-slate-700">Talabalar</div><div className="text-lg font-bold text-slate-700 mt-1">{stats?.totalStudents || 0}</div></div>
+          <div className="rounded-xl bg-slate-50 p-3"><div className="text-xs text-indigo-700">Sof foyda</div><div className="text-lg font-bold text-slate-900 mt-1">{formatMoney(stats?.monthNetProfit || 0)}</div></div>
+          <div className="rounded-xl bg-slate-50 p-3"><div className="text-xs text-indigo-700">Talabalar</div><div className="text-lg font-bold text-indigo-700 mt-1">{stats?.totalStudents || 0}</div></div>
         </div>
       </Card>
 
@@ -924,7 +924,7 @@ export function ReportsExportPanel() {
             <tbody>
               {(stats?.monthlyRevenue || []).map((m: any) => {
                 const net = m.total - m.expense
-                return <tr key={m.month} className="border-b border-border/20"><td className="py-2 font-medium">{m.month}</td><td className="text-right py-2 text-slate-700">{formatMoney(m.total)}</td><td className="text-right py-2 text-red-600">{formatMoney(m.expense)}</td><td className={`text-right py-2 font-bold ${net >= 0 ? 'text-slate-700' : 'text-red-600'}`}>{formatMoney(net)}</td></tr>
+                return <tr key={m.month} className="border-b border-border/20"><td className="py-2 font-medium">{m.month}</td><td className="text-right py-2 text-indigo-700">{formatMoney(m.total)}</td><td className="text-right py-2 text-red-600">{formatMoney(m.expense)}</td><td className={`text-right py-2 font-bold ${net >= 0 ? 'text-indigo-700' : 'text-red-600'}`}>{formatMoney(net)}</td></tr>
               })}
             </tbody>
           </table>
@@ -934,7 +934,7 @@ export function ReportsExportPanel() {
   )
 }
 function ExportCard({ icon: Icon, title, desc, onExport, color }: { icon: any; title: string; desc: string; onExport: () => void; color: string }) {
-  const colorMap: any = { emerald: 'from-slate-600 to-slate-700', rose: 'from-slate-600 to-slate-700', blue: 'from-slate-700 to-slate-700', violet: 'from-slate-600 to-slate-700' }
+  const colorMap: any = { emerald: 'from-slate-600 to-indigo-700', rose: 'from-slate-600 to-indigo-700', blue: 'from-indigo-600 to-indigo-700', violet: 'from-slate-600 to-indigo-700' }
   return (
     <Card><div className="p-5">
       <div className="flex items-start justify-between mb-3">

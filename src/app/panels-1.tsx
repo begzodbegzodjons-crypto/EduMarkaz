@@ -90,7 +90,7 @@ export function DashboardPanel({ user, setActiveTab }: { user: any; setActiveTab
               Object.entries(stats.expenseByCategory).map(([cat, amount]: any) => (
                 <div key={cat} className="flex justify-between items-center px-3 py-2 rounded-lg bg-muted/40">
                   <span className="text-sm font-medium">{cat}</span>
-                  <span className="text-sm font-bold text-slate-700">{formatMoney(amount)}</span>
+                  <span className="text-sm font-bold text-indigo-700">{formatMoney(amount)}</span>
                 </div>
               ))
             )}
@@ -110,7 +110,7 @@ export function DashboardPanel({ user, setActiveTab }: { user: any; setActiveTab
         <Card>
           <div className="p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center"><Sparkles className="w-5 h-5" /></div>
+              <div className="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center"><Sparkles className="w-5 h-5" /></div>
               <div>
                 <div className="font-semibold">Bepul sinov muddati — {user.days_left} kun qoldi</div>
                 <div className="text-sm text-muted-foreground">Davom etish uchun Litsenziya bo'limidan aktivatsiya kodi oling: @{TELEGRAM_HANDLE}</div>
@@ -125,7 +125,7 @@ export function DashboardPanel({ user, setActiveTab }: { user: any; setActiveTab
 }
 
 function AttStat({ label, value, color }: { label: string; value: number; color: string }) {
-  const map: any = { emerald: 'bg-slate-50 text-slate-700 border-slate-200', rose: 'bg-slate-50 text-red-700 border-slate-200', amber: 'bg-slate-50 text-slate-700 border-slate-200' }
+  const map: any = { emerald: 'bg-slate-50 text-indigo-700 border-slate-200', rose: 'bg-slate-50 text-red-700 border-slate-200', amber: 'bg-slate-50 text-indigo-700 border-slate-200' }
   return <div className={`rounded-xl border p-3 text-center ${map[color]}`}><div className="text-2xl font-bold">{value}</div><div className="text-xs font-medium">{label}</div></div>
 }
 function FunnelRow({ label, value, total, color }: { label: string; value: number; total: number; color: string }) {
@@ -200,8 +200,8 @@ function DualBarChart({ data }: { data: { label: string; income: number; expense
       <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ maxHeight: '220px' }}>
         <defs>
           <linearGradient id="incGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#1e293b" stopOpacity="0.2" />
-            <stop offset="100%" stopColor="#1e293b" stopOpacity="0" />
+            <stop offset="0%" stopColor="#4f46e5" stopOpacity="0.2" />
+            <stop offset="100%" stopColor="#4f46e5" stopOpacity="0" />
           </linearGradient>
           <linearGradient id="expGrad" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor="#94a3b8" stopOpacity="0.15" />
@@ -226,13 +226,13 @@ function DualBarChart({ data }: { data: { label: string; income: number; expense
 
         {/* Daromad area + line */}
         <path d={incomeArea} fill="url(#incGrad)" />
-        <path d={incomeLine} fill="none" stroke="#1e293b" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+        <path d={incomeLine} fill="none" stroke="#4f46e5" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
 
         {/* Daromad nuqtalar */}
         {incomePts.map((p, i) => p.val > 0 && (
           <g key={`inc-${i}`}>
-            <circle cx={p.x} cy={p.y} r="3.5" fill="#fff" stroke="#1e293b" strokeWidth="2" />
-            <text x={p.x} y={p.y - 8} fontSize="8" fill="#1e293b" textAnchor="middle" fontWeight="bold">{Math.round(p.val / 1000)}k</text>
+            <circle cx={p.x} cy={p.y} r="3.5" fill="#fff" stroke="#4f46e5" strokeWidth="2" />
+            <text x={p.x} y={p.y - 8} fontSize="8" fill="#4f46e5" textAnchor="middle" fontWeight="bold">{Math.round(p.val / 1000)}k</text>
           </g>
         ))}
 
@@ -252,7 +252,7 @@ function DualBarChart({ data }: { data: { label: string; income: number; expense
       {/* Legenda */}
       <div className="flex items-center gap-4 justify-center mt-2 text-xs">
         <div className="flex items-center gap-1.5">
-          <div className="w-4 h-0.5 rounded bg-slate-800" />
+          <div className="w-4 h-0.5 rounded bg-indigo-600" />
           <span className="text-muted-foreground">Daromad</span>
         </div>
         <div className="flex items-center gap-1.5">
@@ -393,7 +393,7 @@ export function LeadsPanel() {
                   <LeadStatusChip status={s.status} />
                   <button
                     onClick={() => openAcceptModal(s)}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold transition-colors shadow-sm"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold transition-colors shadow-sm"
                     title="Lidni talabalar ro'yxatiga qo'shish"
                   >
                     <CheckCircle className="w-3.5 h-3.5" />
@@ -431,8 +431,8 @@ export function LeadsPanel() {
           {acceptingLead && (
             <div className="rounded-xl bg-slate-50 border border-slate-200 p-3 text-sm">
               <div className="font-semibold text-slate-900">{acceptingLead.full_name}</div>
-              {acceptingLead.phone && <div className="text-slate-700 text-xs mt-0.5">Telefon: {acceptingLead.phone}</div>}
-              {acceptingLead.course && <div className="text-slate-700 text-xs">Qiziqqan kurs: {acceptingLead.course.name}</div>}
+              {acceptingLead.phone && <div className="text-indigo-700 text-xs mt-0.5">Telefon: {acceptingLead.phone}</div>}
+              {acceptingLead.course && <div className="text-indigo-700 text-xs">Qiziqqan kurs: {acceptingLead.course.name}</div>}
             </div>
           )}
 
@@ -470,7 +470,7 @@ export function LeadsPanel() {
             </Field>
           </div>
 
-          <div className="rounded-lg bg-slate-50 border border-slate-200 p-3 text-xs text-slate-700">
+          <div className="rounded-lg bg-slate-50 border border-slate-200 p-3 text-xs text-indigo-700">
             <strong>Eslatma:</strong> Qabul qilingan lid &quot;Talabalar&quot; ro'yxatiga o&apos;tadi va &quot;Lidlar&quot; ro&apos;yxatidan o&apos;chiriladi.
           </div>
 
@@ -489,7 +489,7 @@ export function LeadsPanel() {
   )
 }
 function LeadStatusChip({ status }: { status: string }) {
-  const map: any = { new: { label: 'Yangi', cls: 'bg-slate-100 text-slate-700' }, contacted: { label: 'Bog\'lanilgan', cls: 'bg-slate-100 text-slate-700' }, visited: { label: 'Tashrif', cls: 'bg-slate-100 text-slate-700' }, enrolled: { label: 'Ro\'yxatga olingan', cls: 'bg-slate-100 text-slate-700' }, rejected: { label: 'Rad etilgan', cls: 'bg-red-100 text-red-700' } }
+  const map: any = { new: { label: 'Yangi', cls: 'bg-indigo-100 text-indigo-700' }, contacted: { label: 'Bog\'lanilgan', cls: 'bg-indigo-100 text-indigo-700' }, visited: { label: 'Tashrif', cls: 'bg-indigo-100 text-indigo-700' }, enrolled: { label: 'Ro\'yxatga olingan', cls: 'bg-indigo-100 text-indigo-700' }, rejected: { label: 'Rad etilgan', cls: 'bg-red-100 text-red-700' } }
   const s = map[status] || map.new
   return <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${s.cls}`}>{s.label}</span>
 }
@@ -607,7 +607,7 @@ export function StudentsPanel() {
   )
 }
 function StatusChip({ status }: { status: string }) {
-  const map: any = { active: { label: 'Faol', cls: 'bg-slate-100 text-slate-700' }, paused: { label: 'To\'xtatilgan', cls: 'bg-slate-100 text-slate-700' }, graduated: { label: 'Bitirgan', cls: 'bg-slate-100 text-slate-700' }, left: { label: 'Ketgan', cls: 'bg-red-100 text-red-700' } }
+  const map: any = { active: { label: 'Faol', cls: 'bg-indigo-100 text-indigo-700' }, paused: { label: 'To\'xtatilgan', cls: 'bg-indigo-100 text-indigo-700' }, graduated: { label: 'Bitirgan', cls: 'bg-indigo-100 text-indigo-700' }, left: { label: 'Ketgan', cls: 'bg-red-100 text-red-700' } }
   const s = map[status] || map.active
   return <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${s.cls}`}>{s.label}</span>
 }
