@@ -138,22 +138,80 @@ function FunnelRow({ label, value, total, color }: { label: string; value: numbe
   )
 }
 function DualBarChart({ data }: { data: { label: string; income: number; expense: number }[] }) {
+  if (!data || data.length === 0) {
+    return (
+      <div className="h-40 flex items-center justify-center text-sm text-muted-foreground">
+        Hozircha ma'lumot yo'q
+      </div>
+    )
+  }
   const max = Math.max(...data.flatMap((d) => [d.income, d.expense]), 1)
+  const hasData = data.some((d) => d.income > 0 || d.expense > 0)
+
+  if (!hasData) {
+    return (
+      <div className="h-40 flex flex-col items-center justify-center text-center">
+        <div className="text-sm text-muted-foreground">Hozircha daromad va xarajatlar ma'lumotlari yo'q</div>
+        <div className="text-xs text-muted-foreground/70 mt-1">To'lovlar va xarajatlar qo'shilganda diagramma ko'rinadi</div>
+      </div>
+    )
+  }
+
   return (
-    <div className="flex items-end gap-2 h-40">
-      {data.map((d, i) => (
-        <div key={i} className="flex-1 flex flex-col items-center gap-1.5">
-          <div className="text-[10px] text-muted-foreground font-medium">{d.income > 0 ? Math.round(d.income / 1000) + 'k' : ''}</div>
-          <div className="w-full flex items-end gap-0.5" style={{ height: '100%' }}>
-            <div className="flex-1 bg-muted rounded-t-lg overflow-hidden flex items-end"><motion.div initial={{ height: 0 }} animate={{ height: `${(d.income / max) * 100}%` }} transition={{ duration: 0.6, delay: i * 0.05 }} className="w-full bg-slate-700 rounded-t-lg" /></div>
-            <div className="flex-1 bg-muted rounded-t-lg overflow-hidden flex items-end"><motion.div initial={{ height: 0 }} animate={{ height: `${(d.expense / max) * 100}%` }} transition={{ duration: 0.6, delay: i * 0.05 + 0.1 }} className="w-full bg-slate-400 rounded-t-lg" /></div>
-          </div>
-          <div className="text-[10px] text-muted-foreground">{d.label}</div>
+    <div className="w-full">
+      {/* Diagramma */}
+      <div className="flex items-end gap-3 h-40 px-2">
+        {/* Y-o'qi belgilari */}
+        <div className="flex flex-col justify-between h-full text-[9px] text-muted-foreground/60 pr-1 shrink-0">
+          <span>{Math.round(max / 1000)}k</span>
+          <span>{Math.round(max / 2000)}k</span>
+          <span>0</span>
         </div>
-      ))}
-      <div className="flex items-center gap-4 ml-4 text-xs shrink-0">
+        {/* Bar lar */}
+        {data.map((d, i) => {
+          const incomeHeight = max > 0 ? (d.income / max) * 100 : 0
+          const expenseHeight = max > 0 ? (d.expense / max) * 100 : 0
+          return (
+            <div key={i} className="flex-1 flex flex-col items-center min-w-0">
+              {/* Qiymat yuqorida */}
+              <div className="text-[9px] text-muted-foreground font-medium h-4">
+                {d.income > 0 ? Math.round(d.income / 1000) + 'k' : ''}
+              </div>
+              {/* Bar konteyner */}
+              <div className="w-full flex items-end gap-1 flex-1">
+                {/* Daromad bar */}
+                <div className="flex-1 bg-muted/50 rounded-t-md overflow-hidden flex items-end h-full">
+                  {d.income > 0 && (
+                    <motion.div
+                      initial={{ height: 0 }}
+                      animate={{ height: `${incomeHeight}%` }}
+                      transition={{ duration: 0.6, delay: i * 0.05 }}
+                      className="w-full bg-slate-800 rounded-t-md min-h-[3px]"
+                    />
+                  )}
+                </div>
+                {/* Xarajat bar */}
+                <div className="flex-1 bg-muted/50 rounded-t-md overflow-hidden flex items-end h-full">
+                  {d.expense > 0 && (
+                    <motion.div
+                      initial={{ height: 0 }}
+                      animate={{ height: `${expenseHeight}%` }}
+                      transition={{ duration: 0.6, delay: i * 0.05 + 0.1 }}
+                      className="w-full bg-slate-400 rounded-t-md min-h-[3px]"
+                    />
+                  )}
+                </div>
+              </div>
+              {/* Oy belgisi */}
+              <div className="text-[9px] text-muted-foreground mt-1">{d.label}</div>
+            </div>
+          )
+        })}
+      </div>
+      {/* Legenda */}
+      <div className="flex items-center gap-4 justify-center mt-3 text-xs">
         <div className="flex items-center gap-1.5">
-          <div className="w-3 h-3 rounded bg-slate-700" />
+          <div className="w-3 h-3 rounded bg-slate-800" />
           <span className="text-muted-foreground">Daromad</span>
         </div>
         <div className="flex items-center gap-1.5">
