@@ -132,7 +132,7 @@ create table if not exists public.leads (
     phone         text,
     source        text,                                  -- reklama, tanish, ijtimoiy tarmoq
     interested_course_id uuid references public.courses(id) on delete set null,
-    status        text not null default 'new' check (status in ('new','contacted','visited','enrolled','rejected')),
+    status        text not null default 'new' check (status in ('new','contacted','visited','enrolled','trial','rejected')),
     notes         text,
     created_at    timestamptz not null default now(),
     updated_at    timestamptz not null default now()

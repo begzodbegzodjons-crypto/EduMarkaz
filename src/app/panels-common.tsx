@@ -5,12 +5,41 @@ import {
   Plus, Trash2, Pencil, Search, X, Spinner,
 } from '@/components/icons'
 
+<<<<<<< HEAD
 export function Card({ children, className = '', color }: { children: React.ReactNode; className?: string; color?: string }) {
   return <div className={`bg-card rounded-2xl border border-border shadow-sm overflow-hidden ${className}`}>{children}</div>
 }
 export function CardHeader({ title, subtitle, action }: { title: string; subtitle?: string; action?: React.ReactNode }) {
   return (
     <div className="px-5 py-4 border-b border-border flex items-center justify-between">
+=======
+export function Card({ children, className = '', color = 'blue' }: { children: React.ReactNode; className?: string; color?: string }) {
+  const colorMap: any = {
+    blue:   { border: 'border-blue-300',     glow: 'rgba(59,130,246,0.15)',   grad: 'from-blue-100/50' },
+    sky:    { border: 'border-sky-300',      glow: 'rgba(14,165,233,0.15)',   grad: 'from-sky-100/50' },
+    cyan:   { border: 'border-cyan-300',     glow: 'rgba(6,182,212,0.15)',    grad: 'from-cyan-100/50' },
+    amber:  { border: 'border-amber-300',    glow: 'rgba(245,158,11,0.15)',   grad: 'from-amber-100/50' },
+    rose:   { border: 'border-rose-300',     glow: 'rgba(244,63,94,0.15)',    grad: 'from-rose-100/50' },
+    violet: { border: 'border-violet-300',   glow: 'rgba(139,92,246,0.15)',   grad: 'from-violet-100/50' },
+    indigo: { border: 'border-indigo-300',   glow: 'rgba(99,102,241,0.15)',   grad: 'from-indigo-100/50' },
+    slate:  { border: 'border-slate-300',    glow: 'rgba(100,116,139,0.15)',  grad: 'from-slate-100/50' },
+  }
+  const c = colorMap[color] || colorMap.blue
+  return (
+    <div
+      className={`relative bg-card rounded-2xl border-2 ${c.border} shadow-md overflow-hidden card-shimmer-wrap bg-gradient-to-br ${c.grad} to-transparent ${className}`}
+      style={{ boxShadow: `0 4px 24px -6px ${c.glow}` }}
+    >
+      {/* Yaltirash nur effekti */}
+      <div className="card-shimmer" style={{ '--shimmer-color': c.glow.replace('0.15', '0.2') } as any} />
+      <div className="relative z-10">{children}</div>
+    </div>
+  )
+}
+export function CardHeader({ title, subtitle, action }: { title: string; subtitle?: string; action?: React.ReactNode }) {
+  return (
+    <div className="px-5 py-4 border-b border-border/40 flex items-center justify-between relative">
+>>>>>>> 60c09f695ed8547d48c6b25600dcf641241250cd
       <div>
         <h3 className="font-semibold text-base">{title}</h3>
         {subtitle && <p className="text-xs text-muted-foreground mt-0.5">{subtitle}</p>}
@@ -19,7 +48,11 @@ export function CardHeader({ title, subtitle, action }: { title: string; subtitl
     </div>
   )
 }
+<<<<<<< HEAD
 export function PanelLoader() { return <div className="flex items-center justify-center py-20"><Spinner className="w-8 h-8 text-muted-foreground" /></div> }
+=======
+export function PanelLoader() { return <div className="flex items-center justify-center py-20"><Spinner className="w-8 h-8 text-blue-500" /></div> }
+>>>>>>> 60c09f695ed8547d48c6b25600dcf641241250cd
 export function EmptyState({ title, description, action }: { title: string; description?: string; action?: React.ReactNode }) {
   return (
     <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
@@ -52,7 +85,11 @@ export function Modal({ open, onClose, title, children, size = 'md' }: { open: b
   )
 }
 export function PrimaryButton({ children, onClick, type = 'button', disabled, className = '' }: { children: React.ReactNode; onClick?: () => void; type?: 'button' | 'submit'; disabled?: boolean; className?: string }) {
+<<<<<<< HEAD
   return <button type={type} onClick={onClick} disabled={disabled} className={`inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-foreground text-background text-sm font-semibold hover:bg-foreground/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${className}`}>{children}</button>
+=======
+  return <button type={type} onClick={onClick} disabled={disabled} className={`inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-blue-500 to-sky-600 text-white text-sm font-semibold shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed ${className}`}>{children}</button>
+>>>>>>> 60c09f695ed8547d48c6b25600dcf641241250cd
 }
 export function GhostButton({ children, onClick, className = '' }: { children: React.ReactNode; onClick?: () => void; className?: string }) {
   return <button onClick={onClick} className={`inline-flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition ${className}`}>{children}</button>
@@ -68,14 +105,25 @@ export function Field({ label, children, labelSize = 'sm' }: { label: string; ch
     </div>
   )
 }
+<<<<<<< HEAD
 export function Avatar({ name, color }: { name: string; color?: string }) {
   const initials = (name || '?').split(' ').slice(0, 2).map((s) => s[0]?.toUpperCase()).join('')
   return <div className="w-10 h-10 rounded-xl bg-muted text-foreground flex items-center justify-center font-semibold text-sm shrink-0">{initials}</div>
+=======
+export function Avatar({ name, color = 'blue' }: { name: string; color?: string }) {
+  const initials = (name || '?').split(' ').slice(0, 2).map((s) => s[0]?.toUpperCase()).join('')
+  const colorMap: any = {
+    blue: 'from-blue-400 to-sky-500', cyan: 'from-cyan-500 to-sky-600', amber: 'from-amber-500 to-orange-600',
+    violet: 'from-violet-500 to-purple-600', blue: 'from-blue-500 to-indigo-600', rose: 'from-rose-500 to-pink-600',
+  }
+  return <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${colorMap[color] || colorMap.blue} text-white flex items-center justify-center font-semibold text-sm shrink-0`}>{initials}</div>
+>>>>>>> 60c09f695ed8547d48c6b25600dcf641241250cd
 }
 export function Row({ label, value }: { label: string; value: string }) {
   return <div className="flex justify-between gap-2"><span className="text-muted-foreground shrink-0">{label}:</span><span className="font-medium text-right truncate">{value}</span></div>
 }
 export function StatCard({ label, value, sub, icon: Icon, color, trend, onClick }: { label: string; value: any; sub?: string; icon: any; color: string; trend?: 'up' | 'down'; onClick?: () => void }) {
+<<<<<<< HEAD
   const clickable = !!onClick
   return (
     <div
@@ -83,12 +131,43 @@ export function StatCard({ label, value, sub, icon: Icon, color, trend, onClick 
       className={`bg-card rounded-2xl border border-border p-4 shadow-sm ${clickable ? 'cursor-pointer hover:bg-muted/50 transition-colors' : ''}`}
     >
       <div className="flex items-start justify-between">
+=======
+  // Har bir rang uchun: gradient, shadow, glow, pastel bg, border, icon bg
+  const colorMap: any = {
+    blue:    { grad: 'from-blue-500 to-blue-600',     shadow: 'shadow-blue-500/30',    glow: 'rgba(59,130,246,0.4)',   bg: 'bg-blue-50',    border: 'border-blue-200',    text: 'text-blue-600' },
+    sky:     { grad: 'from-sky-500 to-sky-600',       shadow: 'shadow-sky-500/30',     glow: 'rgba(14,165,233,0.4)',   bg: 'bg-sky-50',     border: 'border-sky-200',     text: 'text-sky-600' },
+    cyan:    { grad: 'from-cyan-500 to-cyan-600',     shadow: 'shadow-cyan-500/30',    glow: 'rgba(6,182,212,0.4)',    bg: 'bg-cyan-50',    border: 'border-cyan-200',    text: 'text-cyan-600' },
+    amber:   { grad: 'from-amber-500 to-orange-600',  shadow: 'shadow-amber-500/30',   glow: 'rgba(245,158,11,0.4)',   bg: 'bg-amber-50',   border: 'border-amber-200',   text: 'text-amber-600' },
+    rose:    { grad: 'from-rose-500 to-pink-600',     shadow: 'shadow-rose-500/30',    glow: 'rgba(244,63,94,0.4)',    bg: 'bg-rose-50',    border: 'border-rose-200',    text: 'text-rose-600' },
+    violet:  { grad: 'from-violet-500 to-purple-600', shadow: 'shadow-violet-500/30',  glow: 'rgba(139,92,246,0.4)',   bg: 'bg-violet-50',  border: 'border-violet-200',  text: 'text-violet-600' },
+    indigo:  { grad: 'from-indigo-500 to-indigo-600', shadow: 'shadow-indigo-500/30',  glow: 'rgba(99,102,241,0.4)',   bg: 'bg-indigo-50',  border: 'border-indigo-200',  text: 'text-indigo-600' },
+  }
+  const c = colorMap[color] || colorMap.blue
+  const clickable = !!onClick
+  return (
+    <motion.div
+      whileHover={clickable ? { y: -4, scale: 1.03 } : { y: -2 }}
+      onClick={onClick}
+      className={`relative overflow-hidden rounded-2xl border ${c.border} ${c.bg} p-4 shadow-md ${c.shadow} ${clickable ? 'cursor-pointer transition-all' : ''}`}
+      style={{ boxShadow: `0 4px 20px -6px ${c.glow}` }}
+    >
+      {/* Yaltirab turuvchi nur effekti */}
+      <div className="stat-card-shimmer" style={{ '--shimmer-color': c.glow } as any} />
+      {/* Kontent */}
+      <div className="relative z-10 flex items-start justify-between">
+>>>>>>> 60c09f695ed8547d48c6b25600dcf641241250cd
         <div className="min-w-0">
           <div className="text-xs text-muted-foreground font-medium">{label}</div>
-          <div className="text-xl lg:text-2xl font-bold mt-1 truncate">{value}</div>
+          <div className={`text-xl lg:text-2xl font-bold mt-1 truncate ${c.text}`}>{value}</div>
           {sub && <div className="text-[10px] text-muted-foreground mt-0.5">{sub}</div>}
         </div>
+<<<<<<< HEAD
         <div className="shrink-0 w-9 h-9 rounded-xl bg-muted flex items-center justify-center"><Icon className="w-4 h-4 text-muted-foreground" /></div>
+=======
+        <div className={`shrink-0 w-9 h-9 rounded-xl bg-gradient-to-br ${c.grad} flex items-center justify-center shadow-lg ${c.shadow}`}>
+          <Icon className="w-4 h-4 text-white" />
+        </div>
+>>>>>>> 60c09f695ed8547d48c6b25600dcf641241250cd
       </div>
     </div>
   )

@@ -16,6 +16,7 @@ import { TeachersPanel, GroupsPanel, CoursesPanel, RatingsPanel } from './panels
 import { AttendancePanel, AttendanceReportPanel, TeacherAttendancePanel } from './panels-3'
 import { PaymentsPanel, FinancePanel, ExpensesPanel, ReportsPanel } from './panels-4'
 import { RemindersPanel, SettingsPanel, TelegramPanel, LicensePanel } from './panels-5'
+import { ForestClock } from '@/components/ForestClock'
 import {
   SchedulePanel, ExamsPanel, CertificatesPanel, DiscountsPanel, DebtsPanel,
   TeacherPayoutsPanel, NotificationsPanel, ReportsExportPanel,
@@ -27,28 +28,28 @@ const TELEGRAM_URL = process.env.NEXT_PUBLIC_TELEGRAM_URL || `https://t.me/${TEL
 const ADMIN_URL_KEYWORD = process.env.NEXT_PUBLIC_ADMIN_URL || 'adminkod'
 
 const NAV_SECTIONS = [
-  { title: 'Boshqaruv', items: [{ id: 'dashboard', label: 'Boshqaruv paneli', icon: LayoutDashboard }] },
-  { title: 'Sotuv va Talabalar', items: [
+  { title: 'Boshqaruv', color: 'blue', items: [{ id: 'dashboard', label: 'Boshqaruv paneli', icon: LayoutDashboard }] },
+  { title: 'Sotuv va Talabalar', color: 'amber', items: [
     { id: 'leads', label: 'Lidlar', icon: Sparkles },
     { id: 'students', label: 'Talabalar', icon: Users },
   ] },
-  { title: 'O\'qitish', items: [
+  { title: 'O\'qitish', color: 'cyan', items: [
     { id: 'teachers', label: 'O\'qituvchilar', icon: UserCog },
     { id: 'groups', label: 'Guruhlar', icon: Users },
     { id: 'courses', label: 'Kurslar', icon: BookOpen },
     { id: 'ratings', label: 'Reyting', icon: Star },
   ] },
-  { title: 'Davomat', items: [
+  { title: 'Davomat', color: 'violet', items: [
     { id: 'attendance', label: 'Davomat', icon: ClipboardCheck },
     { id: 'attendance-report', label: 'Davomatlar hisoboti', icon: BarChart3 },
     { id: 'teacher-attendance', label: 'Ustozlar davomati', icon: UserCog },
   ] },
-  { title: 'Dars va Imtihon', items: [
+  { title: 'Dars va Imtihon', color: 'sky', items: [
     { id: 'schedule', label: 'Dars jadvali', icon: Calendar },
     { id: 'exams', label: 'Imtihonlar', icon: FileText },
     { id: 'certificates', label: 'Sertifikatlar', icon: Award },
   ] },
-  { title: 'Moliya', items: [
+  { title: 'Moliya', color: 'rose', items: [
     { id: 'payments', label: 'To\'lovlar', icon: Wallet },
     { id: 'finance', label: 'Moliya', icon: TrendingUp },
     { id: 'expenses', label: 'Xarajatlar', icon: TrendingDown },
@@ -58,15 +59,15 @@ const NAV_SECTIONS = [
     { id: 'reports', label: 'Hisobotlar', icon: FileText },
     { id: 'reports-export', label: 'Eksport', icon: FileText },
   ] },
-  { title: 'Aloqa', items: [
+  { title: 'Aloqa', color: 'indigo', items: [
     { id: 'notifications', label: 'Ota-onaga xabar', icon: Bell },
   ] },
-  { title: 'Tizim', items: [
+  { title: 'Tizim', color: 'slate', items: [
     { id: 'reminders', label: 'Eslatmalar', icon: Bell },
     { id: 'settings', label: 'Sozlamalar', icon: Settings },
     { id: 'telegram', label: 'Telegram', icon: TelegramIcon },
     { id: 'license', label: 'Litsenziya', icon: KeyRound },
-  ] },
+  ]},
 ]
 
 export default function Home() {
@@ -109,11 +110,11 @@ export default function Home() {
 
 function FullScreenLoader() {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-emerald-50 via-white to-teal-50">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 via-white to-sky-50">
       <AuroraBackground />
       <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="relative z-10 flex flex-col items-center gap-4">
-        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-xl shadow-emerald-500/30"><Spinner className="w-8 h-8 text-white" /></div>
-        <div className="text-emerald-700 font-medium">Yuklanmoqda...</div>
+        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-sky-600 flex items-center justify-center shadow-xl shadow-blue-500/30"><Spinner className="w-8 h-8 text-white" /></div>
+        <div className="text-blue-700 font-medium">Yuklanmoqda...</div>
       </motion.div>
     </div>
   )
@@ -122,8 +123,8 @@ function FullScreenLoader() {
 export function AuroraBackground() {
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      <div className="aurora-blob absolute -top-40 -left-40 w-[40rem] h-[40rem] rounded-full bg-emerald-300/30 blur-3xl" />
-      <div className="aurora-blob absolute top-1/2 -right-40 w-[35rem] h-[35rem] rounded-full bg-teal-300/25 blur-3xl" style={{ animationDelay: '4s' }} />
+      <div className="aurora-blob absolute -top-40 -left-40 w-[40rem] h-[40rem] rounded-full bg-blue-300/30 blur-3xl" />
+      <div className="aurora-blob absolute top-1/2 -right-40 w-[35rem] h-[35rem] rounded-full bg-sky-300/25 blur-3xl" style={{ animationDelay: '4s' }} />
       <div className="aurora-blob absolute -bottom-40 left-1/3 w-[30rem] h-[30rem] rounded-full bg-cyan-200/20 blur-3xl" style={{ animationDelay: '8s' }} />
     </div>
   )
@@ -157,13 +158,13 @@ function AuthScreen({ mode, onModeChange, onSuccess }: { mode: 'login' | 'regist
   }
 
   return (
-    <div className="min-h-screen flex items-stretch bg-gradient-to-br from-emerald-50 via-white to-teal-50 relative overflow-hidden">
+    <div className="min-h-screen flex items-stretch bg-gradient-to-br from-blue-50 via-white to-sky-50 relative overflow-hidden">
       <AuroraBackground />
       <div className="relative z-10 w-full grid lg:grid-cols-2 items-stretch">
         <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.6 }} className="hidden lg:flex flex-col gap-7 p-12 xl:p-16 2xl:p-20 justify-center">
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-xl shadow-emerald-500/30"><GraduationCap className="w-10 h-10 text-white" /></div>
-            <div><div className="text-3xl font-bold tracking-tight">EduMarkaz</div><div className="text-base text-emerald-600 font-medium">ERP Boshqaruv Tizimi</div></div>
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-sky-600 flex items-center justify-center shadow-xl shadow-blue-500/30"><GraduationCap className="w-10 h-10 text-white" /></div>
+            <div><div className="text-3xl font-bold tracking-tight">EduMarkaz</div><div className="text-base text-blue-600 font-medium">ERP Boshqaruv Tizimi</div></div>
           </div>
           <h1 className="text-5xl xl:text-6xl 2xl:text-7xl font-bold leading-tight tracking-tight">O'quv markazingizni <span className="shimmer-text">bir tizimda</span> boshqaring</h1>
           <p className="text-muted-foreground text-xl leading-relaxed">Talabalar, guruhlar, o'qituvchilar, to'lovlar, davomat va statistika — barchasi bir joyda. Zamonaviy dizayn, tezkor ishlash va ishonchli ma'lumotlar bazasi.</p>
@@ -173,21 +174,21 @@ function AuthScreen({ mode, onModeChange, onSuccess }: { mode: 'login' | 'regist
             <FeaturePill icon="calendar" label="Dars jadvali" />
             <FeaturePill icon="chart" label="Statistika & Hisobot" />
           </div>
-          <div className="mt-6 p-6 rounded-2xl bg-emerald-50/80 border border-emerald-200">
-            <div className="text-base text-emerald-700 font-bold mb-2 tracking-wide">BEPUL SINOV</div>
-            <div className="text-lg text-emerald-900 leading-relaxed">10 kun davomida barcha funksiyalar bilan bepul foydalaning. Karta talab qilinmaydi.</div>
+          <div className="mt-6 p-6 rounded-2xl bg-blue-50/80 border border-blue-200">
+            <div className="text-base text-blue-700 font-bold mb-2 tracking-wide">BEPUL SINOV</div>
+            <div className="text-lg text-blue-900 leading-relaxed">10 kun davomida barcha funksiyalar bilan bepul foydalaning. Karta talab qilinmaydi.</div>
           </div>
         </motion.div>
 
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.1 }} className="w-full flex items-center justify-center p-6 sm:p-10 lg:p-12 xl:p-16 2xl:p-20">
-          <div className="glass rounded-3xl shadow-2xl shadow-emerald-900/10 border border-emerald-100/50 p-8 sm:p-10 lg:p-10 xl:p-12 w-full max-w-2xl">
+          <div className="glass rounded-3xl shadow-2xl shadow-blue-900/10 border border-blue-100/50 p-8 sm:p-10 lg:p-10 xl:p-12 w-full max-w-2xl">
             <div className="lg:hidden flex items-center gap-3 mb-8">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center"><GraduationCap className="w-7 h-7 text-white" /></div>
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-sky-600 flex items-center justify-center"><GraduationCap className="w-7 h-7 text-white" /></div>
               <div className="text-2xl font-bold">EduMarkaz</div>
             </div>
             <div className="flex p-1.5 bg-muted rounded-2xl mb-8">
-              <button type="button" onClick={() => onModeChange('login')} className={`flex-1 py-3.5 text-lg font-semibold rounded-xl transition-all ${mode === 'login' ? 'bg-white text-emerald-700 shadow' : 'text-muted-foreground'}`}>Tizimga kirish</button>
-              <button type="button" onClick={() => onModeChange('register')} className={`flex-1 py-3.5 text-lg font-semibold rounded-xl transition-all ${mode === 'register' ? 'bg-white text-emerald-700 shadow' : 'text-muted-foreground'}`}>Ro'yxatdan o'tish</button>
+              <button type="button" onClick={() => onModeChange('login')} className={`flex-1 py-3.5 text-lg font-semibold rounded-xl transition-all ${mode === 'login' ? 'bg-white text-blue-700 shadow' : 'text-muted-foreground'}`}>Tizimga kirish</button>
+              <button type="button" onClick={() => onModeChange('register')} className={`flex-1 py-3.5 text-lg font-semibold rounded-xl transition-all ${mode === 'register' ? 'bg-white text-blue-700 shadow' : 'text-muted-foreground'}`}>Ro'yxatdan o'tish</button>
             </div>
             <AnimatePresence mode="wait">
               {mode === 'login' ? (
@@ -197,7 +198,7 @@ function AuthScreen({ mode, onModeChange, onSuccess }: { mode: 'login' | 'regist
                   {err && <ErrorBanner message={err} />}
                   <SubmitButton loading={loading} label="Kirish" size="lg" />
                   <div className="text-center">
-                    <button type="button" onClick={() => setForgotOpen(true)} className="text-sm text-emerald-600 hover:text-emerald-700 hover:underline">Parolni unutdingizmi?</button>
+                    <button type="button" onClick={() => setForgotOpen(true)} className="text-sm text-blue-600 hover:text-blue-700 hover:underline">Parolni unutdingizmi?</button>
                   </div>
                 </motion.form>
               ) : (
@@ -216,7 +217,7 @@ function AuthScreen({ mode, onModeChange, onSuccess }: { mode: 'login' | 'regist
               )}
             </AnimatePresence>
             <div className="mt-8 pt-6 border-t border-border/50 text-center">
-              <a href={TELEGRAM_URL} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 text-base text-muted-foreground hover:text-emerald-600 transition"><TelegramIcon className="w-5 h-5" />Yordam: @{TELEGRAM_HANDLE}</a>
+              <a href={TELEGRAM_URL} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 text-base text-muted-foreground hover:text-blue-600 transition"><TelegramIcon className="w-5 h-5" />Yordam: @{TELEGRAM_HANDLE}</a>
             </div>
           </div>
         </motion.div>
@@ -230,8 +231,8 @@ function FeaturePill({ icon, label }: { icon: string; label: string }) {
   const map: any = { users: Users, payments: Wallet, calendar: Calendar, chart: BarChart3 }
   const Icon = map[icon] || Users
   return (
-    <div className="flex items-center gap-3.5 p-4 rounded-2xl bg-white/70 border border-emerald-100 backdrop-blur">
-      <div className="w-11 h-11 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-700"><Icon className="w-5 h-5" /></div>
+    <div className="flex items-center gap-3.5 p-4 rounded-2xl bg-white/70 border border-blue-100 backdrop-blur">
+      <div className="w-11 h-11 rounded-xl bg-blue-100 flex items-center justify-center text-blue-700"><Icon className="w-5 h-5" /></div>
       <span className="text-base font-medium">{label}</span>
     </div>
   )
@@ -292,8 +293,8 @@ function ForgotPasswordModal({ open, onClose }: { open: boolean; onClose: () => 
                     <p className="text-sm text-muted-foreground">Email manzilingizni kiriting. Sizga tiklash kodi yuboriladi (admin @norinkomp orqali).</p>
                     <Field label="Email"><input type="email" className="erp-input" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="markaz@example.com" /></Field>
                     {err && <div className="px-4 py-2.5 rounded-xl bg-red-50 border border-red-200 text-sm text-red-700">{err}</div>}
-                    {msg && <div className="px-4 py-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-sm text-emerald-700">{msg}</div>}
-                    <button onClick={handleRequest} disabled={loading} className="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-semibold disabled:opacity-50 flex items-center justify-center gap-2">
+                    {msg && <div className="px-4 py-2.5 rounded-xl bg-blue-50 border border-blue-200 text-sm text-blue-700">{msg}</div>}
+                    <button onClick={handleRequest} disabled={loading} className="w-full py-3 rounded-xl bg-gradient-to-r from-blue-500 to-sky-600 text-white font-semibold disabled:opacity-50 flex items-center justify-center gap-2">
                       {loading && <Spinner className="w-4 h-4" />}{loading ? 'Yuborilmoqda...' : 'Kod so\'rash'}
                     </button>
                   </>
@@ -304,8 +305,8 @@ function ForgotPasswordModal({ open, onClose }: { open: boolean; onClose: () => 
                     <Field label="Tiklash kodi"><input className="erp-input font-mono tracking-wider text-center" value={token} onChange={(e) => setToken(e.target.value)} placeholder="123456" maxLength={6} /></Field>
                     <Field label="Yangi parol"><input type="password" className="erp-input" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="••••••••" /></Field>
                     {err && <div className="px-4 py-2.5 rounded-xl bg-red-50 border border-red-200 text-sm text-red-700">{err}</div>}
-                    {msg && <div className="px-4 py-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-sm text-emerald-700 flex items-center gap-2"><CheckCircle className="w-4 h-4" /> {msg}</div>}
-                    <button onClick={handleReset} disabled={loading} className="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-semibold disabled:opacity-50 flex items-center justify-center gap-2">
+                    {msg && <div className="px-4 py-2.5 rounded-xl bg-blue-50 border border-blue-200 text-sm text-blue-700 flex items-center gap-2"><CheckCircle className="w-4 h-4" /> {msg}</div>}
+                    <button onClick={handleReset} disabled={loading} className="w-full py-3 rounded-xl bg-gradient-to-r from-blue-500 to-sky-600 text-white font-semibold disabled:opacity-50 flex items-center justify-center gap-2">
                       {loading && <Spinner className="w-4 h-4" />}{loading ? 'O\'zgartirilmoqda...' : 'Parolni o\'zgartirish'}
                     </button>
                     <button onClick={() => setStep(1)} className="w-full text-center text-xs text-muted-foreground hover:text-foreground">← Orqaga</button>
@@ -329,7 +330,7 @@ export function ErrorBanner({ message }: { message: string }) {
 export function SubmitButton({ loading, label, icon, size = 'md' }: { loading: boolean; label: string; icon?: React.ReactNode; size?: 'md' | 'lg' }) {
   const pad = size === 'lg' ? 'py-4 text-lg' : 'py-3 text-sm'
   return (
-    <button type="submit" disabled={loading} className={`w-full ${pad} rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-semibold shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2`}>
+    <button type="submit" disabled={loading} className={`w-full ${pad} rounded-xl bg-gradient-to-r from-blue-500 to-sky-600 text-white font-semibold shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2`}>
       {loading ? <Spinner className="w-5 h-5" /> : icon}{loading ? 'Biroz kuting...' : label}
     </button>
   )
@@ -355,10 +356,10 @@ function BlockedScreen({ user, onActivated, onLogout }: { user: PublicUser; onAc
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-950 relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-950 relative overflow-hidden">
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="aurora-blob absolute -top-40 -left-40 w-[40rem] h-[40rem] rounded-full bg-emerald-500/20 blur-3xl" />
-        <div className="aurora-blob absolute top-1/2 -right-40 w-[35rem] h-[35rem] rounded-full bg-teal-500/15 blur-3xl" style={{ animationDelay: '4s' }} />
+        <div className="aurora-blob absolute -top-40 -left-40 w-[40rem] h-[40rem] rounded-full bg-blue-500/20 blur-3xl" />
+        <div className="aurora-blob absolute top-1/2 -right-40 w-[35rem] h-[35rem] rounded-full bg-sky-500/15 blur-3xl" style={{ animationDelay: '4s' }} />
       </div>
       <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="relative z-10 w-full max-w-md">
         <div className="glass rounded-3xl shadow-2xl border border-white/10 p-8 backdrop-blur-xl">
@@ -383,11 +384,11 @@ function BlockedScreen({ user, onActivated, onLogout }: { user: PublicUser; onAc
           <form onSubmit={handleActivate} className="space-y-4">
             <div>
               <label className="block text-xs font-semibold text-slate-300 mb-2">AKTIVATSIYA KODI</label>
-              <input value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} placeholder="XXXX-XXXX-XXXX-XXXX-XXXX-XXXX" className="w-full px-4 py-3 rounded-xl bg-white/5 border-2 border-white/10 text-white font-mono tracking-wider text-center focus:bg-white/10 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/30 outline-none transition" required />
+              <input value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} placeholder="XXXX-XXXX-XXXX-XXXX-XXXX-XXXX" className="w-full px-4 py-3 rounded-xl bg-white/5 border-2 border-white/10 text-white font-mono tracking-wider text-center focus:bg-white/10 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/30 outline-none transition" required />
             </div>
             {err && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="px-4 py-2.5 rounded-xl bg-red-500/20 border border-red-500/30 text-sm text-red-200">{err}</motion.div>}
-            {success && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="px-4 py-2.5 rounded-xl bg-emerald-500/20 border border-emerald-500/30 text-sm text-emerald-200 flex items-center gap-2"><CheckCircle className="w-4 h-4" /> {success}</motion.div>}
-            <button type="submit" disabled={loading} className="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-semibold shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 flex items-center justify-center gap-2">
+            {success && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="px-4 py-2.5 rounded-xl bg-blue-500/20 border border-blue-500/30 text-sm text-blue-200 flex items-center gap-2"><CheckCircle className="w-4 h-4" /> {success}</motion.div>}
+            <button type="submit" disabled={loading} className="w-full py-3 rounded-xl bg-gradient-to-r from-blue-500 to-sky-600 text-white font-semibold shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 flex items-center justify-center gap-2">
               {loading ? <Spinner className="w-4 h-4" /> : <KeyRound className="w-4 h-4" />}
               {loading ? 'Tekshirilmoqda...' : 'Aktivlashtirish'}
             </button>
@@ -452,7 +453,7 @@ function AppShell({ user, onRefresh, onLogout }: { user: PublicUser; onRefresh: 
   }
 
   return (
-    <div className="min-h-screen flex bg-gradient-to-br from-emerald-50/30 via-background to-teal-50/20">
+    <div className="min-h-screen flex bg-gradient-to-br from-blue-50/30 via-background to-sky-50/20">
       <aside className="hidden lg:flex w-64 flex-col bg-sidebar text-sidebar-foreground shrink-0"><SidebarContent user={user} activeTab={activeTab} setActiveTab={setActiveTab} onLogout={onLogout} /></aside>
       <AnimatePresence>
         {mobileNav && (
@@ -465,16 +466,27 @@ function AppShell({ user, onRefresh, onLogout }: { user: PublicUser; onRefresh: 
         )}
       </AnimatePresence>
       <main className="flex-1 flex flex-col min-w-0">
-        <header className="sticky top-0 z-30 glass border-b border-border/40 px-4 lg:px-8 py-3.5 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+        <header className="sticky top-0 z-30 glass border-b border-border/40 px-4 lg:px-8 py-3 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 shrink-0">
             <button onClick={() => setMobileNav(true)} className="lg:hidden p-2 rounded-lg hover:bg-muted"><Menu className="w-5 h-5" /></button>
-            <div><div className="text-xs text-muted-foreground">Assalomu alaykum,</div><div className="font-semibold text-sm">{user.full_name}</div></div>
+            <div>
+              <div className="text-xs text-muted-foreground">Assalomu alaykum,</div>
+              <div className="font-semibold text-sm">{user.center_name || user.full_name}</div>
+            </div>
           </div>
-          <div className="flex items-center gap-3">
+          {/* === Zamonaviy soat (o'rtonda, kattaroq) === */}
+          <div className="hidden md:flex flex-1 justify-center">
+            <ForestClock />
+          </div>
+          <div className="flex items-center gap-3 shrink-0">
             <StatusBadge user={user} />
             <button onClick={onLogout} className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition"><LogOut className="w-3.5 h-3.5" /> Chiqish</button>
           </div>
         </header>
+        {/* Mobil versiyada soat header ostida */}
+        <div className="md:hidden px-4 pt-3 flex justify-center">
+          <ForestClock />
+        </div>
         <div className="flex-1 p-4 lg:p-8">
           <AnimatePresence mode="wait">
             <motion.div key={activeTab} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.2 }}>
@@ -484,7 +496,7 @@ function AppShell({ user, onRefresh, onLogout }: { user: PublicUser; onRefresh: 
         </div>
         <footer className="px-4 lg:px-8 py-4 text-center text-xs text-muted-foreground border-t border-border/40">
           <span>EduMarkaz ERP v2.0 • </span>
-          <a href={TELEGRAM_URL} target="_blank" rel="noreferrer" className="hover:text-emerald-600 transition inline-flex items-center gap-1"><TelegramIcon className="w-3 h-3" /> @{TELEGRAM_HANDLE}</a>
+          <a href={TELEGRAM_URL} target="_blank" rel="noreferrer" className="hover:text-blue-600 transition inline-flex items-center gap-1"><TelegramIcon className="w-3 h-3" /> @{TELEGRAM_HANDLE}</a>
         </footer>
       </main>
     </div>
@@ -496,10 +508,11 @@ function SidebarContent({ user, activeTab, setActiveTab, onLogout }: { user: Pub
     <>
       <div className="p-5 border-b border-sidebar-border/50">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center shadow-lg shadow-emerald-500/20"><GraduationCap className="w-6 h-6 text-white" /></div>
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-400 to-sky-500 flex items-center justify-center shadow-lg shadow-blue-500/20"><GraduationCap className="w-6 h-6 text-white" /></div>
           <div><div className="font-bold text-sidebar-foreground">EduMarkaz</div><div className="text-[10px] text-sidebar-foreground/60">{user.center_name}</div></div>
         </div>
       </div>
+<<<<<<< HEAD
       <nav className="flex-1 p-3 space-y-4 overflow-y-auto">
         {NAV_SECTIONS.map((section, si) => (
           <div key={si}>
@@ -514,15 +527,49 @@ function SidebarContent({ user, activeTab, setActiveTab, onLogout }: { user: Pub
                   </button>
                 )
               })}
+=======
+      <nav className="flex-1 p-3 space-y-3 overflow-y-auto">
+        {NAV_SECTIONS.map((section, si) => {
+          const sectionColors: any = {
+            blue: 'bg-blue-100/80 border-blue-300/70',
+            amber: 'bg-amber-100/80 border-amber-300/70',
+            cyan: 'bg-cyan-100/80 border-cyan-300/70',
+            violet: 'bg-violet-100/80 border-violet-300/70',
+            sky: 'bg-sky-100/80 border-sky-300/70',
+            rose: 'bg-rose-100/80 border-rose-300/70',
+            indigo: 'bg-indigo-100/80 border-indigo-300/70',
+            slate: 'bg-slate-200/80 border-slate-400/70',
+          }
+          const iconColors: any = {
+            blue: 'text-blue-700', amber: 'text-amber-700', cyan: 'text-cyan-700',
+            violet: 'text-violet-700', sky: 'text-sky-700', rose: 'text-rose-700',
+            indigo: 'text-indigo-700', slate: 'text-slate-700',
+          }
+          const sc = section.color || 'blue'
+          return (
+            <div key={si} className={`rounded-xl border p-2.5 ${sectionColors[sc] || sectionColors.blue}`}>
+              <div className={`text-[11px] font-bold uppercase tracking-wider px-2 mb-2 ${iconColors[sc] || 'text-blue-700'}`}>{section.title}</div>
+              <div className="space-y-1">
+                {section.items.map((item) => {
+                  const Icon = item.icon
+                  const isActive = activeTab === item.id
+                  return (
+                    <button key={item.id} onClick={() => setActiveTab(item.id)} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[15px] font-semibold transition-all ${isActive ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30' : 'text-black hover:bg-white/80 hover:text-black'}`}>
+                      <Icon className="w-[18px] h-[18px] shrink-0" /><span className="truncate">{item.label}</span>{isActive && <ChevronRight className="w-4 h-4 ml-auto" />}
+                    </button>
+                  )
+                })}
+              </div>
+>>>>>>> 60c09f695ed8547d48c6b25600dcf641241250cd
             </div>
-          </div>
-        ))}
+          )
+        })}
       </nav>
       <div className="p-3 border-t border-sidebar-border/50">
         <div className="px-3 py-2 mb-2 rounded-xl bg-sidebar-accent/50">
           <div className="flex items-center gap-2 text-xs">
             {user.status === 'trial' && <Sparkles className="w-3.5 h-3.5 text-amber-400" />}
-            {user.status === 'active' && <CheckCircle className="w-3.5 h-3.5 text-emerald-400" />}
+            {user.status === 'active' && <CheckCircle className="w-3.5 h-3.5 text-blue-400" />}
             <span className="text-sidebar-foreground/80">
               {user.status === 'trial' && `Bepul sinov: ${user.days_left} kun qoldi`}
               {user.status === 'active' && `Aktiv: ${user.days_left} kun qoldi`}
@@ -539,6 +586,6 @@ function SidebarContent({ user, activeTab, setActiveTab, onLogout }: { user: Pub
 function StatusBadge({ user }: { user: PublicUser }) {
   if (user.role === 'admin') return <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-100 text-amber-700 text-xs font-semibold"><Crown className="w-3 h-3" /> Admin</div>
   if (user.status === 'trial') return <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-100 text-amber-700 text-xs font-semibold"><Sparkles className="w-3 h-3" /> Sinov: {user.days_left}k</div>
-  if (user.status === 'active') return <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700 text-xs font-semibold"><CheckCircle className="w-3 h-3" /> Aktiv: {user.days_left}k</div>
+  if (user.status === 'active') return <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-semibold"><CheckCircle className="w-3 h-3" /> Aktiv: {user.days_left}k</div>
   return null
 }

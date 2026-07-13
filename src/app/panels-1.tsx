@@ -41,17 +41,17 @@ export function DashboardPanel({ user, setActiveTab }: { user: any; setActiveTab
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="Jami talabalar" value={stats.totalStudents} sub={`${stats.activeStudents} faol`} icon={Users} color="emerald" />
-        <StatCard label="Lidlar" value={stats.leads.total} sub={`${stats.leads.new} yangi`} icon={Sparkles} color="amber" />
-        <StatCard label="Guruhlar" value={stats.totalGroups} sub={`${stats.totalCourses} kurs`} icon={BookOpen} color="teal" />
-        <StatCard label="O'qituvchilar" value={stats.totalTeachers} sub="murabbiylar" icon={UserCog} color="cyan" />
+        <StatCard label="Jami talabalar" value={stats.totalStudents} sub={`${stats.activeStudents} faol`} icon={Users} color="indigo" onClick={() => setActiveTab?.('students')} />
+        <StatCard label="Lidlar" value={stats.leads.total} sub={`${stats.leads.new} yangi`} icon={Sparkles} color="amber" onClick={() => setActiveTab?.('leads')} />
+        <StatCard label="Guruhlar" value={stats.totalGroups} sub={`${stats.totalCourses} kurs`} icon={BookOpen} color="sky" onClick={() => setActiveTab?.('groups')} />
+        <StatCard label="O'qituvchilar" value={stats.totalTeachers} sub="murabbiylar" icon={UserCog} color="cyan" onClick={() => setActiveTab?.('teachers')} />
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="Oylik tushum" value={formatMoney(stats.monthRevenue)} sub={`Jami: ${formatMoney(stats.totalRevenue)}`} icon={Wallet} color="emerald" trend="up" />
-        <StatCard label="Oylik xarajat" value={formatMoney(stats.monthExpenseTotal)} sub={`Jami: ${formatMoney(stats.totalExpense)}`} icon={TrendingDown} color="rose" trend="down" />
-        <StatCard label="Sof foyda (oy)" value={formatMoney(stats.monthNetProfit)} sub={`Jami: ${formatMoney(stats.totalNetProfit)}`} icon={TrendingUp} color={stats.monthNetProfit >= 0 ? 'emerald' : 'rose'} trend={stats.monthNetProfit >= 0 ? 'up' : 'down'} />
-        <StatCard label="Davomat darajasi" value={`${stats.attendance.rate}%`} sub={`${stats.attendance.present}/${stats.attendance.total} dars`} icon={ClipboardCheck} color="violet" />
+        <StatCard label="Oylik tushum" value={formatMoney(stats.monthRevenue)} sub={`Jami: ${formatMoney(stats.totalRevenue)}`} icon={Wallet} color="blue" trend="up" onClick={() => setActiveTab?.('payments')} />
+        <StatCard label="Oylik xarajat" value={formatMoney(stats.monthExpenseTotal)} sub={`Jami: ${formatMoney(stats.totalExpense)}`} icon={TrendingDown} color="rose" trend="down" onClick={() => setActiveTab?.('expenses')} />
+        <StatCard label="Sof foyda (oy)" value={formatMoney(stats.monthNetProfit)} sub={`Jami: ${formatMoney(stats.totalNetProfit)}`} icon={TrendingUp} color={stats.monthNetProfit >= 0 ? 'sky' : 'rose'} trend={stats.monthNetProfit >= 0 ? 'up' : 'down'} onClick={() => setActiveTab?.('finance')} />
+        <StatCard label="Davomat darajasi" value={`${stats.attendance.rate}%`} sub={`${stats.attendance.present}/${stats.attendance.total} dars`} icon={ClipboardCheck} color="violet" onClick={() => setActiveTab?.('attendance')} />
       </div>
 
       <div className="grid lg:grid-cols-2 gap-4">
@@ -138,8 +138,35 @@ function FunnelRow({ label, value, total, color }: { label: string; value: numbe
   )
 }
 function DualBarChart({ data }: { data: { label: string; income: number; expense: number }[] }) {
+  // SVG line chart with smooth curves + gradient fill
+  const w = 480, h = 160, pad = 40, chartH = h - 50
   const max = Math.max(...data.flatMap((d) => [d.income, d.expense]), 1)
+  const stepX = data.length > 1 ? (w - pad - 20) / (data.length - 1) : 0
+
+  const incomePoints = data.map((d, i) => ({ x: pad + i * stepX, y: chartH - (d.income / max) * (chartH - 20) + 10, val: d.income }))
+  const expensePoints = data.map((d, i) => ({ x: pad + i * stepX, y: chartH - (d.expense / max) * (chartH - 20) + 10, val: d.expense }))
+
+  // Smooth curve path generator
+  function smoothPath(pts: { x: number; y: number }[]) {
+    if (pts.length < 2) return ''
+    let d = `M ${pts[0].x},${pts[0].y}`
+    for (let i = 1; i < pts.length; i++) {
+      const cp1x = pts[i - 1].x + stepX / 2
+      const cp1y = pts[i - 1].y
+      const cp2x = pts[i].x - stepX / 2
+      const cp2y = pts[i].y
+      d += ` C ${cp1x},${cp1y} ${cp2x},${cp2y} ${pts[i].x},${pts[i].y}`
+    }
+    return d
+  }
+
+  const incomePath = smoothPath(incomePoints)
+  const expensePath = smoothPath(expensePoints)
+  const incomeArea = incomePath + ` L ${incomePoints[incomePoints.length - 1]?.x || pad},${chartH + 10} L ${incomePoints[0]?.x || pad},${chartH + 10} Z`
+  const expenseArea = expensePath + ` L ${expensePoints[expensePoints.length - 1]?.x || pad},${chartH + 10} L ${expensePoints[0]?.x || pad},${chartH + 10} Z`
+
   return (
+<<<<<<< HEAD
     <div className="flex items-end gap-2 h-40">
       {data.map((d, i) => (
         <div key={i} className="flex-1 flex flex-col items-center gap-1.5">
@@ -149,8 +176,83 @@ function DualBarChart({ data }: { data: { label: string; income: number; expense
             <div className="flex-1 bg-muted rounded-t-lg overflow-hidden flex items-end"><motion.div initial={{ height: 0 }} animate={{ height: `${(d.expense / max) * 100}%` }} transition={{ duration: 0.6, delay: i * 0.05 + 0.1 }} className="w-full bg-gradient-to-t from-slate-600 to-pink-400 rounded-t-lg" /></div>
           </div>
           <div className="text-[10px] text-muted-foreground">{d.label}</div>
+=======
+    <div className="w-full">
+      <svg viewBox={`0 0 ${w} ${h}`} className="w-full" style={{ maxHeight: '220px' }}>
+        <defs>
+          <linearGradient id="incomeAreaGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.3" />
+            <stop offset="100%" stopColor="#3b82f6" stopOpacity="0" />
+          </linearGradient>
+          <linearGradient id="expenseAreaGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#f43f5e" stopOpacity="0.25" />
+            <stop offset="100%" stopColor="#f43f5e" stopOpacity="0" />
+          </linearGradient>
+          <linearGradient id="incomeLineGrad" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stopColor="#3b82f6" />
+            <stop offset="100%" stopColor="#60a5fa" />
+          </linearGradient>
+          <linearGradient id="expenseLineGrad" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stopColor="#f43f5e" />
+            <stop offset="100%" stopColor="#fb7185" />
+          </linearGradient>
+        </defs>
+
+        {/* Grid lines */}
+        {[0, 0.25, 0.5, 0.75, 1].map((p, i) => (
+          <line key={i} x1={pad} y1={10 + p * (chartH - 10)} x2={w - 20} y2={10 + p * (chartH - 10)} stroke="currentColor" strokeWidth="0.5" opacity="0.08" />
+        ))}
+
+        {/* Y-axis labels */}
+        <text x="2" y="14" fontSize="9" fill="currentColor" opacity="0.5">{Math.round(max / 1000)}k</text>
+        <text x="2" y={chartH / 2 + 5} fontSize="9" fill="currentColor" opacity="0.5">{Math.round(max / 2000)}k</text>
+        <text x="8" y={chartH + 4} fontSize="9" fill="currentColor" opacity="0.5">0</text>
+
+        {/* Expense area fill */}
+        <path d={expenseArea} fill="url(#expenseAreaGrad)" />
+        {/* Income area fill */}
+        <path d={incomeArea} fill="url(#incomeAreaGrad)" />
+
+        {/* Expense line */}
+        <path d={expensePath} fill="none" stroke="url(#expenseLineGrad)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+
+        {/* Income line */}
+        <path d={incomePath} fill="none" stroke="url(#incomeLineGrad)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+
+        {/* Data points — Income */}
+        {incomePoints.map((p, i) => (
+          <g key={`inc-${i}`}>
+            <circle cx={p.x} cy={p.y} r="4" fill="#fff" stroke="#3b82f6" strokeWidth="2" />
+            {p.val > 0 && <text x={p.x} y={p.y - 8} fontSize="8" fill="#3b82f6" textAnchor="middle" fontWeight="bold">{Math.round(p.val / 1000)}k</text>}
+          </g>
+        ))}
+
+        {/* Data points — Expense */}
+        {expensePoints.map((p, i) => (
+          <g key={`exp-${i}`}>
+            <circle cx={p.x} cy={p.y} r="4" fill="#fff" stroke="#f43f5e" strokeWidth="2" />
+            {p.val > 0 && <text x={p.x} y={p.y + 14} fontSize="8" fill="#f43f5e" textAnchor="middle" fontWeight="bold">{Math.round(p.val / 1000)}k</text>}
+          </g>
+        ))}
+
+        {/* X-axis labels */}
+        {data.map((d, i) => (
+          <text key={i} x={pad + i * stepX} y={h - 4} fontSize="9" fill="currentColor" opacity="0.6" textAnchor="middle">{d.label}</text>
+        ))}
+      </svg>
+
+      {/* Legend */}
+      <div className="flex items-center gap-4 justify-center mt-2 text-xs">
+        <div className="flex items-center gap-1.5">
+          <div className="w-3 h-0.5 rounded-full bg-gradient-to-r from-blue-500 to-blue-400" />
+          <span className="text-muted-foreground">Daromad</span>
+>>>>>>> 60c09f695ed8547d48c6b25600dcf641241250cd
         </div>
-      ))}
+        <div className="flex items-center gap-1.5">
+          <div className="w-3 h-0.5 rounded-full bg-gradient-to-r from-rose-500 to-pink-400" />
+          <span className="text-muted-foreground">Xarajat</span>
+        </div>
+      </div>
     </div>
   )
 }

@@ -413,6 +413,7 @@ export function DiscountsPanel() {
   const [students, setStudents] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [openModal, setOpenModal] = useState(false)
+  const [editing, setEditing] = useState<any>(null)
   const [form, setForm] = useState<any>({ name: '', discount_type: 'percent', value: 10, valid_from: '', valid_until: '', applies_to: 'all', course_id: '', student_id: '', is_active: true })
 
   const load = useCallback(async () => {
@@ -427,12 +428,44 @@ export function DiscountsPanel() {
   useEffect(() => { load() }, [load])
 
   async function handleSave() {
-    const { ok, error } = await apiFetch('/api/discounts', { method: 'POST', body: JSON.stringify(form) })
-    if (!ok) return alert(error)
+    // Formani tozalash — bo'sh string'larni null qilamiz
+    const payload: any = { ...form }
+    if (!payload.course_id) payload.course_id = null
+    if (!payload.student_id) payload.student_id = null
+    if (!payload.valid_from) payload.valid_from = null
+    if (!payload.valid_until) payload.valid_until = null
+
+    if (editing) {
+      // TAHRIRLASH — PUT so'rovi
+      const { ok, error } = await apiFetch('/api/discounts', { method: 'PUT', body: JSON.stringify({ id: editing.id, ...payload }) })
+      if (!ok) return alert(error)
+    } else {
+      // YANGI — POST so'rovi
+      const { ok, error } = await apiFetch('/api/discounts', { method: 'POST', body: JSON.stringify(payload) })
+      if (!ok) return alert(error)
+    }
     setOpenModal(false)
+    setEditing(null)
     setForm({ name: '', discount_type: 'percent', value: 10, valid_from: '', valid_until: '', applies_to: 'all', course_id: '', student_id: '', is_active: true })
     load()
   }
+
+  function openEdit(d: any) {
+    setEditing(d)
+    setForm({
+      name: d.name || '',
+      discount_type: d.discount_type || 'percent',
+      value: Number(d.value) || 0,
+      valid_from: d.valid_from || '',
+      valid_until: d.valid_until || '',
+      applies_to: d.applies_to || 'all',
+      course_id: d.course_id || '',
+      student_id: d.student_id || '',
+      is_active: d.is_active !== false,
+    })
+    setOpenModal(true)
+  }
+
   async function toggleActive(d: any) { const { ok, error } = await apiFetch('/api/discounts', { method: 'PUT', body: JSON.stringify({ id: d.id, is_active: !d.is_active }) }); if (!ok) return alert(error); load() }
   async function handleDelete(id: string) { if (!confirm('O\'chirmoqchimisiz?')) return; const { ok, error } = await apiFetch(`/api/discounts?id=${id}`, { method: 'DELETE' }); if (!ok) return alert(error); load() }
 
@@ -440,7 +473,14 @@ export function DiscountsPanel() {
     <div className="space-y-5">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div><h1 className="text-2xl lg:text-3xl font-bold">Chegirmalar</h1><p className="text-muted-foreground text-sm mt-1">{items.length} chegirma • {items.filter((d) => d.is_active).length} aktiv</p></div>
-        <PrimaryButton onClick={() => setOpenModal(true)}><Plus className="w-4 h-4" /> Yangi chegirma</PrimaryButton>
+        <PrimaryButton onClick={() => { setEditing(null); setForm({ name: '', discount_type: 'percent', value: 10, valid_from: '', valid_until: '', applies_to: 'all', course_id: '', student_id: '', is_active: true }); setOpenModal(true) }}><Plus className="w-4 h-4" /> Yangi chegirma</PrimaryButton>
+      </div>
+
+      <div className="rounded-xl bg-blue-50 border border-blue-200 p-3 text-xs text-blue-800">
+        <strong>ℹ️ Chegirma qanday ishlaydi:</strong> Aktiv chegirma avtomatik ravishda talabaning "To'lash kerak" summasidan ayriladi.
+        <br />• <strong>Foiz (%)</strong> — to'lash kerak summadan foiz ayriladi (masalan: 10% = 350,000'dan 35,000 ayriladi)
+        <br />• <strong>Summa (so'm)</strong> — to'g'ridan-to'g'ri summa ayriladi (masalan: 50,000 so'm)
+        <br />Chegirma "To'lovlar" va "Talaba qarzlari" bo'limlarida avtomatik hisoblanadi.
       </div>
 
       {loading ? <PanelLoader /> : items.length === 0 ? <Card><EmptyState title="Chegirmalar yo'q" description="Aksiyalar va chegirmalar yarating." /></Card> : (
@@ -449,8 +489,13 @@ export function DiscountsPanel() {
             <Card key={d.id}>
               <div className="p-4">
                 <div className="flex items-start justify-between">
+<<<<<<< HEAD
                   <div className="flex items-center gap-3"><div className="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-600 to-slate-700 flex items-center justify-center text-white"><Percent className="w-5 h-5" /></div><div><div className="font-semibold">{d.name}</div><div className="text-xs text-muted-foreground">{d.discount_type === 'percent' ? `${d.value}%` : formatMoney(d.value)}</div></div></div>
+=======
+                  <div className="flex items-center gap-3"><div className="w-10 h-10 rounded-xl bg-gradient-to-br from-rose-500 to-pink-600 flex items-center justify-center text-white"><Percent className="w-5 h-5" /></div><div><div className="font-semibold">{d.name}</div><div className="text-xs text-muted-foreground">{d.discount_type === 'percent' ? `${d.value}% chegirma` : `${formatMoney(d.value)} chegirma`}</div></div></div>
+>>>>>>> 60c09f695ed8547d48c6b25600dcf641241250cd
                   <div className="flex gap-1">
+                    <IconButton title="Tahrirlash" onClick={() => openEdit(d)}><Pencil className="w-3.5 h-3.5" /></IconButton>
                     <IconButton title={d.is_active ? 'O\'chirish' : 'Yoqish'} onClick={() => toggleActive(d)}><CheckCircle className={`w-3.5 h-3.5 ${d.is_active ? 'text-emerald-500' : 'text-muted-foreground'}`} /></IconButton>
                     <IconButton title="O'chirish" danger onClick={() => handleDelete(d.id)}><Trash2 className="w-3.5 h-3.5" /></IconButton>
                   </div>
@@ -458,6 +503,7 @@ export function DiscountsPanel() {
                 <div className="mt-3 space-y-1.5 text-xs">
                   <Row label="Qo'llanish" value={d.applies_to === 'all' ? 'Hammaga' : d.applies_to === 'course' ? `Kurs: ${d.course?.name || '—'}` : `Talaba: ${d.student?.full_name || '—'}`} />
                   {d.valid_until && <Row label="Muddat" value={formatDate(d.valid_until)} />}
+                  <Row label="Holat" value={d.is_active ? 'Aktiv ✓' : 'Nofaol'} />
                 </div>
                 <div className="mt-3 pt-3 border-t border-border/40">
                   <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${d.is_active ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-700'}`}>{d.is_active ? 'Aktiv' : 'Nofaol'}</span>
@@ -468,12 +514,12 @@ export function DiscountsPanel() {
         </div>
       )}
 
-      <Modal open={openModal} onClose={() => setOpenModal(false)} title="Yangi chegirma">
+      <Modal open={openModal} onClose={() => { setOpenModal(false); setEditing(null) }} title={editing ? 'Chegirmani tahrirlash' : 'Yangi chegirma'}>
         <div className="space-y-3">
           <Field label="Nomi *"><input className="erp-input" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Yozgi aksiya, Oilaviy chegirma..." /></Field>
           <div className="grid sm:grid-cols-2 gap-3">
             <Field label="Turi"><select className="erp-input" value={form.discount_type} onChange={(e) => setForm({ ...form, discount_type: e.target.value })}><option value="percent">Foiz (%)</option><option value="fixed">Summa (so'm)</option></select></Field>
-            <Field label="Qiymat"><input type="number" className="erp-input" value={form.value} onChange={(e) => setForm({ ...form, value: Number(e.target.value) })} /></Field>
+            <Field label="Qiymat"><input type="number" className="erp-input" value={form.value} onChange={(e) => setForm({ ...form, value: Number(e.target.value) })} placeholder={form.discount_type === 'percent' ? '10' : '50000'} /></Field>
           </div>
           <Field label="Qo'llanish doirasi"><select className="erp-input" value={form.applies_to} onChange={(e) => setForm({ ...form, applies_to: e.target.value, course_id: '', student_id: '' })}><option value="all">Hammaga</option><option value="course">Aniq kursga</option><option value="student">Aniq talabaga</option></select></Field>
           {form.applies_to === 'course' && <Field label="Kurs"><select className="erp-input" value={form.course_id} onChange={(e) => setForm({ ...form, course_id: e.target.value })}><option value="">— Tanlang —</option>{courses.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</select></Field>}
@@ -482,7 +528,11 @@ export function DiscountsPanel() {
             <Field label="Boshlanish"><input type="date" className="erp-input" value={form.valid_from} onChange={(e) => setForm({ ...form, valid_from: e.target.value })} /></Field>
             <Field label="Tugash"><input type="date" className="erp-input" value={form.valid_until} onChange={(e) => setForm({ ...form, valid_until: e.target.value })} /></Field>
           </div>
-          <div className="flex gap-2 pt-2"><PrimaryButton onClick={handleSave} className="flex-1">Saqlash</PrimaryButton><GhostButton onClick={() => setOpenModal(false)}>Bekor</GhostButton></div>
+          <div className="rounded-lg bg-amber-50 border border-amber-200 p-2.5 text-[11px] text-amber-800">
+            💡 <strong>Misol:</strong> Agar oylik to'lov 350,000 so'm bo'lsa va chegirma 10% bo'lsa,
+            talabaning to'lash kerak summasidan 35,000 so'm ayriladi.
+          </div>
+          <div className="flex gap-2 pt-2"><PrimaryButton onClick={handleSave} className="flex-1">{editing ? 'Yangilash' : 'Saqlash'}</PrimaryButton><GhostButton onClick={() => { setOpenModal(false); setEditing(null) }}>Bekor</GhostButton></div>
         </div>
       </Modal>
     </div>

@@ -54,19 +54,39 @@ export async function POST(req: NextRequest) {
       : now
     const newActiveUntil = new Date(baseDate.getTime() + codeRow.duration_days * 24 * 60 * 60 * 1000)
 
-    const { error: updErr } = await sb
+    // Update payload — last_activation_at ni xavfsiz qo'shamiz
+    const updatePayload: any = {
+      status: 'active',
+      active_until: newActiveUntil.toISOString(),
+      updated_at: now.toISOString(),
+    }
+
+    // Avval last_activation_at bilan urinib ko'ramiz
+    let updErr: any = null
+    const upd1 = await sb
       .from('users')
       .update({
-        status: 'active',
-        active_until: newActiveUntil.toISOString(),
+        ...updatePayload,
         last_activation_at: now.toISOString(),
-        updated_at: now.toISOString(),
       })
       .eq('id', sess.id)
+    updErr = upd1.error
+
+    // Agar last_activation_at ustuni yo'q bo'lsa, uning siz urinamiz
+    if (updErr && updErr.message && updErr.message.includes('last_activation_at')) {
+      const upd2 = await sb
+        .from('users')
+        .update(updatePayload)
+        .eq('id', sess.id)
+      updErr = upd2.error
+    }
 
     if (updErr) {
       console.error('user update error:', updErr)
-      return NextResponse.json({ ok: false, error: 'Foydalanuvchi yangilanmadi.' }, { status: 500 })
+      return NextResponse.json({
+        ok: false,
+        error: 'Foydalanuvchi yangilanmadi: ' + updErr.message
+      }, { status: 500 })
     }
 
     // Kodni "used" ga o'tkazish
