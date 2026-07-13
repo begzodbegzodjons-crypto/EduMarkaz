@@ -145,6 +145,7 @@ function DualBarChart({ data }: { data: { label: string; income: number; expense
       </div>
     )
   }
+
   const max = Math.max(...data.flatMap((d) => [d.income, d.expense]), 1)
   const hasData = data.some((d) => d.income > 0 || d.expense > 0)
 
@@ -157,65 +158,105 @@ function DualBarChart({ data }: { data: { label: string; income: number; expense
     )
   }
 
+  // SVG line chart sozlamalari
+  const W = 460, H = 170, PAD_L = 35, PAD_R = 15, PAD_T = 15, PAD_B = 30
+  const chartW = W - PAD_L - PAD_R
+  const chartH = H - PAD_T - PAD_B
+  const stepX = data.length > 1 ? chartW / (data.length - 1) : 0
+
+  // Nuqtalar
+  const incomePts = data.map((d, i) => ({
+    x: PAD_L + i * stepX,
+    y: PAD_T + chartH - (d.income / max) * chartH,
+    val: d.income
+  }))
+  const expensePts = data.map((d, i) => ({
+    x: PAD_L + i * stepX,
+    y: PAD_T + chartH - (d.expense / max) * chartH,
+    val: d.expense
+  }))
+
+  // Smooth curve path
+  function smoothPath(pts: { x: number; y: number }[]) {
+    if (pts.length < 2) return pts.length === 1 ? `M ${pts[0].x},${pts[0].y}` : ''
+    let p = `M ${pts[0].x},${pts[0].y}`
+    for (let i = 1; i < pts.length; i++) {
+      const cx1 = pts[i - 1].x + stepX * 0.4
+      const cy1 = pts[i - 1].y
+      const cx2 = pts[i].x - stepX * 0.4
+      const cy2 = pts[i].y
+      p += ` C ${cx1},${cy1} ${cx2},${cy2} ${pts[i].x},${pts[i].y}`
+    }
+    return p
+  }
+
+  const incomeLine = smoothPath(incomePts)
+  const expenseLine = smoothPath(expensePts)
+  const incomeArea = incomeLine + ` L ${incomePts[incomePts.length - 1].x},${PAD_T + chartH} L ${incomePts[0].x},${PAD_T + chartH} Z`
+  const expenseArea = expenseLine + ` L ${expensePts[expensePts.length - 1].x},${PAD_T + chartH} L ${expensePts[0].x},${PAD_T + chartH} Z`
+
   return (
     <div className="w-full">
-      {/* Diagramma */}
-      <div className="flex items-end gap-3 h-40 px-2">
-        {/* Y-o'qi belgilari */}
-        <div className="flex flex-col justify-between h-full text-[9px] text-muted-foreground/60 pr-1 shrink-0">
-          <span>{Math.round(max / 1000)}k</span>
-          <span>{Math.round(max / 2000)}k</span>
-          <span>0</span>
-        </div>
-        {/* Bar lar */}
-        {data.map((d, i) => {
-          const incomeHeight = max > 0 ? (d.income / max) * 100 : 0
-          const expenseHeight = max > 0 ? (d.expense / max) * 100 : 0
-          return (
-            <div key={i} className="flex-1 flex flex-col items-center min-w-0">
-              {/* Qiymat yuqorida */}
-              <div className="text-[9px] text-muted-foreground font-medium h-4">
-                {d.income > 0 ? Math.round(d.income / 1000) + 'k' : ''}
-              </div>
-              {/* Bar konteyner */}
-              <div className="w-full flex items-end gap-1 flex-1">
-                {/* Daromad bar */}
-                <div className="flex-1 bg-muted/50 rounded-t-md overflow-hidden flex items-end h-full">
-                  {d.income > 0 && (
-                    <motion.div
-                      initial={{ height: 0 }}
-                      animate={{ height: `${incomeHeight}%` }}
-                      transition={{ duration: 0.6, delay: i * 0.05 }}
-                      className="w-full bg-slate-800 rounded-t-md min-h-[3px]"
-                    />
-                  )}
-                </div>
-                {/* Xarajat bar */}
-                <div className="flex-1 bg-muted/50 rounded-t-md overflow-hidden flex items-end h-full">
-                  {d.expense > 0 && (
-                    <motion.div
-                      initial={{ height: 0 }}
-                      animate={{ height: `${expenseHeight}%` }}
-                      transition={{ duration: 0.6, delay: i * 0.05 + 0.1 }}
-                      className="w-full bg-slate-400 rounded-t-md min-h-[3px]"
-                    />
-                  )}
-                </div>
-              </div>
-              {/* Oy belgisi */}
-              <div className="text-[9px] text-muted-foreground mt-1">{d.label}</div>
-            </div>
-          )
-        })}
-      </div>
+      <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ maxHeight: '220px' }}>
+        <defs>
+          <linearGradient id="incGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#1e293b" stopOpacity="0.2" />
+            <stop offset="100%" stopColor="#1e293b" stopOpacity="0" />
+          </linearGradient>
+          <linearGradient id="expGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#94a3b8" stopOpacity="0.15" />
+            <stop offset="100%" stopColor="#94a3b8" stopOpacity="0" />
+          </linearGradient>
+        </defs>
+
+        {/* Grid */}
+        {[0, 0.25, 0.5, 0.75, 1].map((p, i) => (
+          <line key={i} x1={PAD_L} y1={PAD_T + p * chartH} x2={W - PAD_R} y2={PAD_T + p * chartH}
+            stroke="currentColor" strokeWidth="0.5" opacity="0.08" />
+        ))}
+
+        {/* Y o'qi belgilari */}
+        <text x="2" y={PAD_T + 4} fontSize="9" fill="currentColor" opacity="0.5">{Math.round(max / 1000)}k</text>
+        <text x="2" y={PAD_T + chartH * 0.5 + 4} fontSize="9" fill="currentColor" opacity="0.5">{Math.round(max / 2000)}k</text>
+        <text x="8" y={PAD_T + chartH + 4} fontSize="9" fill="currentColor" opacity="0.5">0</text>
+
+        {/* Xarajat area + line */}
+        <path d={expenseArea} fill="url(#expGrad)" />
+        <path d={expenseLine} fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+
+        {/* Daromad area + line */}
+        <path d={incomeArea} fill="url(#incGrad)" />
+        <path d={incomeLine} fill="none" stroke="#1e293b" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+
+        {/* Daromad nuqtalar */}
+        {incomePts.map((p, i) => p.val > 0 && (
+          <g key={`inc-${i}`}>
+            <circle cx={p.x} cy={p.y} r="3.5" fill="#fff" stroke="#1e293b" strokeWidth="2" />
+            <text x={p.x} y={p.y - 8} fontSize="8" fill="#1e293b" textAnchor="middle" fontWeight="bold">{Math.round(p.val / 1000)}k</text>
+          </g>
+        ))}
+
+        {/* Xarajat nuqtalar */}
+        {expensePts.map((p, i) => p.val > 0 && (
+          <g key={`exp-${i}`}>
+            <circle cx={p.x} cy={p.y} r="3" fill="#fff" stroke="#94a3b8" strokeWidth="1.5" />
+          </g>
+        ))}
+
+        {/* X o'qi belgilari */}
+        {data.map((d, i) => (
+          <text key={i} x={PAD_L + i * stepX} y={H - 5} fontSize="9" fill="currentColor" opacity="0.6" textAnchor="middle">{d.label}</text>
+        ))}
+      </svg>
+
       {/* Legenda */}
-      <div className="flex items-center gap-4 justify-center mt-3 text-xs">
+      <div className="flex items-center gap-4 justify-center mt-2 text-xs">
         <div className="flex items-center gap-1.5">
-          <div className="w-3 h-3 rounded bg-slate-800" />
+          <div className="w-4 h-0.5 rounded bg-slate-800" />
           <span className="text-muted-foreground">Daromad</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <div className="w-3 h-3 rounded bg-slate-400" />
+          <div className="w-4 h-0.5 rounded bg-slate-400" />
           <span className="text-muted-foreground">Xarajat</span>
         </div>
       </div>

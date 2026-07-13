@@ -507,14 +507,14 @@ function SidebarContent({ user, activeTab, setActiveTab, onLogout }: { user: Pub
       <nav className="flex-1 p-3 space-y-4 overflow-y-auto">
         {NAV_SECTIONS.map((section, si) => (
           <div key={si}>
-            <div className="text-[10px] font-bold uppercase tracking-wider text-sidebar-foreground/40 px-3 mb-1.5">{section.title}</div>
-            <div className="space-y-1">
+            <div className="text-[11px] font-bold uppercase tracking-wider text-foreground px-3 mb-1.5">{section.title}</div>
+            <div className="space-y-0.5">
               {section.items.map((item) => {
                 const Icon = item.icon
                 const isActive = activeTab === item.id
                 return (
-                  <button key={item.id} onClick={() => setActiveTab(item.id)} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${isActive ? 'bg-foreground text-background' : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`}>
-                    <Icon className="w-4 h-4 shrink-0" /><span className="truncate">{item.label}</span>{isActive && <ChevronRight className="w-4 h-4 ml-auto" />}
+                  <button key={item.id} onClick={() => setActiveTab(item.id)} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[15px] font-semibold transition-colors ${isActive ? 'bg-foreground text-background' : 'text-foreground hover:bg-muted'}`}>
+                    <Icon className="w-[18px] h-[18px] shrink-0" /><span className="truncate">{item.label}</span>{isActive && <ChevronRight className="w-4 h-4 ml-auto" />}
                   </button>
                 )
               })}
