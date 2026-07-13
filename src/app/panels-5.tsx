@@ -69,14 +69,14 @@ export function RemindersPanel() {
               <motion.div key={r.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
                 <Card color="blue">
                   <div className={`p-4 flex items-start gap-3 ${r.is_done ? 'opacity-50' : ''}`}>
-                    <button onClick={() => toggleDone(r)} className={`mt-1 w-5 h-5 rounded-md border-2 flex items-center justify-center transition ${r.is_done ? 'bg-blue-500 border-blue-500' : 'border-border hover:border-blue-500'}`}>
+                    <button onClick={() => toggleDone(r)} className={`mt-1 w-5 h-5 rounded-md border-2 flex items-center justify-center transition ${r.is_done ? 'bg-slate-700 border-slate-200' : 'border-border hover:border-slate-200'}`}>
                       {r.is_done && <CheckCircle className="w-3 h-3 text-white" />}
                     </button>
                     <div className="flex-1 min-w-0">
                       <div className={`font-semibold ${r.is_done ? 'line-through' : ''}`}>{r.title}</div>
                       {r.description && <div className="text-sm text-muted-foreground mt-1">{r.description}</div>}
                       <div className="flex items-center gap-2 mt-2">
-                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${isOverdue ? 'bg-red-100 text-red-700' : isToday ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'}`}>
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${isOverdue ? 'bg-red-100 text-red-700' : isToday ? 'bg-slate-100 text-slate-700' : 'bg-slate-100 text-slate-700'}`}>
                           {isOverdue ? 'Muddati o\'tgan' : isToday ? 'Bugun' : formatDate(r.reminder_date)}
                         </span>
                       </div>
@@ -218,7 +218,7 @@ export function SettingsPanel({ user }: { user: PublicUser }) {
             Masalan: 250000 so'm kiritsangiz, yangi talaba uchun 250000 so'mlik to'lov yozuvi avtomatik yaratiladi.
           </p>
           {form.monthly_payment_amount === 0 && (
-            <div className="rounded-lg bg-amber-50 border border-amber-200 p-2.5 text-xs text-amber-800">
+            <div className="rounded-lg bg-slate-50 border border-slate-200 p-2.5 text-xs text-slate-700">
               <strong>Ogohlantirish:</strong> Oylik to'lov summasi 0 ga teng. Yangi talabalar uchun avtomatik to'lov yozuvi yaratilmaydi. Iltimos, markazingizning oylik to'lov summasini kiriting (masalan: 250000).
             </div>
           )}
@@ -236,7 +236,7 @@ export function SettingsPanel({ user }: { user: PublicUser }) {
 
       <div className="flex items-center gap-3">
         <PrimaryButton onClick={handleSave} disabled={saving}>{saving ? 'Saqlanmoqda...' : 'Saqlash'}</PrimaryButton>
-        {saved && <span className="text-sm text-blue-600 font-medium flex items-center gap-1"><CheckCircle className="w-4 h-4" /> Saqlandi</span>}
+        {saved && <span className="text-sm text-slate-700 font-medium flex items-center gap-1"><CheckCircle className="w-4 h-4" /> Saqlandi</span>}
       </div>
 
       {/* === YANGI: Login va parolni o'zgartirish === */}
@@ -314,13 +314,13 @@ export function SettingsPanel({ user }: { user: PublicUser }) {
                   <p className="text-[10px] text-red-600 mt-1">⚠ Parollar mos kelmadi</p>
                 )}
                 {credForm.confirm_password && credForm.new_password === credForm.confirm_password && (
-                  <p className="text-[10px] text-blue-600 mt-1">✓ Parollar mos</p>
+                  <p className="text-[10px] text-slate-700 mt-1">✓ Parollar mos</p>
                 )}
               </Field>
             )}
           </div>
 
-          <div className="rounded-lg bg-amber-50 border border-amber-200 p-3 text-xs text-amber-800">
+          <div className="rounded-lg bg-slate-50 border border-slate-200 p-3 text-xs text-slate-700">
             ⚠️ <strong>Eslatma:</strong> Login (email) yoki parolni o'zgartirish uchun joriy parolni kiritishingiz shart.
             Email o'zgarsa, keyingi kirishda yangi email bilan kirishingiz kerak bo'ladi.
           </div>
@@ -329,7 +329,7 @@ export function SettingsPanel({ user }: { user: PublicUser }) {
             <PrimaryButton onClick={handleChangeCredentials} disabled={savingCred}>
               {savingCred ? 'Saqlanmoqda...' : 'Login va parolni yangilash'}
             </PrimaryButton>
-            {credSaved && <span className="text-sm text-blue-600 font-medium flex items-center gap-1"><CheckCircle className="w-4 h-4" /> Yangilandi</span>}
+            {credSaved && <span className="text-sm text-slate-700 font-medium flex items-center gap-1"><CheckCircle className="w-4 h-4" /> Yangilandi</span>}
           </div>
         </div>
       </Card>
@@ -373,7 +373,7 @@ export function TelegramPanel({ user }: { user: PublicUser }) {
 }
 function FAQItem({ q, a }: { q: string; a: string }) {
   return (
-    <div className="border-l-2 border-blue-500 pl-3">
+    <div className="border-l-2 border-slate-200 pl-3">
       <div className="font-semibold text-sm">{q}</div>
       <div className="text-sm text-muted-foreground mt-1">{a}</div>
     </div>
@@ -421,13 +421,13 @@ export function LicensePanel({ user, onActivated }: { user: PublicUser; onActiva
               Aktivatsiya kodlarini generatsiya qilish uchun alohida admin portaldan foydalaning.
             </p>
             <div className="mt-6 grid grid-cols-2 gap-3 max-w-md mx-auto">
-              <div className="rounded-xl bg-amber-50 border border-amber-200 p-4">
-                <div className="text-xs text-amber-700 uppercase">Holat</div>
-                <div className="text-lg font-bold text-amber-900 mt-1">Administrator</div>
+              <div className="rounded-xl bg-slate-50 border border-slate-200 p-4">
+                <div className="text-xs text-slate-700 uppercase">Holat</div>
+                <div className="text-lg font-bold text-slate-900 mt-1">Administrator</div>
               </div>
-              <div className="rounded-xl bg-blue-50 border border-blue-200 p-4">
-                <div className="text-xs text-blue-700 uppercase">Muddat</div>
-                <div className="text-lg font-bold text-blue-900 mt-1">Cheksiz</div>
+              <div className="rounded-xl bg-slate-50 border border-slate-200 p-4">
+                <div className="text-xs text-slate-700 uppercase">Muddat</div>
+                <div className="text-lg font-bold text-slate-900 mt-1">Cheksiz</div>
               </div>
             </div>
           </div>
@@ -444,11 +444,7 @@ export function LicensePanel({ user, onActivated }: { user: PublicUser; onActiva
       <Card color="slate">
         <div className="p-6">
           <div className="flex items-center gap-4 mb-5">
-<<<<<<< HEAD
-            <div className={`w-16 h-16 rounded-2xl flex items-center justify-center ${isActive ? 'bg-gradient-to-br from-slate-600 to-slate-700' : isTrial ? 'bg-gradient-to-br from-slate-600 to-slate-700' : 'bg-gradient-to-br from-red-500 to-rose-600'}`}>
-=======
-            <div className={`w-16 h-16 rounded-2xl flex items-center justify-center ${isActive ? 'bg-gradient-to-br from-blue-500 to-sky-600' : isTrial ? 'bg-gradient-to-br from-amber-500 to-orange-600' : 'bg-gradient-to-br from-red-500 to-rose-600'}`}>
->>>>>>> 60c09f695ed8547d48c6b25600dcf641241250cd
+            <div className={`w-16 h-16 rounded-2xl flex items-center justify-center ${isActive ? 'bg-gradient-to-br from-slate-600 to-slate-700' : isTrial ? 'bg-gradient-to-br from-slate-600 to-slate-700' : 'bg-gradient-to-br from-red-500 to-slate-700'}`}>
               {isActive ? <CheckCircle className="w-8 h-8 text-white" /> : isTrial ? <Sparkles className="w-8 h-8 text-white" /> : <AlertTriangle className="w-8 h-8 text-white" />}
             </div>
             <div>
@@ -462,9 +458,9 @@ export function LicensePanel({ user, onActivated }: { user: PublicUser; onActiva
           {/* Aktivlik ma'lumotlari */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {/* Qolgan kun */}
-            <div className={`rounded-xl p-4 ${isActive ? 'bg-blue-50 border border-blue-200' : isTrial ? 'bg-amber-50 border border-amber-200' : 'bg-red-50 border border-red-200'}`}>
+            <div className={`rounded-xl p-4 ${isActive ? 'bg-slate-50 border border-slate-200' : isTrial ? 'bg-slate-50 border border-slate-200' : 'bg-slate-50 border border-slate-200'}`}>
               <div className="text-xs text-muted-foreground">Aktivlik kunlari qoldi</div>
-              <div className={`text-2xl font-bold mt-1 ${isActive ? 'text-blue-700' : isTrial ? 'text-amber-700' : 'text-red-700'}`}>
+              <div className={`text-2xl font-bold mt-1 ${isActive ? 'text-slate-700' : isTrial ? 'text-slate-700' : 'text-red-700'}`}>
                 {user.days_left} kun
               </div>
               <div className="text-[10px] text-muted-foreground mt-1">
@@ -488,19 +484,19 @@ export function LicensePanel({ user, onActivated }: { user: PublicUser; onActiva
 
           {/* Holat eslatmalari */}
           {isTrial && (
-            <div className="mt-4 bg-amber-50 border border-amber-200 rounded-xl p-3 text-sm">
-              <div className="font-semibold text-amber-700 flex items-center gap-2"><Sparkles className="w-4 h-4" /> Bepul sinov davom etmoqda</div>
-              <div className="text-amber-900 mt-1">Sinov muddati {user.days_left} kundan so'ng tugaydi. Tugagandan so'ng tizim bloklanadi.</div>
+            <div className="mt-4 bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm">
+              <div className="font-semibold text-slate-700 flex items-center gap-2"><Sparkles className="w-4 h-4" /> Bepul sinov davom etmoqda</div>
+              <div className="text-slate-900 mt-1">Sinov muddati {user.days_left} kundan so'ng tugaydi. Tugagandan so'ng tizim bloklanadi.</div>
             </div>
           )}
           {isActive && (
-            <div className="mt-4 bg-blue-50 border border-blue-200 rounded-xl p-3 text-sm">
-              <div className="font-semibold text-blue-700 flex items-center gap-2"><CheckCircle className="w-4 h-4" /> Tizim faol</div>
-              <div className="text-blue-900 mt-1">Tizimga kirish huquqingiz aktiv. {user.days_left} kun qoldi.</div>
+            <div className="mt-4 bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm">
+              <div className="font-semibold text-slate-700 flex items-center gap-2"><CheckCircle className="w-4 h-4" /> Tizim faol</div>
+              <div className="text-slate-900 mt-1">Tizimga kirish huquqingiz aktiv. {user.days_left} kun qoldi.</div>
             </div>
           )}
           {isBlocked && (
-            <div className="mt-4 bg-red-50 border border-red-200 rounded-xl p-3 text-sm">
+            <div className="mt-4 bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm">
               <div className="font-semibold text-red-700 flex items-center gap-2"><AlertTriangle className="w-4 h-4" /> Tizim bloklangan</div>
               <div className="text-red-900 mt-1">Aktivlik muddati tugagan. Davom etish uchun adminga murojaat qiling va aktivatsiya kodini oling.</div>
             </div>
@@ -516,17 +512,17 @@ export function LicensePanel({ user, onActivated }: { user: PublicUser; onActiva
             <Field label="Aktivatsiya kodini kiriting">
               <input value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} placeholder="XXXX-XXXX-XXXX-XXXX-XXXX-XXXX" className="erp-input font-mono tracking-wider text-center text-lg" />
             </Field>
-            {err && <div className="px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-sm text-red-700">{err}</div>}
-            {success && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="px-4 py-3 rounded-xl bg-blue-50 border border-blue-200 text-sm text-blue-700 flex items-center gap-2"><CheckCircle className="w-4 h-4" /> {success}</motion.div>}
+            {err && <div className="px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-sm text-red-700">{err}</div>}
+            {success && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-sm text-slate-700 flex items-center gap-2"><CheckCircle className="w-4 h-4" /> {success}</motion.div>}
             <PrimaryButton type="submit" disabled={loading || !code} className="w-full">
               {loading ? 'Tekshirilmoqda...' : <><KeyRound className="w-4 h-4" /> Aktivlashtirish</>}
             </PrimaryButton>
           </form>
 
           {/* Eslatma */}
-          <div className="mt-5 p-4 rounded-xl bg-blue-50 border border-blue-200">
-            <div className="text-xs font-semibold text-blue-700 mb-2">ℹ Eslatma</div>
-            <div className="text-sm text-blue-900 leading-relaxed">
+          <div className="mt-5 p-4 rounded-xl bg-slate-50 border border-slate-200">
+            <div className="text-xs font-semibold text-slate-700 mb-2">ℹ Eslatma</div>
+            <div className="text-sm text-slate-900 leading-relaxed">
               Aktivatsiya kodini sotib olish uchun adminga murojaat qiling. Kod Telegram orqali yuboriladi.
               Aktivatsiya kodi kirgizilgandan so'ng tizimga kirish huquqi 30 kunga uzaytiriladi.
             </div>
@@ -543,7 +539,7 @@ export function LicensePanel({ user, onActivated }: { user: PublicUser; onActiva
 }
 
 function CodeStatusChip({ status }: { status: string }) {
-  const map: any = { unused: { label: 'Bo\'sh', cls: 'bg-blue-100 text-blue-700' }, used: { label: 'Ishlatilgan', cls: 'bg-slate-100 text-slate-700' }, expired: { label: 'Muddati o\'tgan', cls: 'bg-red-100 text-red-700' } }
+  const map: any = { unused: { label: 'Bo\'sh', cls: 'bg-slate-100 text-slate-700' }, used: { label: 'Ishlatilgan', cls: 'bg-slate-100 text-slate-700' }, expired: { label: 'Muddati o\'tgan', cls: 'bg-red-100 text-red-700' } }
   const s = map[status] || map.unused
   return <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${s.cls}`}>{s.label}</span>
 }

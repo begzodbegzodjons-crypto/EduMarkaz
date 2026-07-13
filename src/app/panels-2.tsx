@@ -80,11 +80,11 @@ export function TeachersPanel() {
 
   // Status badge (davomat)
   function attBadge(status: string) {
-    if (status === 'present') return <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 text-[9px] font-bold">Keldi</span>
+    if (status === 'present') return <span className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 text-[9px] font-bold">Keldi</span>
     if (status === 'absent') return <span className="px-1.5 py-0.5 rounded bg-red-100 text-red-700 text-[9px] font-bold">Kelmadi</span>
-    if (status === 'late') return <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 text-[9px] font-bold">Kechikdi</span>
-    if (status === 'sick') return <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 text-[9px] font-bold">Kasal</span>
-    if (status === 'vacation') return <span className="px-1.5 py-0.5 rounded bg-violet-100 text-violet-700 text-[9px] font-bold">Ta'til</span>
+    if (status === 'late') return <span className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 text-[9px] font-bold">Kechikdi</span>
+    if (status === 'sick') return <span className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 text-[9px] font-bold">Kasal</span>
+    if (status === 'vacation') return <span className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 text-[9px] font-bold">Ta'til</span>
     return <span className="text-[9px] text-muted-foreground">—</span>
   }
 
@@ -145,15 +145,15 @@ export function TeachersPanel() {
               </div>
               <div className="bg-card rounded-2xl border border-border/50 p-3">
                 <div className="text-[10px] text-muted-foreground">Oylik maosh</div>
-                <div className="text-sm font-semibold mt-0.5 text-blue-600">{formatMoney(t.salary_amount)}</div>
+                <div className="text-sm font-semibold mt-0.5 text-slate-700">{formatMoney(t.salary_amount)}</div>
               </div>
               <div className="bg-card rounded-2xl border border-border/50 p-3">
                 <div className="text-[10px] text-muted-foreground">O'qituvchi paneli</div>
                 <div className="text-sm font-semibold mt-0.5">
                   {t.has_password ? (
-                    <span className="text-blue-600">✓ Parol bor</span>
+                    <span className="text-slate-700">✓ Parol bor</span>
                   ) : (
-                    <span className="text-amber-600">⚠ Parol yo'q</span>
+                    <span className="text-slate-700">⚠ Parol yo'q</span>
                   )}
                 </div>
               </div>
@@ -161,21 +161,21 @@ export function TeachersPanel() {
 
             {/* === 2. Statistik kartochkalar === */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-              <div className="bg-blue-50 rounded-2xl border border-blue-200 p-3">
-                <div className="text-[10px] text-blue-700">Guruhlar</div>
-                <div className="text-2xl font-bold mt-0.5 text-blue-900">{teacherGroups.length}</div>
+              <div className="bg-slate-50 rounded-2xl border border-slate-200 p-3">
+                <div className="text-[10px] text-slate-700">Guruhlar</div>
+                <div className="text-2xl font-bold mt-0.5 text-slate-900">{teacherGroups.length}</div>
               </div>
-              <div className="bg-blue-50 rounded-2xl border border-blue-200 p-3">
-                <div className="text-[10px] text-blue-700">Jami talabalar</div>
-                <div className="text-2xl font-bold mt-0.5 text-blue-900">{totalStudents}</div>
+              <div className="bg-slate-50 rounded-2xl border border-slate-200 p-3">
+                <div className="text-[10px] text-slate-700">Jami talabalar</div>
+                <div className="text-2xl font-bold mt-0.5 text-slate-900">{totalStudents}</div>
               </div>
-              <div className="bg-violet-50 rounded-2xl border border-violet-200 p-3">
-                <div className="text-[10px] text-violet-700">Darslar (jadvalda)</div>
-                <div className="text-2xl font-bold mt-0.5 text-violet-900">{teacherSchedule.length}</div>
+              <div className="bg-slate-50 rounded-2xl border border-slate-200 p-3">
+                <div className="text-[10px] text-slate-700">Darslar (jadvalda)</div>
+                <div className="text-2xl font-bold mt-0.5 text-slate-700">{teacherSchedule.length}</div>
               </div>
-              <div className="bg-amber-50 rounded-2xl border border-amber-200 p-3">
-                <div className="text-[10px] text-amber-700">Ishga kelgan (30 kun)</div>
-                <div className="text-2xl font-bold mt-0.5 text-amber-900">{presentCount}</div>
+              <div className="bg-slate-50 rounded-2xl border border-slate-200 p-3">
+                <div className="text-[10px] text-slate-700">Ishga kelgan (30 kun)</div>
+                <div className="text-2xl font-bold mt-0.5 text-slate-900">{presentCount}</div>
               </div>
             </div>
 
@@ -205,7 +205,7 @@ export function TeachersPanel() {
                           <td className="px-4 py-3 font-medium">{g.name}</td>
                           <td className="px-4 py-3 text-muted-foreground">{g.course?.name || '—'}</td>
                           <td className="px-4 py-3 text-center">
-                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${g.students_count >= g.max_students ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'}`}>
+                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${g.students_count >= g.max_students ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-700'}`}>
                               {g.students_count}/{g.max_students}
                             </span>
                           </td>
@@ -253,7 +253,7 @@ export function TeachersPanel() {
                               ) : '—'}
                             </td>
                             <td className="px-4 py-3">
-                              <span className="px-2 py-0.5 rounded bg-blue-50 text-blue-700 text-xs font-semibold">
+                              <span className="px-2 py-0.5 rounded bg-slate-50 text-slate-700 text-xs font-semibold">
                                 {s.start_time?.slice(0, 5)} - {s.end_time?.slice(0, 5)}
                               </span>
                             </td>
@@ -336,11 +336,11 @@ export function TeachersPanel() {
                             <td className="px-4 py-3 text-muted-foreground text-xs">{idx + 1}</td>
                             <td className="px-4 py-3 font-medium">{p.period_month}</td>
                             <td className="px-4 py-3 text-right">{formatMoney(p.amount)}</td>
-                            <td className="px-4 py-3 text-right text-blue-600">{p.bonus > 0 ? `+${formatMoney(p.bonus)}` : '—'}</td>
-                            <td className="px-4 py-3 text-right text-rose-600">{p.deduction > 0 ? `-${formatMoney(p.deduction)}` : '—'}</td>
-                            <td className="px-4 py-3 text-right font-bold text-blue-600">{formatMoney(total)}</td>
+                            <td className="px-4 py-3 text-right text-slate-700">{p.bonus > 0 ? `+${formatMoney(p.bonus)}` : '—'}</td>
+                            <td className="px-4 py-3 text-right text-slate-700">{p.deduction > 0 ? `-${formatMoney(p.deduction)}` : '—'}</td>
+                            <td className="px-4 py-3 text-right font-bold text-slate-700">{formatMoney(total)}</td>
                             <td className="px-4 py-3 text-center">
-                              <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${p.status === 'paid' ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700'}`}>
+                              <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${p.status === 'paid' ? 'bg-slate-100 text-slate-700' : 'bg-slate-100 text-slate-700'}`}>
                                 {p.status === 'paid' ? '✓ To\'langan' : '⏳ Kutilmoqda'}
                               </span>
                             </td>
@@ -352,7 +352,7 @@ export function TeachersPanel() {
                     <tfoot>
                       <tr className="border-t-2 border-border/60 bg-muted/30 font-bold">
                         <td colSpan={5} className="px-4 py-3 text-right">JAMI:</td>
-                        <td className="px-4 py-3 text-right text-blue-600">{formatMoney(totalPaid + totalPending)}</td>
+                        <td className="px-4 py-3 text-right text-slate-700">{formatMoney(totalPaid + totalPending)}</td>
                         <td colSpan={2}></td>
                       </tr>
                     </tfoot>
@@ -362,9 +362,9 @@ export function TeachersPanel() {
             </Card>
 
             {/* === Ma'lumot === */}
-            <div className="rounded-xl bg-blue-50 border border-blue-200 p-3 text-xs text-blue-800">
+            <div className="rounded-xl bg-slate-50 border border-slate-200 p-3 text-xs text-slate-700">
               <strong>ℹ️ O'qituvchi haqida:</strong> Bu yerda o'qituvchining barcha ma'lumotlari — guruhlari, talabalari, dars jadvali, ish davomati va maoshlari bitta sahifada ko'rinadi.
-              O'qituvchi paneli (<code className="px-1 bg-blue-100 rounded">/teacher</code>) orqali u o'z guruhlarining davomatini belgilaydi.
+              O'qituvchi paneli (<code className="px-1 bg-slate-100 rounded">/teacher</code>) orqali u o'z guruhlarining davomatini belgilaydi.
             </div>
           </>
         )}
@@ -384,7 +384,7 @@ export function TeachersPanel() {
           <a
             href="/teacher"
             target="_blank"
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 text-sm font-semibold border border-blue-200"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-700 text-sm font-semibold border border-slate-200"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /><polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" /></svg>
             O'qituvchi paneli
@@ -394,8 +394,8 @@ export function TeachersPanel() {
       </div>
 
       {/* O'qituvchi paneli haqida ma'lumot */}
-      <div className="rounded-xl bg-blue-50 border border-blue-200 p-3 text-xs text-blue-800">
-        <strong>ℹ️ O'qituvchi paneli:</strong> O'qituvchilar <code className="px-1 py-0.5 bg-blue-100 rounded">/teacher</code> manzilidan kirib, o'z guruhlaridagi o'quvchilarning davomatini belgilashlari mumkin.
+      <div className="rounded-xl bg-slate-50 border border-slate-200 p-3 text-xs text-slate-700">
+        <strong>ℹ️ O'qituvchi paneli:</strong> O'qituvchilar <code className="px-1 py-0.5 bg-slate-100 rounded">/teacher</code> manzilidan kirib, o'z guruhlaridagi o'quvchilarning davomatini belgilashlari mumkin.
         Har bir o'qituvchi uchun <strong>login (telefon)</strong> va <strong>parol</strong> kiriting. Batafsil ma'lumot uchun o'qituvchi kartochkasini bosing.
       </div>
 
@@ -428,17 +428,17 @@ export function TeachersPanel() {
                     <div className="flex items-center gap-1.5">
                       <span className="text-muted-foreground">Panel:</span>
                       {t.has_password ? (
-                        <span className="px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700 text-[10px] font-semibold">✓ Parol bor</span>
+                        <span className="px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[10px] font-semibold">✓ Parol bor</span>
                       ) : (
-                        <span className="px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[10px] font-semibold">⚠ Parol yo'q</span>
+                        <span className="px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[10px] font-semibold">⚠ Parol yo'q</span>
                       )}
                     </div>
                   </div>
                   <div className="mt-3 pt-3 border-t border-border/40 flex items-center justify-between">
-                    <span className="px-2 py-0.5 rounded-full bg-cyan-100 text-cyan-700 text-[10px] font-semibold">
+                    <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[10px] font-semibold">
                       {teacherGroupsCount} guruh · {teacherStudentsCount} talaba
                     </span>
-                    <span className="text-[10px] text-blue-600 font-medium flex items-center gap-1">
+                    <span className="text-[10px] text-slate-700 font-medium flex items-center gap-1">
                       Batafsil
                       <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><polyline points="9 18 15 12 9 6" /></svg>
                     </span>
@@ -458,16 +458,16 @@ export function TeachersPanel() {
           </div>
 
           {/* O'qituvchi paneli uchun parol */}
-          <div className="rounded-xl bg-blue-50 border border-blue-200 p-3 space-y-2">
-            <div className="text-xs font-semibold text-blue-800">🔐 O'qituvchi paneli uchun kirish</div>
+          <div className="rounded-xl bg-slate-50 border border-slate-200 p-3 space-y-2">
+            <div className="text-xs font-semibold text-slate-700">🔐 O'qituvchi paneli uchun kirish</div>
             <div className="grid sm:grid-cols-2 gap-3">
               <Field label="Login (ixtiyoriy)"><input className="erp-input" value={form.login} onChange={(e) => setForm({ ...form, login: e.target.value })} placeholder="Telefon avtomatik ishlatiladi" /></Field>
               <Field label={editing ? 'Yangi parol (o\'zgartirish uchun)' : 'Parol *'}>
                 <input type="text" className="erp-input" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} placeholder="Masalan: 1234" />
               </Field>
             </div>
-            <p className="text-[11px] text-blue-700">
-              O'qituvchi <code className="px-1 bg-blue-100 rounded">/teacher</code> manzilidan login (yoki telefon) va parol bilan kirib, o'z guruhlaridagi o'quvchilarning davomatini belgilay oladi.
+            <p className="text-[11px] text-slate-700">
+              O'qituvchi <code className="px-1 bg-slate-100 rounded">/teacher</code> manzilidan login (yoki telefon) va parol bilan kirib, o'z guruhlaridagi o'quvchilarning davomatini belgilay oladi.
             </p>
           </div>
 
@@ -584,9 +584,9 @@ export function GroupsPanel() {
 
   // Status badge
   function statusBadge(status: string) {
-    if (status === 'present') return <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 text-[9px] font-bold">K</span>
+    if (status === 'present') return <span className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 text-[9px] font-bold">K</span>
     if (status === 'absent') return <span className="px-1.5 py-0.5 rounded bg-red-100 text-red-700 text-[9px] font-bold">·</span>
-    if (status === 'late') return <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 text-[9px] font-bold">Kech</span>
+    if (status === 'late') return <span className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 text-[9px] font-bold">Kech</span>
     return <span className="text-[9px] text-muted-foreground">—</span>
   }
 
@@ -658,9 +658,9 @@ export function GroupsPanel() {
                           {/* Bugungi davomat holati */}
                           {todayStatus ? (
                             <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${
-                              todayStatus === 'present' ? 'bg-blue-100 text-blue-700' :
+                              todayStatus === 'present' ? 'bg-slate-100 text-slate-700' :
                               todayStatus === 'absent' ? 'bg-red-100 text-red-700' :
-                              'bg-amber-100 text-amber-700'
+                              'bg-slate-100 text-slate-700'
                             }`}>
                               {todayStatus === 'present' ? '✓ Keldi' : todayStatus === 'absent' ? '✗ Kelmadi' : '⏰ Kechikdi'}
                             </span>
@@ -695,7 +695,7 @@ export function GroupsPanel() {
                   />
                   <button
                     onClick={() => reloadAttendance(selectedGroup.id)}
-                    className="ml-auto px-2 py-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs"
+                    className="ml-auto px-2 py-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs"
                     title="Davomatni qayta yuklash"
                   >
                     🔄 Yangilash
@@ -744,13 +744,13 @@ export function GroupsPanel() {
                 {/* Legenda */}
                 <div className="mt-3 pt-3 border-t border-border/40 flex items-center gap-3 text-[10px] text-muted-foreground flex-wrap">
                   <span className="flex items-center gap-1">
-                    <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 text-[9px] font-bold">K</span> Keldi
+                    <span className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 text-[9px] font-bold">K</span> Keldi
                   </span>
                   <span className="flex items-center gap-1">
                     <span className="px-1.5 py-0.5 rounded bg-red-100 text-red-700 text-[9px] font-bold">·</span> Kelmadi
                   </span>
                   <span className="flex items-center gap-1">
-                    <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 text-[9px] font-bold">Kech</span> Kechikdi
+                    <span className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 text-[9px] font-bold">Kech</span> Kechikdi
                   </span>
                   <span className="flex items-center gap-1">
                     <span className="text-[9px]">—</span> Belgilanmagan
@@ -760,7 +760,7 @@ export function GroupsPanel() {
             </Card>
 
             {/* Ma'lumot */}
-            <div className="lg:col-span-2 rounded-xl bg-blue-50 border border-blue-200 p-3 text-xs text-blue-800">
+            <div className="lg:col-span-2 rounded-xl bg-slate-50 border border-slate-200 p-3 text-xs text-slate-700">
               <strong>ℹ️ Davomat haqida:</strong> Bu yerda ko'rsatilgan davomat <strong>o'qituvchi paneli</strong> (/teacher) orqali belgilangan.
               O'qituvchi o'z paroli bilan kirib, dars vaqtida davomat belgilaydi — bu ma'lumotlar shu yerda ham avtomatik ko'rinadi.
               Hammasi bitta baza (attendance jadvali) dan olinadi.
@@ -809,8 +809,8 @@ export function GroupsPanel() {
                     <Row label="Tugash" value={formatDate(g.end_date)} />
                   </div>
                   <div className="mt-3 pt-3 border-t border-border/40 flex items-center justify-between">
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${isFull ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'}`}>{count}/{g.max_students} talaba</span>
-                    <span className="text-[10px] text-blue-600 font-medium flex items-center gap-1">
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${isFull ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-700'}`}>{count}/{g.max_students} talaba</span>
+                    <span className="text-[10px] text-slate-700 font-medium flex items-center gap-1">
                       Batafsil
                       <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><polyline points="9 18 15 12 9 6" /></svg>
                     </span>
@@ -841,7 +841,7 @@ export function GroupsPanel() {
                   onClick={() => setForm({ ...form, schedule: form.schedule && form.schedule.startsWith('Du-Chor-Juma') ? form.schedule : 'Du-Chor-Juma ' })}
                   className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
                     form.schedule?.startsWith('Du-Chor-Juma')
-                      ? 'bg-blue-600 text-white border-blue-600'
+                      ? 'bg-slate-800 text-white border-slate-200'
                       : 'bg-card text-muted-foreground border-border/50 hover:bg-muted'
                   }`}
                 >
@@ -853,7 +853,7 @@ export function GroupsPanel() {
                   onClick={() => setForm({ ...form, schedule: form.schedule && form.schedule.startsWith('Se-Pay-Shan') ? form.schedule : 'Se-Pay-Shan ' })}
                   className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
                     form.schedule?.startsWith('Se-Pay-Shan')
-                      ? 'bg-blue-600 text-white border-blue-600'
+                      ? 'bg-slate-800 text-white border-slate-200'
                       : 'bg-card text-muted-foreground border-border/50 hover:bg-muted'
                   }`}
                 >
@@ -865,7 +865,7 @@ export function GroupsPanel() {
                   onClick={() => setForm({ ...form, schedule: form.schedule && !form.schedule.startsWith('Du-Chor-Juma') && !form.schedule.startsWith('Se-Pay-Shan') && form.schedule !== '' ? form.schedule : 'Boshqa: ' })}
                   className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
                     form.schedule && !form.schedule.startsWith('Du-Chor-Juma') && !form.schedule.startsWith('Se-Pay-Shan') && form.schedule !== ''
-                      ? 'bg-amber-600 text-white border-amber-600'
+                      ? 'bg-slate-600 text-white border-slate-200'
                       : 'bg-card text-muted-foreground border-border/50 hover:bg-muted'
                   }`}
                 >
@@ -1007,31 +1007,31 @@ export function CoursesPanel() {
           </div>
           <div className="bg-card rounded-2xl border border-border/50 p-3">
             <div className="text-[10px] text-muted-foreground">Oylik to'lov</div>
-            <div className="text-sm font-semibold mt-0.5 text-amber-600">{formatMoney(c.price)}</div>
+            <div className="text-sm font-semibold mt-0.5 text-slate-700">{formatMoney(c.price)}</div>
           </div>
           <div className="bg-card rounded-2xl border border-border/50 p-3">
             <div className="text-[10px] text-muted-foreground">Jami to'lovlar</div>
-            <div className="text-sm font-semibold mt-0.5 text-blue-600">{formatMoney(totalPaid)}</div>
+            <div className="text-sm font-semibold mt-0.5 text-slate-700">{formatMoney(totalPaid)}</div>
           </div>
         </div>
 
         {/* === 2. Statistik kartochkalar === */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          <div className="bg-violet-50 rounded-2xl border border-violet-200 p-3">
-            <div className="text-[10px] text-violet-700">Guruhlar</div>
-            <div className="text-2xl font-bold mt-0.5 text-violet-900">{courseGroups.length}</div>
+          <div className="bg-slate-50 rounded-2xl border border-slate-200 p-3">
+            <div className="text-[10px] text-slate-700">Guruhlar</div>
+            <div className="text-2xl font-bold mt-0.5 text-slate-700">{courseGroups.length}</div>
           </div>
-          <div className="bg-blue-50 rounded-2xl border border-blue-200 p-3">
-            <div className="text-[10px] text-blue-700">Jami talabalar</div>
-            <div className="text-2xl font-bold mt-0.5 text-blue-900">{totalStudents}</div>
+          <div className="bg-slate-50 rounded-2xl border border-slate-200 p-3">
+            <div className="text-[10px] text-slate-700">Jami talabalar</div>
+            <div className="text-2xl font-bold mt-0.5 text-slate-900">{totalStudents}</div>
           </div>
-          <div className="bg-blue-50 rounded-2xl border border-blue-200 p-3">
-            <div className="text-[10px] text-blue-700">Faol talabalar</div>
-            <div className="text-2xl font-bold mt-0.5 text-blue-900">{totalActive}</div>
+          <div className="bg-slate-50 rounded-2xl border border-slate-200 p-3">
+            <div className="text-[10px] text-slate-700">Faol talabalar</div>
+            <div className="text-2xl font-bold mt-0.5 text-slate-900">{totalActive}</div>
           </div>
-          <div className="bg-amber-50 rounded-2xl border border-amber-200 p-3">
-            <div className="text-[10px] text-amber-700">Darslar (jadvalda)</div>
-            <div className="text-2xl font-bold mt-0.5 text-amber-900">{courseSchedule.length}</div>
+          <div className="bg-slate-50 rounded-2xl border border-slate-200 p-3">
+            <div className="text-[10px] text-slate-700">Darslar (jadvalda)</div>
+            <div className="text-2xl font-bold mt-0.5 text-slate-900">{courseSchedule.length}</div>
           </div>
         </div>
 
@@ -1073,10 +1073,10 @@ export function CoursesPanel() {
                             👤 {g.teacher.full_name}
                             {g.teacher.subject && <span className="text-[10px] text-muted-foreground">({g.teacher.subject})</span>}
                           </span>
-                        ) : <span className="text-amber-600 text-xs">Biriktirilmagan</span>}
+                        ) : <span className="text-slate-700 text-xs">Biriktirilmagan</span>}
                       </td>
                       <td className="px-4 py-3 text-center">
-                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${g.students_count >= g.max_students ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'}`}>
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${g.students_count >= g.max_students ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-700'}`}>
                           {g.students_count}/{g.max_students}
                         </span>
                       </td>
@@ -1121,9 +1121,9 @@ export function CoursesPanel() {
                         <td className="px-4 py-3 text-muted-foreground text-xs">{formatDate(s.enrollment_date) || '—'}</td>
                         <td className="px-4 py-3 text-center">
                           <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${
-                            s.status === 'active' ? 'bg-blue-100 text-blue-700' :
-                            s.status === 'paused' ? 'bg-amber-100 text-amber-700' :
-                            s.status === 'graduated' ? 'bg-blue-100 text-blue-700' :
+                            s.status === 'active' ? 'bg-slate-100 text-slate-700' :
+                            s.status === 'paused' ? 'bg-slate-100 text-slate-700' :
+                            s.status === 'graduated' ? 'bg-slate-100 text-slate-700' :
                             'bg-red-100 text-red-700'
                           }`}>
                             {s.status === 'active' ? 'Faol' : s.status === 'paused' ? 'To\'xtatilgan' : s.status === 'graduated' ? 'Bitirgan' : 'Ketgan'}
@@ -1166,7 +1166,7 @@ export function CoursesPanel() {
                         <td className="px-4 py-3 text-muted-foreground">{grp?.name || '—'}</td>
                         <td className="px-4 py-3 text-muted-foreground">{tch?.full_name || '—'}</td>
                         <td className="px-4 py-3">
-                          <span className="px-2 py-0.5 rounded bg-blue-50 text-blue-700 text-xs font-semibold">
+                          <span className="px-2 py-0.5 rounded bg-slate-50 text-slate-700 text-xs font-semibold">
                             {s.start_time?.slice(0, 5)} - {s.end_time?.slice(0, 5)}
                           </span>
                         </td>
@@ -1186,27 +1186,27 @@ export function CoursesPanel() {
             subtitle={`Jami to'lovlar: ${formatMoney(totalPaid)} · ${coursePayments.length} ta to'lov yozuvi`}
           />
           <div className="p-4 pt-0 grid grid-cols-2 lg:grid-cols-4 gap-3">
-            <div className="bg-blue-50 rounded-xl border border-blue-200 p-3 text-center">
-              <div className="text-[10px] text-blue-700">Jami to'langan</div>
-              <div className="text-lg font-bold mt-1 text-blue-900">{formatMoney(totalPaid)}</div>
+            <div className="bg-slate-50 rounded-xl border border-slate-200 p-3 text-center">
+              <div className="text-[10px] text-slate-700">Jami to'langan</div>
+              <div className="text-lg font-bold mt-1 text-slate-900">{formatMoney(totalPaid)}</div>
             </div>
-            <div className="bg-amber-50 rounded-xl border border-amber-200 p-3 text-center">
-              <div className="text-[10px] text-amber-700">Oylik to'lov (har talaba)</div>
-              <div className="text-lg font-bold mt-1 text-amber-900">{formatMoney(c.price)}</div>
+            <div className="bg-slate-50 rounded-xl border border-slate-200 p-3 text-center">
+              <div className="text-[10px] text-slate-700">Oylik to'lov (har talaba)</div>
+              <div className="text-lg font-bold mt-1 text-slate-900">{formatMoney(c.price)}</div>
             </div>
-            <div className="bg-blue-50 rounded-xl border border-blue-200 p-3 text-center">
-              <div className="text-[10px] text-blue-700">Faol talabalar</div>
-              <div className="text-lg font-bold mt-1 text-blue-900">{totalActive}</div>
+            <div className="bg-slate-50 rounded-xl border border-slate-200 p-3 text-center">
+              <div className="text-[10px] text-slate-700">Faol talabalar</div>
+              <div className="text-lg font-bold mt-1 text-slate-900">{totalActive}</div>
             </div>
-            <div className="bg-violet-50 rounded-xl border border-violet-200 p-3 text-center">
-              <div className="text-[10px] text-violet-700">Kutilayotgan oylik tushum</div>
-              <div className="text-lg font-bold mt-1 text-violet-900">{formatMoney(totalActive * Number(c.price || 0))}</div>
+            <div className="bg-slate-50 rounded-xl border border-slate-200 p-3 text-center">
+              <div className="text-[10px] text-slate-700">Kutilayotgan oylik tushum</div>
+              <div className="text-lg font-bold mt-1 text-slate-700">{formatMoney(totalActive * Number(c.price || 0))}</div>
             </div>
           </div>
         </Card>
 
         {/* === Ma'lumot === */}
-        <div className="rounded-xl bg-blue-50 border border-blue-200 p-3 text-xs text-blue-800">
+        <div className="rounded-xl bg-slate-50 border border-slate-200 p-3 text-xs text-slate-700">
           <strong>ℹ️ Kurs haqida:</strong> Bu yerda kursning barcha ma'lumotlari — guruhlari, talabalari, dars jadvali va moliyaviy ko'rsatkichlari bitta sahifada ko'rinadi.
           Barcha ma'lumotlar markaziy bazadan olinadi — yangi talaba qo'shilsa, to'lov qilinsa yoki davomat belgilansa, bu yerda avtomatik yangilanadi.
         </div>
@@ -1241,12 +1241,12 @@ export function CoursesPanel() {
                   </div>
                   {c.description && <p className="mt-3 text-xs text-muted-foreground line-clamp-2">{c.description}</p>}
                   <div className="mt-3 pt-3 border-t border-border/40 grid grid-cols-3 gap-2 text-center">
-                    <div><div className="text-base font-bold text-violet-600">{groupCount}</div><div className="text-[10px] text-muted-foreground">guruh</div></div>
-                    <div><div className="text-base font-bold text-blue-600">{studentCount}</div><div className="text-[10px] text-muted-foreground">talaba</div></div>
-                    <div><div className="text-base font-bold text-amber-600">{formatMoney(c.price).replace(' so\'m', '')}</div><div className="text-[10px] text-muted-foreground">so'm</div></div>
+                    <div><div className="text-base font-bold text-slate-700">{groupCount}</div><div className="text-[10px] text-muted-foreground">guruh</div></div>
+                    <div><div className="text-base font-bold text-slate-700">{studentCount}</div><div className="text-[10px] text-muted-foreground">talaba</div></div>
+                    <div><div className="text-base font-bold text-slate-700">{formatMoney(c.price).replace(' so\'m', '')}</div><div className="text-[10px] text-muted-foreground">so'm</div></div>
                   </div>
                   <div className="mt-2 flex items-center justify-end">
-                    <span className="text-[10px] text-blue-600 font-medium flex items-center gap-1">
+                    <span className="text-[10px] text-slate-700 font-medium flex items-center gap-1">
                       Batafsil
                       <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><polyline points="9 18 15 12 9 6" /></svg>
                     </span>
@@ -1330,9 +1330,9 @@ export function RatingsPanel() {
             <div className="p-4 pt-0 space-y-2 max-h-96 overflow-y-auto">
               {avgByStudent.map((s, i) => (
                 <div key={s.id} className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-muted/40">
-                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm ${i === 0 ? 'bg-amber-100 text-amber-700' : i === 1 ? 'bg-slate-100 text-slate-700' : i === 2 ? 'bg-orange-100 text-orange-700' : 'bg-muted text-muted-foreground'}`}>{i + 1}</div>
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm ${i === 0 ? 'bg-slate-100 text-slate-700' : i === 1 ? 'bg-slate-100 text-slate-700' : i === 2 ? 'bg-slate-600 text-slate-700' : 'bg-muted text-muted-foreground'}`}>{i + 1}</div>
                   <div className="flex-1 min-w-0"><div className="text-sm font-medium truncate">{s.name}</div><div className="text-[10px] text-muted-foreground">{s.count} ta baho</div></div>
-                  <div className="flex items-center gap-1"><Star className="w-4 h-4 text-amber-500 fill-amber-500" /><span className="font-bold text-sm">{s.avg.toFixed(1)}</span></div>
+                  <div className="flex items-center gap-1"><Star className="w-4 h-4 text-slate-500 fill-slate-400" /><span className="font-bold text-sm">{s.avg.toFixed(1)}</span></div>
                 </div>
               ))}
             </div>
@@ -1350,7 +1350,7 @@ export function RatingsPanel() {
                     <div className="text-[10px] text-muted-foreground">{formatDate(r.rating_date)}{r.group?.name ? ' • ' + r.group.name : ''}</div>
                     {r.comment && <div className="text-xs text-muted-foreground truncate">{r.comment}</div>}
                   </div>
-                  <div className="flex items-center gap-1"><Star className="w-4 h-4 text-amber-500 fill-amber-500" /><span className="font-bold text-sm">{r.score}</span></div>
+                  <div className="flex items-center gap-1"><Star className="w-4 h-4 text-slate-500 fill-slate-400" /><span className="font-bold text-sm">{r.score}</span></div>
                   <IconButton title="O'chirish" danger onClick={() => handleDelete(r.id)}><Trash2 className="w-3.5 h-3.5" /></IconButton>
                 </div>
               ))}
@@ -1367,7 +1367,7 @@ export function RatingsPanel() {
             <Field label="Baho (1-5)"><input type="number" min={1} max={5} className="erp-input" value={form.score} onChange={(e) => setForm({ ...form, score: Number(e.target.value) })} /></Field>
           </div>
           <div className="flex gap-1 justify-center">{[1, 2, 3, 4, 5].map((n) => (
-            <button key={n} type="button" onClick={() => setForm({ ...form, score: n })}><Star className={`w-8 h-8 ${n <= form.score ? 'text-amber-500 fill-amber-500' : 'text-muted-foreground'}`} /></button>
+            <button key={n} type="button" onClick={() => setForm({ ...form, score: n })}><Star className={`w-8 h-8 ${n <= form.score ? 'text-slate-500 fill-slate-400' : 'text-muted-foreground'}`} /></button>
           ))}</div>
           <Field label="Izoh"><textarea className="erp-input" rows={2} value={form.comment} onChange={(e) => setForm({ ...form, comment: e.target.value })} /></Field>
           <div className="flex gap-2 pt-2"><PrimaryButton onClick={handleSave} className="flex-1">Saqlash</PrimaryButton><GhostButton onClick={() => setOpenModal(false)}>Bekor</GhostButton></div>

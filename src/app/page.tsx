@@ -110,11 +110,11 @@ export default function Home() {
 
 function FullScreenLoader() {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 via-white to-sky-50">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-slate-50 via-slate-50 to-slate-100">
       <AuroraBackground />
       <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="relative z-10 flex flex-col items-center gap-4">
-        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-sky-600 flex items-center justify-center shadow-xl shadow-blue-500/30"><Spinner className="w-8 h-8 text-white" /></div>
-        <div className="text-blue-700 font-medium">Yuklanmoqda...</div>
+        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-slate-700 to-slate-700 flex items-center justify-center shadow-xl "><Spinner className="w-8 h-8 text-white" /></div>
+        <div className="text-slate-700 font-medium">Yuklanmoqda...</div>
       </motion.div>
     </div>
   )
@@ -123,16 +123,14 @@ function FullScreenLoader() {
 export function AuroraBackground() {
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      <div className="aurora-blob absolute -top-40 -left-40 w-[40rem] h-[40rem] rounded-full bg-blue-300/30 blur-3xl" />
-      <div className="aurora-blob absolute top-1/2 -right-40 w-[35rem] h-[35rem] rounded-full bg-sky-300/25 blur-3xl" style={{ animationDelay: '4s' }} />
-      <div className="aurora-blob absolute -bottom-40 left-1/3 w-[30rem] h-[30rem] rounded-full bg-cyan-200/20 blur-3xl" style={{ animationDelay: '8s' }} />
+      <div className="aurora-blob absolute -top-40 -left-40 w-[40rem] h-[40rem] rounded-full bg-slate-700/30 blur-3xl" />
+      <div className="aurora-blob absolute top-1/2 -right-40 w-[35rem] h-[35rem] rounded-full bg-slate-600/25 blur-3xl" style={{ animationDelay: '4s' }} />
+      <div className="aurora-blob absolute -bottom-40 left-1/3 w-[30rem] h-[30rem] rounded-full bg-slate-600/20 blur-3xl" style={{ animationDelay: '8s' }} />
     </div>
   )
 }
 
-// ============================================================================
-//  AUTH SCREEN
-// ============================================================================
+// AUTH SCREEN
 function AuthScreen({ mode, onModeChange, onSuccess }: { mode: 'login' | 'register'; onModeChange: (m: 'login' | 'register') => void; onSuccess: () => void }) {
   const [loading, setLoading] = useState(false)
   const [err, setErr] = useState<string | null>(null)
@@ -158,13 +156,13 @@ function AuthScreen({ mode, onModeChange, onSuccess }: { mode: 'login' | 'regist
   }
 
   return (
-    <div className="min-h-screen flex items-stretch bg-gradient-to-br from-blue-50 via-white to-sky-50 relative overflow-hidden">
+    <div className="min-h-screen flex items-stretch bg-gradient-to-br from-slate-50 via-slate-50 to-slate-100 relative overflow-hidden">
       <AuroraBackground />
       <div className="relative z-10 w-full grid lg:grid-cols-2 items-stretch">
         <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.6 }} className="hidden lg:flex flex-col gap-7 p-12 xl:p-16 2xl:p-20 justify-center">
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-sky-600 flex items-center justify-center shadow-xl shadow-blue-500/30"><GraduationCap className="w-10 h-10 text-white" /></div>
-            <div><div className="text-3xl font-bold tracking-tight">EduMarkaz</div><div className="text-base text-blue-600 font-medium">ERP Boshqaruv Tizimi</div></div>
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-slate-700 to-slate-700 flex items-center justify-center shadow-xl "><GraduationCap className="w-10 h-10 text-white" /></div>
+            <div><div className="text-3xl font-bold tracking-tight">EduMarkaz</div><div className="text-base text-slate-700 font-medium">ERP Boshqaruv Tizimi</div></div>
           </div>
           <h1 className="text-5xl xl:text-6xl 2xl:text-7xl font-bold leading-tight tracking-tight">O'quv markazingizni <span className="shimmer-text">bir tizimda</span> boshqaring</h1>
           <p className="text-muted-foreground text-xl leading-relaxed">Talabalar, guruhlar, o'qituvchilar, to'lovlar, davomat va statistika — barchasi bir joyda. Zamonaviy dizayn, tezkor ishlash va ishonchli ma'lumotlar bazasi.</p>
@@ -174,21 +172,21 @@ function AuthScreen({ mode, onModeChange, onSuccess }: { mode: 'login' | 'regist
             <FeaturePill icon="calendar" label="Dars jadvali" />
             <FeaturePill icon="chart" label="Statistika & Hisobot" />
           </div>
-          <div className="mt-6 p-6 rounded-2xl bg-blue-50/80 border border-blue-200">
-            <div className="text-base text-blue-700 font-bold mb-2 tracking-wide">BEPUL SINOV</div>
-            <div className="text-lg text-blue-900 leading-relaxed">10 kun davomida barcha funksiyalar bilan bepul foydalaning. Karta talab qilinmaydi.</div>
+          <div className="mt-6 p-6 rounded-2xl bg-slate-50/80 border border-slate-200">
+            <div className="text-base text-slate-700 font-bold mb-2 tracking-wide">BEPUL SINOV</div>
+            <div className="text-lg text-slate-900 leading-relaxed">10 kun davomida barcha funksiyalar bilan bepul foydalaning. Karta talab qilinmaydi.</div>
           </div>
         </motion.div>
 
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.1 }} className="w-full flex items-center justify-center p-6 sm:p-10 lg:p-12 xl:p-16 2xl:p-20">
-          <div className="glass rounded-3xl shadow-2xl shadow-blue-900/10 border border-blue-100/50 p-8 sm:p-10 lg:p-10 xl:p-12 w-full max-w-2xl">
+          <div className="glass rounded-3xl shadow-2xl shadow-slate-900/10 border border-slate-200/50 p-8 sm:p-10 lg:p-10 xl:p-12 w-full max-w-2xl">
             <div className="lg:hidden flex items-center gap-3 mb-8">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-sky-600 flex items-center justify-center"><GraduationCap className="w-7 h-7 text-white" /></div>
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-slate-700 to-slate-700 flex items-center justify-center"><GraduationCap className="w-7 h-7 text-white" /></div>
               <div className="text-2xl font-bold">EduMarkaz</div>
             </div>
             <div className="flex p-1.5 bg-muted rounded-2xl mb-8">
-              <button type="button" onClick={() => onModeChange('login')} className={`flex-1 py-3.5 text-lg font-semibold rounded-xl transition-all ${mode === 'login' ? 'bg-white text-blue-700 shadow' : 'text-muted-foreground'}`}>Tizimga kirish</button>
-              <button type="button" onClick={() => onModeChange('register')} className={`flex-1 py-3.5 text-lg font-semibold rounded-xl transition-all ${mode === 'register' ? 'bg-white text-blue-700 shadow' : 'text-muted-foreground'}`}>Ro'yxatdan o'tish</button>
+              <button type="button" onClick={() => onModeChange('login')} className={`flex-1 py-3.5 text-lg font-semibold rounded-xl transition-all ${mode === 'login' ? 'bg-white text-slate-700 shadow' : 'text-muted-foreground'}`}>Tizimga kirish</button>
+              <button type="button" onClick={() => onModeChange('register')} className={`flex-1 py-3.5 text-lg font-semibold rounded-xl transition-all ${mode === 'register' ? 'bg-white text-slate-700 shadow' : 'text-muted-foreground'}`}>Ro'yxatdan o'tish</button>
             </div>
             <AnimatePresence mode="wait">
               {mode === 'login' ? (
@@ -198,7 +196,7 @@ function AuthScreen({ mode, onModeChange, onSuccess }: { mode: 'login' | 'regist
                   {err && <ErrorBanner message={err} />}
                   <SubmitButton loading={loading} label="Kirish" size="lg" />
                   <div className="text-center">
-                    <button type="button" onClick={() => setForgotOpen(true)} className="text-sm text-blue-600 hover:text-blue-700 hover:underline">Parolni unutdingizmi?</button>
+                    <button type="button" onClick={() => setForgotOpen(true)} className="text-sm text-slate-700 hover:text-slate-700 hover:underline">Parolni unutdingizmi?</button>
                   </div>
                 </motion.form>
               ) : (
@@ -217,7 +215,7 @@ function AuthScreen({ mode, onModeChange, onSuccess }: { mode: 'login' | 'regist
               )}
             </AnimatePresence>
             <div className="mt-8 pt-6 border-t border-border/50 text-center">
-              <a href={TELEGRAM_URL} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 text-base text-muted-foreground hover:text-blue-600 transition"><TelegramIcon className="w-5 h-5" />Yordam: @{TELEGRAM_HANDLE}</a>
+              <a href={TELEGRAM_URL} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 text-base text-muted-foreground hover:text-slate-700 transition"><TelegramIcon className="w-5 h-5" />Yordam: @{TELEGRAM_HANDLE}</a>
             </div>
           </div>
         </motion.div>
@@ -231,16 +229,14 @@ function FeaturePill({ icon, label }: { icon: string; label: string }) {
   const map: any = { users: Users, payments: Wallet, calendar: Calendar, chart: BarChart3 }
   const Icon = map[icon] || Users
   return (
-    <div className="flex items-center gap-3.5 p-4 rounded-2xl bg-white/70 border border-blue-100 backdrop-blur">
-      <div className="w-11 h-11 rounded-xl bg-blue-100 flex items-center justify-center text-blue-700"><Icon className="w-5 h-5" /></div>
+    <div className="flex items-center gap-3.5 p-4 rounded-2xl bg-white/70 border border-slate-200 backdrop-blur">
+      <div className="w-11 h-11 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700"><Icon className="w-5 h-5" /></div>
       <span className="text-base font-medium">{label}</span>
     </div>
   )
 }
 
-// ============================================================================
-//  PAROLNI TIKLASH MODALI — yangi funksiya
-// ============================================================================
+// PAROLNI TIKLASH MODALI
 function ForgotPasswordModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [step, setStep] = useState<1 | 2>(1)
   const [email, setEmail] = useState('')
@@ -292,9 +288,9 @@ function ForgotPasswordModal({ open, onClose }: { open: boolean; onClose: () => 
                   <>
                     <p className="text-sm text-muted-foreground">Email manzilingizni kiriting. Sizga tiklash kodi yuboriladi (admin @norinkomp orqali).</p>
                     <Field label="Email"><input type="email" className="erp-input" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="markaz@example.com" /></Field>
-                    {err && <div className="px-4 py-2.5 rounded-xl bg-red-50 border border-red-200 text-sm text-red-700">{err}</div>}
-                    {msg && <div className="px-4 py-2.5 rounded-xl bg-blue-50 border border-blue-200 text-sm text-blue-700">{msg}</div>}
-                    <button onClick={handleRequest} disabled={loading} className="w-full py-3 rounded-xl bg-gradient-to-r from-blue-500 to-sky-600 text-white font-semibold disabled:opacity-50 flex items-center justify-center gap-2">
+                    {err && <div className="px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm text-red-700">{err}</div>}
+                    {msg && <div className="px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm text-slate-700">{msg}</div>}
+                    <button onClick={handleRequest} disabled={loading} className="w-full py-3 rounded-xl bg-gradient-to-r from-slate-700 to-slate-700 text-white font-semibold disabled:opacity-50 flex items-center justify-center gap-2">
                       {loading && <Spinner className="w-4 h-4" />}{loading ? 'Yuborilmoqda...' : 'Kod so\'rash'}
                     </button>
                   </>
@@ -304,9 +300,9 @@ function ForgotPasswordModal({ open, onClose }: { open: boolean; onClose: () => 
                     <Field label="Email"><input type="email" className="erp-input" value={email} onChange={(e) => setEmail(e.target.value)} disabled /></Field>
                     <Field label="Tiklash kodi"><input className="erp-input font-mono tracking-wider text-center" value={token} onChange={(e) => setToken(e.target.value)} placeholder="123456" maxLength={6} /></Field>
                     <Field label="Yangi parol"><input type="password" className="erp-input" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="••••••••" /></Field>
-                    {err && <div className="px-4 py-2.5 rounded-xl bg-red-50 border border-red-200 text-sm text-red-700">{err}</div>}
-                    {msg && <div className="px-4 py-2.5 rounded-xl bg-blue-50 border border-blue-200 text-sm text-blue-700 flex items-center gap-2"><CheckCircle className="w-4 h-4" /> {msg}</div>}
-                    <button onClick={handleReset} disabled={loading} className="w-full py-3 rounded-xl bg-gradient-to-r from-blue-500 to-sky-600 text-white font-semibold disabled:opacity-50 flex items-center justify-center gap-2">
+                    {err && <div className="px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm text-red-700">{err}</div>}
+                    {msg && <div className="px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm text-slate-700 flex items-center gap-2"><CheckCircle className="w-4 h-4" /> {msg}</div>}
+                    <button onClick={handleReset} disabled={loading} className="w-full py-3 rounded-xl bg-gradient-to-r from-slate-700 to-slate-700 text-white font-semibold disabled:opacity-50 flex items-center justify-center gap-2">
                       {loading && <Spinner className="w-4 h-4" />}{loading ? 'O\'zgartirilmoqda...' : 'Parolni o\'zgartirish'}
                     </button>
                     <button onClick={() => setStep(1)} className="w-full text-center text-xs text-muted-foreground hover:text-foreground">← Orqaga</button>
@@ -325,21 +321,19 @@ export function Field({ label, children, labelSize = 'sm' }: { label: string; ch
   return <div><label className={`block font-semibold text-foreground mb-1.5 ${labelSize === 'lg' ? 'text-base' : 'text-xs'}`}>{label}</label>{children}</div>
 }
 export function ErrorBanner({ message }: { message: string }) {
-  return <motion.div initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} className="px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-sm text-red-700">{message}</motion.div>
+  return <motion.div initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} className="px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-sm text-red-700">{message}</motion.div>
 }
 export function SubmitButton({ loading, label, icon, size = 'md' }: { loading: boolean; label: string; icon?: React.ReactNode; size?: 'md' | 'lg' }) {
   const pad = size === 'lg' ? 'py-4 text-lg' : 'py-3 text-sm'
   return (
-    <button type="submit" disabled={loading} className={`w-full ${pad} rounded-xl bg-gradient-to-r from-blue-500 to-sky-600 text-white font-semibold shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2`}>
+    <button type="submit" disabled={loading} className={`w-full ${pad} rounded-xl bg-gradient-to-r from-slate-700 to-slate-700 text-white font-semibold shadow-lg  hover: transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2`}>
       {loading ? <Spinner className="w-5 h-5" /> : icon}{loading ? 'Biroz kuting...' : label}
     </button>
   )
-}
-
-// ============================================================================
-//  BLOCKED SCREEN
-// ============================================================================
+// BLOCKED SCREEN
 function BlockedScreen({ user, onActivated, onLogout }: { user: PublicUser; onActivated: () => void; onLogout: () => void }) {
+// //  BLOCKED SCREEN
+// function BlockedScreen({ user, onActivated, onLogout }: { user: PublicUser; onActivated: () => void; onLogout: () => void }) {
   const [code, setCode] = useState('')
   const [loading, setLoading] = useState(false)
   const [err, setErr] = useState<string | null>(null)
@@ -358,13 +352,13 @@ function BlockedScreen({ user, onActivated, onLogout }: { user: PublicUser; onAc
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-950 relative overflow-hidden">
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="aurora-blob absolute -top-40 -left-40 w-[40rem] h-[40rem] rounded-full bg-blue-500/20 blur-3xl" />
-        <div className="aurora-blob absolute top-1/2 -right-40 w-[35rem] h-[35rem] rounded-full bg-sky-500/15 blur-3xl" style={{ animationDelay: '4s' }} />
+        <div className="aurora-blob absolute -top-40 -left-40 w-[40rem] h-[40rem] rounded-full bg-slate-700/20 blur-3xl" />
+        <div className="aurora-blob absolute top-1/2 -right-40 w-[35rem] h-[35rem] rounded-full bg-slate-600/15 blur-3xl" style={{ animationDelay: '4s' }} />
       </div>
       <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="relative z-10 w-full max-w-md">
         <div className="glass rounded-3xl shadow-2xl border border-white/10 p-8 backdrop-blur-xl">
           <div className="flex justify-center mb-6">
-            <motion.div animate={{ scale: [1, 1.05, 1] }} transition={{ duration: 2, repeat: Infinity }} className="w-20 h-20 rounded-2xl bg-gradient-to-br from-red-500 to-rose-600 flex items-center justify-center shadow-2xl shadow-red-500/30"><Lock className="w-10 h-10 text-white" /></motion.div>
+            <motion.div animate={{ scale: [1, 1.05, 1] }} transition={{ duration: 2, repeat: Infinity }} className="w-20 h-20 rounded-2xl bg-gradient-to-br from-red-500 to-slate-700 flex items-center justify-center shadow-2xl shadow-red-500/30"><Lock className="w-10 h-10 text-white" /></motion.div>
           </div>
           <h2 className="text-center text-2xl font-bold text-white mb-2">Tizim bloklangan</h2>
           <p className="text-center text-slate-300 text-sm mb-6">Hurmatli <span className="font-semibold text-white">{user.full_name}</span>, aktivlik muddati tugagan. Tizimni davom ettirish uchun aktivatsiya kodini kiriting.</p>
@@ -384,20 +378,20 @@ function BlockedScreen({ user, onActivated, onLogout }: { user: PublicUser; onAc
           <form onSubmit={handleActivate} className="space-y-4">
             <div>
               <label className="block text-xs font-semibold text-slate-300 mb-2">AKTIVATSIYA KODI</label>
-              <input value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} placeholder="XXXX-XXXX-XXXX-XXXX-XXXX-XXXX" className="w-full px-4 py-3 rounded-xl bg-white/5 border-2 border-white/10 text-white font-mono tracking-wider text-center focus:bg-white/10 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/30 outline-none transition" required />
+              <input value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} placeholder="XXXX-XXXX-XXXX-XXXX-XXXX-XXXX" className="w-full px-4 py-3 rounded-xl bg-white/5 border-2 border-white/10 text-white font-mono tracking-wider text-center focus:bg-white/10 focus:border-slate-200 focus:ring-2 focus:ring-slate-400/30 outline-none transition" required />
             </div>
-            {err && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="px-4 py-2.5 rounded-xl bg-red-500/20 border border-red-500/30 text-sm text-red-200">{err}</motion.div>}
-            {success && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="px-4 py-2.5 rounded-xl bg-blue-500/20 border border-blue-500/30 text-sm text-blue-200 flex items-center gap-2"><CheckCircle className="w-4 h-4" /> {success}</motion.div>}
-            <button type="submit" disabled={loading} className="w-full py-3 rounded-xl bg-gradient-to-r from-blue-500 to-sky-600 text-white font-semibold shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 flex items-center justify-center gap-2">
+            {err && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="px-4 py-2.5 rounded-xl bg-slate-500/20 border border-red-500/30 text-sm text-red-200">{err}</motion.div>}
+            {success && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="px-4 py-2.5 rounded-xl bg-slate-700/20 border border-slate-200/30 text-sm text-slate-700 flex items-center gap-2"><CheckCircle className="w-4 h-4" /> {success}</motion.div>}
+            <button type="submit" disabled={loading} className="w-full py-3 rounded-xl bg-gradient-to-r from-slate-700 to-slate-700 text-white font-semibold shadow-lg  hover: transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 flex items-center justify-center gap-2">
               {loading ? <Spinner className="w-4 h-4" /> : <KeyRound className="w-4 h-4" />}
               {loading ? 'Tekshirilmoqda...' : 'Aktivlashtirish'}
             </button>
           </form>
 
           {/* Eslatma */}
-          <div className="mt-5 p-3 rounded-xl bg-slate-500/10 border border-blue-500/30">
-            <div className="text-xs text-blue-200 leading-relaxed">
-              <strong className="text-blue-100">Adminga murojaat qiling</strong> va aktivatsiya kodini sotib oling. Kod Telegram orqali yuboriladi. Kod kiritilgandan so'ng tizim 30 kunga aktiv bo'ladi.
+          <div className="mt-5 p-3 rounded-xl bg-slate-500/10 border border-slate-200/30">
+            <div className="text-xs text-slate-700 leading-relaxed">
+              <strong className="text-slate-700">Adminga murojaat qiling</strong> va aktivatsiya kodini sotib oling. Kod Telegram orqali yuboriladi. Kod kiritilgandan so'ng tizim 30 kunga aktiv bo'ladi.
             </div>
           </div>
 
@@ -413,9 +407,7 @@ function BlockedScreen({ user, onActivated, onLogout }: { user: PublicUser; onAc
   )
 }
 
-// ============================================================================
-//  APP SHELL
-// ============================================================================
+// //  APP SHELL
 function AppShell({ user, onRefresh, onLogout }: { user: PublicUser; onRefresh: () => void; onLogout: () => void }) {
   const [activeTab, setActiveTab] = useState<string>('dashboard')
   const [mobileNav, setMobileNav] = useState(false)
@@ -453,7 +445,7 @@ function AppShell({ user, onRefresh, onLogout }: { user: PublicUser; onRefresh: 
   }
 
   return (
-    <div className="min-h-screen flex bg-gradient-to-br from-blue-50/30 via-background to-sky-50/20">
+    <div className="min-h-screen flex bg-gradient-to-br from-slate-50/30 via-background to-slate-100/20">
       <aside className="hidden lg:flex w-64 flex-col bg-sidebar text-sidebar-foreground shrink-0"><SidebarContent user={user} activeTab={activeTab} setActiveTab={setActiveTab} onLogout={onLogout} /></aside>
       <AnimatePresence>
         {mobileNav && (
@@ -496,7 +488,7 @@ function AppShell({ user, onRefresh, onLogout }: { user: PublicUser; onRefresh: 
         </div>
         <footer className="px-4 lg:px-8 py-4 text-center text-xs text-muted-foreground border-t border-border/40">
           <span>EduMarkaz ERP v2.0 • </span>
-          <a href={TELEGRAM_URL} target="_blank" rel="noreferrer" className="hover:text-blue-600 transition inline-flex items-center gap-1"><TelegramIcon className="w-3 h-3" /> @{TELEGRAM_HANDLE}</a>
+          <a href={TELEGRAM_URL} target="_blank" rel="noreferrer" className="hover:text-slate-700 transition inline-flex items-center gap-1"><TelegramIcon className="w-3 h-3" /> @{TELEGRAM_HANDLE}</a>
         </footer>
       </main>
     </div>
@@ -508,11 +500,10 @@ function SidebarContent({ user, activeTab, setActiveTab, onLogout }: { user: Pub
     <>
       <div className="p-5 border-b border-sidebar-border/50">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-400 to-sky-500 flex items-center justify-center shadow-lg shadow-blue-500/20"><GraduationCap className="w-6 h-6 text-white" /></div>
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-500 to-slate-600 flex items-center justify-center shadow-lg "><GraduationCap className="w-6 h-6 text-white" /></div>
           <div><div className="font-bold text-sidebar-foreground">EduMarkaz</div><div className="text-[10px] text-sidebar-foreground/60">{user.center_name}</div></div>
         </div>
       </div>
-<<<<<<< HEAD
       <nav className="flex-1 p-3 space-y-4 overflow-y-auto">
         {NAV_SECTIONS.map((section, si) => (
           <div key={si}>
@@ -527,49 +518,15 @@ function SidebarContent({ user, activeTab, setActiveTab, onLogout }: { user: Pub
                   </button>
                 )
               })}
-=======
-      <nav className="flex-1 p-3 space-y-3 overflow-y-auto">
-        {NAV_SECTIONS.map((section, si) => {
-          const sectionColors: any = {
-            blue: 'bg-blue-100/80 border-blue-300/70',
-            amber: 'bg-amber-100/80 border-amber-300/70',
-            cyan: 'bg-cyan-100/80 border-cyan-300/70',
-            violet: 'bg-violet-100/80 border-violet-300/70',
-            sky: 'bg-sky-100/80 border-sky-300/70',
-            rose: 'bg-rose-100/80 border-rose-300/70',
-            indigo: 'bg-indigo-100/80 border-indigo-300/70',
-            slate: 'bg-slate-200/80 border-slate-400/70',
-          }
-          const iconColors: any = {
-            blue: 'text-blue-700', amber: 'text-amber-700', cyan: 'text-cyan-700',
-            violet: 'text-violet-700', sky: 'text-sky-700', rose: 'text-rose-700',
-            indigo: 'text-indigo-700', slate: 'text-slate-700',
-          }
-          const sc = section.color || 'blue'
-          return (
-            <div key={si} className={`rounded-xl border p-2.5 ${sectionColors[sc] || sectionColors.blue}`}>
-              <div className={`text-[11px] font-bold uppercase tracking-wider px-2 mb-2 ${iconColors[sc] || 'text-blue-700'}`}>{section.title}</div>
-              <div className="space-y-1">
-                {section.items.map((item) => {
-                  const Icon = item.icon
-                  const isActive = activeTab === item.id
-                  return (
-                    <button key={item.id} onClick={() => setActiveTab(item.id)} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[15px] font-semibold transition-all ${isActive ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30' : 'text-black hover:bg-white/80 hover:text-black'}`}>
-                      <Icon className="w-[18px] h-[18px] shrink-0" /><span className="truncate">{item.label}</span>{isActive && <ChevronRight className="w-4 h-4 ml-auto" />}
-                    </button>
-                  )
-                })}
-              </div>
->>>>>>> 60c09f695ed8547d48c6b25600dcf641241250cd
             </div>
-          )
-        })}
+          </div>
+        ))}
       </nav>
       <div className="p-3 border-t border-sidebar-border/50">
         <div className="px-3 py-2 mb-2 rounded-xl bg-sidebar-accent/50">
           <div className="flex items-center gap-2 text-xs">
-            {user.status === 'trial' && <Sparkles className="w-3.5 h-3.5 text-amber-400" />}
-            {user.status === 'active' && <CheckCircle className="w-3.5 h-3.5 text-blue-400" />}
+            {user.status === 'trial' && <Sparkles className="w-3.5 h-3.5 text-slate-500" />}
+            {user.status === 'active' && <CheckCircle className="w-3.5 h-3.5 text-slate-500" />}
             <span className="text-sidebar-foreground/80">
               {user.status === 'trial' && `Bepul sinov: ${user.days_left} kun qoldi`}
               {user.status === 'active' && `Aktiv: ${user.days_left} kun qoldi`}
@@ -583,9 +540,10 @@ function SidebarContent({ user, activeTab, setActiveTab, onLogout }: { user: Pub
   )
 }
 
+}
 function StatusBadge({ user }: { user: PublicUser }) {
-  if (user.role === 'admin') return <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-100 text-amber-700 text-xs font-semibold"><Crown className="w-3 h-3" /> Admin</div>
-  if (user.status === 'trial') return <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-100 text-amber-700 text-xs font-semibold"><Sparkles className="w-3 h-3" /> Sinov: {user.days_left}k</div>
-  if (user.status === 'active') return <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-semibold"><CheckCircle className="w-3 h-3" /> Aktiv: {user.days_left}k</div>
+  if (user.role === 'admin') return <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 text-xs font-semibold"><Crown className="w-3 h-3" /> Admin</div>
+  if (user.status === 'trial') return <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 text-xs font-semibold"><Sparkles className="w-3 h-3" /> Sinov: {user.days_left}k</div>
+  if (user.status === 'active') return <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 text-xs font-semibold"><CheckCircle className="w-3 h-3" /> Aktiv: {user.days_left}k</div>
   return null
 }

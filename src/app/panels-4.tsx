@@ -189,17 +189,17 @@ export function PaymentsPanel() {
           </div>
           <div className="bg-card rounded-2xl border border-border/50 p-4">
             <div className="text-xs text-muted-foreground">To'lash kerak</div>
-            <div className="text-xl lg:text-2xl font-bold mt-1 text-amber-600">{formatMoney(totals.total_due)}</div>
+            <div className="text-xl lg:text-2xl font-bold mt-1 text-slate-700">{formatMoney(totals.total_due)}</div>
             <div className="text-[10px] text-muted-foreground mt-0.5">umumiy majburiyat</div>
           </div>
           <div className="bg-card rounded-2xl border border-border/50 p-4">
             <div className="text-xs text-muted-foreground">To'langan</div>
-            <div className="text-xl lg:text-2xl font-bold mt-1 text-blue-600">{formatMoney(totals.total_paid)}</div>
+            <div className="text-xl lg:text-2xl font-bold mt-1 text-slate-700">{formatMoney(totals.total_paid)}</div>
             <div className="text-[10px] text-muted-foreground mt-0.5">jami to'lovlar</div>
           </div>
           <div className="bg-card rounded-2xl border border-border/50 p-4">
             <div className="text-xs text-muted-foreground">Qoldiq (qarz)</div>
-            <div className={`text-xl lg:text-2xl font-bold mt-1 ${totals.total_remaining > 0 ? 'text-rose-600' : 'text-blue-600'}`}>{formatMoney(totals.total_remaining)}</div>
+            <div className={`text-xl lg:text-2xl font-bold mt-1 ${totals.total_remaining > 0 ? 'text-slate-700' : 'text-slate-700'}`}>{formatMoney(totals.total_remaining)}</div>
             <div className="text-[10px] text-muted-foreground mt-0.5">{totals.students_with_debt} ta qarzdor</div>
           </div>
         </div>
@@ -207,20 +207,20 @@ export function PaymentsPanel() {
 
       {/* === Qarzdorlar ogohlantirish === */}
       {debtorsCount > 0 && (
-        <div className="rounded-xl bg-rose-50 border border-rose-200 p-4 flex items-start gap-3">
-          <div className="w-9 h-9 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center shrink-0">
+        <div className="rounded-xl bg-slate-50 border border-slate-200 p-4 flex items-start gap-3">
+          <div className="w-9 h-9 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center shrink-0">
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
           </div>
           <div className="flex-1">
-            <div className="font-semibold text-rose-900">{debtorsCount} ta talaba to'lov qilmagan</div>
-            <div className="text-xs text-rose-700 mt-0.5">
+            <div className="font-semibold text-slate-700">{debtorsCount} ta talaba to'lov qilmagan</div>
+            <div className="text-xs text-slate-700 mt-0.5">
               Jami qarz: <strong>{formatMoney(totals?.total_remaining || 0)}</strong> · "Qarzdorlar" rejimida ko'rib chiqing va tezkor to'lov tugmasi bilan bir bosishda to'lovni qabul qiling.
             </div>
           </div>
           {viewMode !== 'debtors' && (
             <button
               onClick={() => setViewMode('debtors')}
-              className="px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold"
+              className="px-3 py-1.5 rounded-lg bg-slate-600 hover:bg-slate-600 text-white text-xs font-semibold"
             >
               Qarzdorlarni ko'rish
             </button>
@@ -234,19 +234,19 @@ export function PaymentsPanel() {
         <div className="flex gap-1 p-1 bg-card rounded-xl border border-border/50">
           <button
             onClick={() => setViewMode('debtors')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${viewMode === 'debtors' ? 'bg-rose-500 text-white' : 'text-muted-foreground hover:bg-muted'}`}
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${viewMode === 'debtors' ? 'bg-slate-600 text-white' : 'text-muted-foreground hover:bg-muted'}`}
           >
             Qarzdorlar ({balances.filter(b => b.remaining > 0).length})
           </button>
           <button
             onClick={() => setViewMode('all')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${viewMode === 'all' ? 'bg-blue-500 text-white' : 'text-muted-foreground hover:bg-muted'}`}
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${viewMode === 'all' ? 'bg-slate-700 text-white' : 'text-muted-foreground hover:bg-muted'}`}
           >
             Barchasi ({balances.length})
           </button>
           <button
             onClick={() => setViewMode('paid')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${viewMode === 'paid' ? 'bg-blue-500 text-white' : 'text-muted-foreground hover:bg-muted'}`}
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${viewMode === 'paid' ? 'bg-slate-700 text-white' : 'text-muted-foreground hover:bg-muted'}`}
           >
             To'laganlar ({balances.filter(b => b.remaining <= 0).length})
           </button>
@@ -316,7 +316,7 @@ export function PaymentsPanel() {
                   // Qarz oylar sonini hisoblaymiz
                   const debtMonths = b.monthly_fee > 0 ? Math.floor(b.remaining / b.monthly_fee) : 0
                   return (
-                    <tr key={b.student_id} className={`border-b border-border/20 hover:bg-muted/40 ${b.remaining > 0 ? 'bg-rose-50/30' : ''}`}>
+                    <tr key={b.student_id} className={`border-b border-border/20 hover:bg-muted/40 ${b.remaining > 0 ? 'bg-slate-50/30' : ''}`}>
                       <td className="px-4 py-3">
                         <div className="font-medium">{b.full_name}</div>
                         <div className="text-[10px] text-muted-foreground">{b.phone || '—'}</div>
@@ -328,18 +328,18 @@ export function PaymentsPanel() {
                       <td className="px-4 py-3 text-muted-foreground text-xs">{formatDate(b.enrollment_date)}</td>
                       <td className="px-4 py-3 text-right font-medium">{formatMoney(b.monthly_fee)}</td>
                       <td className="px-4 py-3 text-center text-muted-foreground">{b.months_enrolled}</td>
-                      <td className="px-4 py-3 text-right font-semibold text-amber-600">{formatMoney(b.total_due)}</td>
-                      <td className="px-4 py-3 text-right font-semibold text-blue-600">{formatMoney(b.total_paid)}</td>
-                      <td className={`px-4 py-3 text-right font-bold ${b.remaining > 0 ? 'text-rose-600' : 'text-blue-600'}`}>
+                      <td className="px-4 py-3 text-right font-semibold text-slate-700">{formatMoney(b.total_due)}</td>
+                      <td className="px-4 py-3 text-right font-semibold text-slate-700">{formatMoney(b.total_paid)}</td>
+                      <td className={`px-4 py-3 text-right font-bold ${b.remaining > 0 ? 'text-slate-700' : 'text-slate-700'}`}>
                         {formatMoney(Math.max(0, b.remaining))}
                       </td>
                       <td className="px-4 py-3 text-center">
                         {b.remaining > 0 ? (
-                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${debtMonths >= 2 ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${debtMonths >= 2 ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-700'}`}>
                             {debtMonths >= 2 ? `${debtMonths} oy qarz` : 'Qarz'}
                           </span>
                         ) : (
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-100 text-blue-700">To'langan</span>
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-700">To'langan</span>
                         )}
                       </td>
                       <td className="px-4 py-3">
@@ -358,7 +358,7 @@ export function PaymentsPanel() {
                             <button
                               onClick={() => openPayModal(b, b.remaining)}
                               title="To'lov qilish — modal ochiladi"
-                              className="px-2.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold flex items-center gap-1"
+                              className="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold flex items-center gap-1"
                             >
                               <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" /></svg>
                               To'lov
@@ -370,7 +370,7 @@ export function PaymentsPanel() {
                             <button
                               onClick={() => openPayModal(b, b.monthly_fee)}
                               title="Bitta oylik to'lash — modal ochiladi"
-                              className="px-2 py-1 rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-700 text-[10px] font-semibold"
+                              className="px-2 py-1 rounded-lg bg-slate-100 hover:bg-slate-600 text-slate-700 text-[10px] font-semibold"
                             >
                               +1 oy
                             </button>
@@ -384,9 +384,9 @@ export function PaymentsPanel() {
               <tfoot>
                 <tr className="border-t-2 border-border/60 bg-muted/30 font-semibold">
                   <td colSpan={5} className="px-4 py-3 text-right">Jami:</td>
-                  <td className="px-4 py-3 text-right text-amber-600">{formatMoney(filtered.reduce((s, b) => s + b.total_due, 0))}</td>
-                  <td className="px-4 py-3 text-right text-blue-600">{formatMoney(filtered.reduce((s, b) => s + b.total_paid, 0))}</td>
-                  <td className="px-4 py-3 text-right text-rose-600">{formatMoney(filtered.reduce((s, b) => s + Math.max(0, b.remaining), 0))}</td>
+                  <td className="px-4 py-3 text-right text-slate-700">{formatMoney(filtered.reduce((s, b) => s + b.total_due, 0))}</td>
+                  <td className="px-4 py-3 text-right text-slate-700">{formatMoney(filtered.reduce((s, b) => s + b.total_paid, 0))}</td>
+                  <td className="px-4 py-3 text-right text-slate-700">{formatMoney(filtered.reduce((s, b) => s + Math.max(0, b.remaining), 0))}</td>
                   <td colSpan={2}></td>
                 </tr>
               </tfoot>
@@ -396,9 +396,9 @@ export function PaymentsPanel() {
       </Card>
 
       {/* === Oson tushuntirish === */}
-      <div className="rounded-xl bg-blue-50 border border-blue-200 p-4 text-sm text-blue-800">
+      <div className="rounded-xl bg-slate-50 border border-slate-200 p-4 text-sm text-slate-700">
         <div className="font-semibold mb-1">ℹ️ Qanday ishlaydi?</div>
-        <ul className="text-xs space-y-1 text-blue-700">
+        <ul className="text-xs space-y-1 text-slate-700">
           <li>• Talabaning <strong>qabul sanasidan</strong> boshlab har oy uchun <strong>oylik to'lov</strong> (kurs narxi) avtomatik hisoblanadi</li>
           <li>• <strong>To'lash kerak</strong> = o'tgan oylar soni × oylik to'lov summasi</li>
           <li>• <strong>Qoldiq</strong> = to'lash kerak − to'langan summa (qarzdorlik)</li>
@@ -426,40 +426,40 @@ export function PaymentsPanel() {
                 <div><div className="text-xs text-muted-foreground">Qabul sanasi</div><div className="font-medium">{formatDate(payingStudent.enrollment_date)}</div></div>
                 <div><div className="text-xs text-muted-foreground">O'tgan oylar</div><div className="font-medium">{payingStudent.months_enrolled} oy</div></div>
                 <div><div className="text-xs text-muted-foreground">Oylik to'lov</div><div className="font-medium">{formatMoney(payingStudent.monthly_fee)}</div></div>
-                <div><div className="text-xs text-muted-foreground">To'lash kerak</div><div className="font-semibold text-amber-600">{formatMoney(payingStudent.total_due)}</div></div>
-                <div><div className="text-xs text-muted-foreground">To'langan</div><div className="font-semibold text-blue-600">{formatMoney(payingStudent.total_paid)}</div></div>
-                <div><div className="text-xs text-muted-foreground">Qoldiq (qarz)</div><div className={`font-bold ${payingStudent.remaining > 0 ? 'text-rose-600' : 'text-blue-600'}`}>{formatMoney(Math.max(0, payingStudent.remaining))}</div></div>
+                <div><div className="text-xs text-muted-foreground">To'lash kerak</div><div className="font-semibold text-slate-700">{formatMoney(payingStudent.total_due)}</div></div>
+                <div><div className="text-xs text-muted-foreground">To'langan</div><div className="font-semibold text-slate-700">{formatMoney(payingStudent.total_paid)}</div></div>
+                <div><div className="text-xs text-muted-foreground">Qoldiq (qarz)</div><div className={`font-bold ${payingStudent.remaining > 0 ? 'text-slate-700' : 'text-slate-700'}`}>{formatMoney(Math.max(0, payingStudent.remaining))}</div></div>
               </div>
             </div>
 
             {/* === 2. Avtomatik kalkulyator (proportional hisob) === */}
             {payingStudent.first_month_proportion < 1 && (
-              <div className="rounded-xl bg-blue-50 border border-blue-200 p-4">
+              <div className="rounded-xl bg-slate-50 border border-slate-200 p-4">
                 <div className="flex items-start gap-2 mb-3">
-                  <div className="w-6 h-6 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center shrink-0 text-xs font-bold">🧮</div>
+                  <div className="w-6 h-6 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center shrink-0 text-xs font-bold">🧮</div>
                   <div>
-                    <div className="font-semibold text-blue-900 text-sm">Avtomatik kalkulyator</div>
-                    <div className="text-xs text-blue-700">Talaba {payingStudent.enroll_day}-{payingStudent.enroll_month}-kunida qabul qilingan</div>
+                    <div className="font-semibold text-slate-900 text-sm">Avtomatik kalkulyator</div>
+                    <div className="text-xs text-slate-700">Talaba {payingStudent.enroll_day}-{payingStudent.enroll_month}-kunida qabul qilingan</div>
                   </div>
                 </div>
                 <div className="space-y-2 text-xs">
                   <div className="flex justify-between">
-                    <span className="text-blue-700">Birinchi oy ({payingStudent.first_month_days}/{payingStudent.first_month_full_days} kun):</span>
-                    <span className="font-semibold text-blue-900">
+                    <span className="text-slate-700">Birinchi oy ({payingStudent.first_month_days}/{payingStudent.first_month_full_days} kun):</span>
+                    <span className="font-semibold text-slate-900">
                       {Math.round(payingStudent.first_month_proportion * 100)}% = {formatMoney(payingStudent.first_month_due)}
                     </span>
                   </div>
                   {payingStudent.months_enrolled > 1 && (
                     <div className="flex justify-between">
-                      <span className="text-blue-700">Keyingi {payingStudent.months_enrolled - 1} oy (to'liq):</span>
-                      <span className="font-semibold text-blue-900">
+                      <span className="text-slate-700">Keyingi {payingStudent.months_enrolled - 1} oy (to'liq):</span>
+                      <span className="font-semibold text-slate-900">
                         {formatMoney((payingStudent.months_enrolled - 1) * payingStudent.monthly_fee)}
                       </span>
                     </div>
                   )}
-                  <div className="border-t border-blue-200 pt-2 flex justify-between">
-                    <span className="font-semibold text-blue-900">Jami to'lash kerak:</span>
-                    <span className="font-bold text-blue-900">{formatMoney(payingStudent.total_due)}</span>
+                  <div className="border-t border-slate-200 pt-2 flex justify-between">
+                    <span className="font-semibold text-slate-900">Jami to'lash kerak:</span>
+                    <span className="font-bold text-slate-900">{formatMoney(payingStudent.total_due)}</span>
                   </div>
                 </div>
               </div>
@@ -477,7 +477,7 @@ export function PaymentsPanel() {
                       <span className="text-muted-foreground">{m.month_label}</span>
                       <div className="flex items-center gap-2">
                         {m.is_partial && (
-                          <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 text-[9px] font-semibold">
+                          <span className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 text-[9px] font-semibold">
                             {Math.round(m.proportion * 100)}%
                           </span>
                         )}
@@ -550,7 +550,7 @@ export function PaymentsPanel() {
                   <button
                     type="button"
                     onClick={() => setPayForm({ ...payForm, amount: payingStudent.remaining })}
-                    className="px-3 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-semibold border border-rose-200"
+                    className="px-3 py-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-semibold border border-slate-200"
                   >
                     To'liq qoldiq: {formatMoney(payingStudent.remaining)}
                   </button>
@@ -558,14 +558,14 @@ export function PaymentsPanel() {
                 <button
                   type="button"
                   onClick={() => setPayForm({ ...payForm, amount: payingStudent.monthly_fee })}
-                  className="px-3 py-1.5 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-700 text-xs font-semibold border border-amber-200"
+                  className="px-3 py-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-semibold border border-slate-200"
                 >
                   Bitta oy: {formatMoney(payingStudent.monthly_fee)}
                 </button>
                 <button
                   type="button"
                   onClick={() => setPayForm({ ...payForm, amount: payingStudent.first_month_due })}
-                  className="px-3 py-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-semibold border border-blue-200"
+                  className="px-3 py-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-semibold border border-slate-200"
                 >
                   Birinchi oy: {formatMoney(payingStudent.first_month_due)}
                 </button>
@@ -581,21 +581,21 @@ export function PaymentsPanel() {
 
             {/* === 5. Hisob-kitob ko'rinishi (real-time) === */}
             {payForm.amount > 0 && (
-              <div className="rounded-xl bg-blue-50 border border-blue-200 p-3">
+              <div className="rounded-xl bg-slate-50 border border-slate-200 p-3">
                 <div className="grid grid-cols-3 gap-3 text-sm text-center">
                   <div>
-                    <div className="text-[10px] text-blue-700">To'layapti</div>
-                    <div className="font-bold text-blue-700">{formatMoney(payForm.amount)}</div>
+                    <div className="text-[10px] text-slate-700">To'layapti</div>
+                    <div className="font-bold text-slate-700">{formatMoney(payForm.amount)}</div>
                   </div>
                   <div>
-                    <div className="text-[10px] text-blue-700">Yangi qoldiq</div>
-                    <div className={`font-bold ${Math.max(0, payingStudent.remaining - payForm.amount) > 0 ? 'text-rose-600' : 'text-blue-700'}`}>
+                    <div className="text-[10px] text-slate-700">Yangi qoldiq</div>
+                    <div className={`font-bold ${Math.max(0, payingStudent.remaining - payForm.amount) > 0 ? 'text-slate-700' : 'text-slate-700'}`}>
                       {formatMoney(Math.max(0, payingStudent.remaining - payForm.amount))}
                     </div>
                   </div>
                   <div>
-                    <div className="text-[10px] text-blue-700">Holat</div>
-                    <div className="font-bold text-blue-700">
+                    <div className="text-[10px] text-slate-700">Holat</div>
+                    <div className="font-bold text-slate-700">
                       {payForm.amount >= payingStudent.remaining ? '✓ To\'liq' : 'Qisman'}
                     </div>
                   </div>
@@ -603,7 +603,7 @@ export function PaymentsPanel() {
               </div>
             )}
 
-            <div className="rounded-lg bg-amber-50 border border-amber-200 p-3 text-xs text-amber-800">
+            <div className="rounded-lg bg-slate-50 border border-slate-200 p-3 text-xs text-slate-700">
               ⚠️ <strong>Eslatma:</strong> «Tasdiqlash» tugmasini bosgandan keyingina to'lov saqlanadi.
               To'lov summasini qo'lda o'zgartirishingiz mumkin.
             </div>
@@ -643,15 +643,15 @@ export function PaymentsPanel() {
               <div className="grid grid-cols-3 gap-3">
                 <div>
                   <div className="text-xs text-muted-foreground">To'lash kerak</div>
-                  <div className="font-semibold text-amber-600">{formatMoney(historyStudent.total_due)}</div>
+                  <div className="font-semibold text-slate-700">{formatMoney(historyStudent.total_due)}</div>
                 </div>
                 <div>
                   <div className="text-xs text-muted-foreground">To'langan</div>
-                  <div className="font-semibold text-blue-600">{formatMoney(historyStudent.total_paid)}</div>
+                  <div className="font-semibold text-slate-700">{formatMoney(historyStudent.total_paid)}</div>
                 </div>
                 <div>
                   <div className="text-xs text-muted-foreground">Qoldiq</div>
-                  <div className={`font-bold ${historyStudent.remaining > 0 ? 'text-rose-600' : 'text-blue-600'}`}>
+                  <div className={`font-bold ${historyStudent.remaining > 0 ? 'text-slate-700' : 'text-slate-700'}`}>
                     {formatMoney(Math.max(0, historyStudent.remaining))}
                   </div>
                 </div>
@@ -685,7 +685,7 @@ export function PaymentsPanel() {
                         <div className="font-medium">{formatDate(p.payment_date)}</div>
                         <div className="text-[10px] text-muted-foreground">{dateStr} · {timeStr}</div>
                       </td>
-                      <td className="px-3 py-2 text-right font-semibold text-blue-600">{formatMoney(p.amount)}</td>
+                      <td className="px-3 py-2 text-right font-semibold text-slate-700">{formatMoney(p.amount)}</td>
                       <td className="px-3 py-2"><PaymentTypeChip type={p.payment_type} /></td>
                       <td className="px-3 py-2 text-muted-foreground">{p.for_month || '—'}</td>
                       <td className="px-3 py-2 text-muted-foreground">{p.description || '—'}</td>
@@ -701,7 +701,7 @@ export function PaymentsPanel() {
                 <tfoot>
                   <tr className="border-t-2 border-border/60 bg-muted/30 font-semibold">
                     <td className="px-3 py-2 text-right">Jami:</td>
-                    <td className="px-3 py-2 text-right text-blue-600">
+                    <td className="px-3 py-2 text-right text-slate-700">
                       {formatMoney(studentHistory.reduce((s, p) => s + Number(p.amount || 0), 0))}
                     </td>
                     <td colSpan={4}></td>
@@ -716,7 +716,7 @@ export function PaymentsPanel() {
   )
 }
 function PaymentTypeChip({ type }: { type: string }) {
-  const map: any = { cash: { label: 'Naqd', cls: 'bg-blue-100 text-blue-700' }, card: { label: 'Karta', cls: 'bg-blue-100 text-blue-700' }, transfer: { label: 'O\'tkazma', cls: 'bg-violet-100 text-violet-700' }, other: { label: 'Boshqa', cls: 'bg-slate-100 text-slate-700' } }
+  const map: any = { cash: { label: 'Naqd', cls: 'bg-slate-100 text-slate-700' }, card: { label: 'Karta', cls: 'bg-slate-100 text-slate-700' }, transfer: { label: 'O\'tkazma', cls: 'bg-slate-100 text-slate-700' }, other: { label: 'Boshqa', cls: 'bg-slate-100 text-slate-700' } }
   const s = map[type] || map.other
   return <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${s.cls}`}>{s.label}</span>
 }
@@ -744,11 +744,7 @@ export function FinancePanel() {
 
       {/* Asosiy ko'rsatkichlar */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-<<<<<<< HEAD
-        <div className="bg-gradient-to-br from-slate-600 to-slate-700 rounded-2xl p-6 text-white shadow-lg shadow-emerald-500/25">
-=======
-        <div className="bg-gradient-to-br from-blue-500 to-sky-600 rounded-2xl p-6 text-white shadow-lg shadow-blue-500/25">
->>>>>>> 60c09f695ed8547d48c6b25600dcf641241250cd
+        <div className="bg-gradient-to-br from-slate-600 to-slate-700 rounded-2xl p-6 text-white shadow-lg ">
           <div className="text-sm opacity-90">Bu oygi sof foyda</div>
           <div className="text-3xl lg:text-4xl font-bold mt-2">{formatMoney(stats.monthNetProfit)}</div>
           <div className="text-xs opacity-75 mt-2">Tushum: {formatMoney(stats.monthRevenue)} • Xarajat: {formatMoney(stats.monthExpenseTotal)}</div>
@@ -764,14 +760,14 @@ export function FinancePanel() {
       <Card color="rose">
         <CardHeader title="Avtomatik hisob-kitob" subtitle="Tushum - Xarajat = Sof foyda" />
         <div className="p-4 pt-0 space-y-3">
-          <FinanceRow label="Bu oygi tushum" value={stats.monthRevenue} color="text-blue-600" sign="+" />
+          <FinanceRow label="Bu oygi tushum" value={stats.monthRevenue} color="text-slate-700" sign="+" />
           <FinanceRow label="Bu oygi xarajat" value={stats.monthExpenseTotal} color="text-red-600" sign="-" />
-          <div className="border-t border-border/40 pt-3"><FinanceRow label="Bu oygi sof foyda" value={stats.monthNetProfit} color={stats.monthNetProfit >= 0 ? 'text-blue-600' : 'text-red-600'} bold /></div>
+          <div className="border-t border-border/40 pt-3"><FinanceRow label="Bu oygi sof foyda" value={stats.monthNetProfit} color={stats.monthNetProfit >= 0 ? 'text-slate-700' : 'text-red-600'} bold /></div>
           <div className="border-t border-border/40 pt-3 mt-3">
             <div className="text-xs text-muted-foreground mb-2">Umumiy hisob-kitob</div>
-            <FinanceRow label="Jami tushum" value={stats.totalRevenue} color="text-blue-600" sign="+" />
+            <FinanceRow label="Jami tushum" value={stats.totalRevenue} color="text-slate-700" sign="+" />
             <FinanceRow label="Jami xarajat" value={stats.totalExpense} color="text-red-600" sign="-" />
-            <div className="border-t border-border/40 pt-3 mt-3"><FinanceRow label="Jami sof foyda" value={stats.totalNetProfit} color={stats.totalNetProfit >= 0 ? 'text-blue-600' : 'text-red-600'} bold /></div>
+            <div className="border-t border-border/40 pt-3 mt-3"><FinanceRow label="Jami sof foyda" value={stats.totalNetProfit} color={stats.totalNetProfit >= 0 ? 'text-slate-700' : 'text-red-600'} bold /></div>
           </div>
         </div>
       </Card>
@@ -787,9 +783,9 @@ export function FinancePanel() {
                 <div key={m.month} className="flex items-center gap-3 px-3 py-2 rounded-lg bg-muted/30">
                   <div className="text-xs font-semibold w-12">{m.month.slice(5)}</div>
                   <div className="flex-1 grid grid-cols-3 gap-2 text-xs">
-                    <div><span className="text-muted-foreground">Tushum:</span> <span className="font-semibold text-blue-600">{formatMoney(m.total)}</span></div>
+                    <div><span className="text-muted-foreground">Tushum:</span> <span className="font-semibold text-slate-700">{formatMoney(m.total)}</span></div>
                     <div><span className="text-muted-foreground">Xarajat:</span> <span className="font-semibold text-red-600">{formatMoney(m.expense)}</span></div>
-                    <div><span className="text-muted-foreground">Sof:</span> <span className={`font-semibold ${net >= 0 ? 'text-blue-600' : 'text-red-600'}`}>{formatMoney(net)}</span></div>
+                    <div><span className="text-muted-foreground">Sof:</span> <span className={`font-semibold ${net >= 0 ? 'text-slate-700' : 'text-red-600'}`}>{formatMoney(net)}</span></div>
                   </div>
                 </div>
               )
@@ -938,7 +934,7 @@ export function ExpensesPanel() {
 }
 function CategoryChip({ cat }: { cat: string }) {
   const c = EXPENSE_CATEGORIES.find((x) => x.value === cat)
-  return <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-violet-100 text-violet-700">{c?.label || cat}</span>
+  return <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-700">{c?.label || cat}</span>
 }
 
 // ============================================================================
@@ -1007,9 +1003,9 @@ export function ReportsPanel() {
               <th className="text-right py-2 font-medium">Jami</th>
             </tr></thead>
             <tbody>
-              <tr className="border-b border-border/20"><td className="py-2.5">Tushum (to'lovlar)</td><td className="text-right py-2.5 font-bold text-blue-600">{formatMoney(stats.monthRevenue)}</td><td className="text-right py-2.5 font-bold text-blue-600">{formatMoney(stats.totalRevenue)}</td></tr>
+              <tr className="border-b border-border/20"><td className="py-2.5">Tushum (to'lovlar)</td><td className="text-right py-2.5 font-bold text-slate-700">{formatMoney(stats.monthRevenue)}</td><td className="text-right py-2.5 font-bold text-slate-700">{formatMoney(stats.totalRevenue)}</td></tr>
               <tr className="border-b border-border/20"><td className="py-2.5">Xarajatlar</td><td className="text-right py-2.5 font-bold text-red-600">{formatMoney(stats.monthExpenseTotal)}</td><td className="text-right py-2.5 font-bold text-red-600">{formatMoney(stats.totalExpense)}</td></tr>
-              <tr className="bg-muted/30"><td className="py-2.5 font-bold">Sof foyda</td><td className="text-right py-2.5 font-bold text-base text-blue-600">{formatMoney(stats.monthNetProfit)}</td><td className="text-right py-2.5 font-bold text-base text-blue-600">{formatMoney(stats.totalNetProfit)}</td></tr>
+              <tr className="bg-muted/30"><td className="py-2.5 font-bold">Sof foyda</td><td className="text-right py-2.5 font-bold text-base text-slate-700">{formatMoney(stats.monthNetProfit)}</td><td className="text-right py-2.5 font-bold text-base text-slate-700">{formatMoney(stats.totalNetProfit)}</td></tr>
             </tbody>
           </table>
         </div>
@@ -1047,10 +1043,10 @@ export function ReportsPanel() {
           <CardHeader title="Davomat hisoboti" />
           <div className="p-4 pt-0 space-y-2">
             <ReportRow label="Jami darslar" value={stats.attendance.total} />
-            <ReportRow label="Keldi" value={stats.attendance.present} color="text-blue-600" />
+            <ReportRow label="Keldi" value={stats.attendance.present} color="text-slate-700" />
             <ReportRow label="Kelmadi" value={stats.attendance.absent} color="text-red-600" />
-            <ReportRow label="Kechikdi" value={stats.attendance.late} color="text-amber-600" />
-            <ReportRow label="Kelish darajasi" value={`${stats.attendance.rate}%`} color="text-blue-600" />
+            <ReportRow label="Kechikdi" value={stats.attendance.late} color="text-slate-700" />
+            <ReportRow label="Kelish darajasi" value={`${stats.attendance.rate}%`} color="text-slate-700" />
           </div>
         </Card>
       </div>
@@ -1060,11 +1056,11 @@ export function ReportsPanel() {
         <CardHeader title="Sotuv hisoboti (Lidlar)" subtitle="Konversiya bo'yicha" />
         <div className="p-4 pt-0 space-y-2">
           <ReportRow label="Jami lidlar" value={stats.leads.total} />
-          <ReportRow label="Yangi" value={stats.leads.new} color="text-amber-600" />
-          <ReportRow label="Bog'lanilgan" value={stats.leads.contacted} color="text-blue-600" />
-          <ReportRow label="Ro'yxatga olingan" value={stats.leads.enrolled} color="text-blue-600" />
+          <ReportRow label="Yangi" value={stats.leads.new} color="text-slate-700" />
+          <ReportRow label="Bog'lanilgan" value={stats.leads.contacted} color="text-slate-700" />
+          <ReportRow label="Ro'yxatga olingan" value={stats.leads.enrolled} color="text-slate-700" />
           <div className="border-t border-border/40 pt-2 mt-2">
-            <ReportRow label="Konversiya darajasi" value={`${stats.leads.total > 0 ? Math.round((stats.leads.enrolled / stats.leads.total) * 100) : 0}%`} color="text-violet-600" bold />
+            <ReportRow label="Konversiya darajasi" value={`${stats.leads.total > 0 ? Math.round((stats.leads.enrolled / stats.leads.total) * 100) : 0}%`} color="text-slate-700" bold />
           </div>
         </div>
       </Card>
@@ -1131,7 +1127,7 @@ export function ReportsPanel() {
                         {p.student?.course?.name || '—'}
                       </td>
                       <td className="px-4 py-3 text-muted-foreground">{p.group?.name || '—'}</td>
-                      <td className="px-4 py-3 text-right font-bold text-blue-600">{formatMoney(p.amount)}</td>
+                      <td className="px-4 py-3 text-right font-bold text-slate-700">{formatMoney(p.amount)}</td>
                       <td className="px-4 py-3 text-center"><PaymentTypeChip type={p.payment_type} /></td>
                       <td className="px-4 py-3 text-muted-foreground text-xs">{p.for_month || monthLabel}</td>
                       <td className="px-4 py-3 text-muted-foreground text-xs">{p.description || '—'}</td>
@@ -1142,7 +1138,7 @@ export function ReportsPanel() {
               <tfoot>
                 <tr className="border-t-2 border-border/60 bg-muted/30 font-semibold">
                   <td colSpan={5} className="px-4 py-3 text-right">Jami ({filteredPayments.length} ta to'lov):</td>
-                  <td className="px-4 py-3 text-right text-blue-600">{formatMoney(paymentsTotal)}</td>
+                  <td className="px-4 py-3 text-right text-slate-700">{formatMoney(paymentsTotal)}</td>
                   <td colSpan={3}></td>
                 </tr>
               </tfoot>

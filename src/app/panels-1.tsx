@@ -72,7 +72,7 @@ export function DashboardPanel({ user, setActiveTab }: { user: any; setActiveTab
             <div className="mt-4">
               <div className="text-xs text-muted-foreground mb-1.5">Umumiy kelish foizi</div>
               <div className="h-3 rounded-full bg-muted overflow-hidden">
-                <motion.div initial={{ width: 0 }} animate={{ width: `${stats.attendance.rate}%` }} transition={{ duration: 1, ease: 'easeOut' }} className="h-full bg-gradient-to-r from-slate-600 to-teal-500 rounded-full" />
+                <motion.div initial={{ width: 0 }} animate={{ width: `${stats.attendance.rate}%` }} transition={{ duration: 1, ease: 'easeOut' }} className="h-full bg-gradient-to-r from-slate-600 to-slate-600 rounded-full" />
               </div>
               <div className="text-right text-xs text-muted-foreground mt-1">{stats.attendance.rate}%</div>
             </div>
@@ -90,7 +90,7 @@ export function DashboardPanel({ user, setActiveTab }: { user: any; setActiveTab
               Object.entries(stats.expenseByCategory).map(([cat, amount]: any) => (
                 <div key={cat} className="flex justify-between items-center px-3 py-2 rounded-lg bg-muted/40">
                   <span className="text-sm font-medium">{cat}</span>
-                  <span className="text-sm font-bold text-rose-600">{formatMoney(amount)}</span>
+                  <span className="text-sm font-bold text-slate-700">{formatMoney(amount)}</span>
                 </div>
               ))
             )}
@@ -99,9 +99,9 @@ export function DashboardPanel({ user, setActiveTab }: { user: any; setActiveTab
         <Card>
           <CardHeader title="Lidlar funnel" subtitle="Konversiya" />
           <div className="p-4 pt-0 space-y-2">
-            <FunnelRow label="Yangi lidlar" value={stats.leads.new} total={stats.leads.total} color="bg-amber-500" />
-            <FunnelRow label="Bog'lanilgan" value={stats.leads.contacted} total={stats.leads.total} color="bg-blue-500" />
-            <FunnelRow label="Ro'yxatga olingan" value={stats.leads.enrolled} total={stats.leads.total} color="bg-emerald-500" />
+            <FunnelRow label="Yangi lidlar" value={stats.leads.new} total={stats.leads.total} color="bg-slate-600" />
+            <FunnelRow label="Bog'lanilgan" value={stats.leads.contacted} total={stats.leads.total} color="bg-slate-700" />
+            <FunnelRow label="Ro'yxatga olingan" value={stats.leads.enrolled} total={stats.leads.total} color="bg-slate-600" />
           </div>
         </Card>
       </div>
@@ -110,13 +110,13 @@ export function DashboardPanel({ user, setActiveTab }: { user: any; setActiveTab
         <Card>
           <div className="p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center"><Sparkles className="w-5 h-5" /></div>
+              <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center"><Sparkles className="w-5 h-5" /></div>
               <div>
                 <div className="font-semibold">Bepul sinov muddati — {user.days_left} kun qoldi</div>
                 <div className="text-sm text-muted-foreground">Davom etish uchun Litsenziya bo'limidan aktivatsiya kodi oling: @{TELEGRAM_HANDLE}</div>
               </div>
             </div>
-            <button onClick={() => setActiveTab?.('license')} className="shrink-0 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold transition"><KeyRound className="w-4 h-4" /> Litsenziya</button>
+            <button onClick={() => setActiveTab?.('license')} className="shrink-0 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-600 hover:bg-slate-700 text-white text-sm font-semibold transition"><KeyRound className="w-4 h-4" /> Litsenziya</button>
           </div>
         </Card>
       )}
@@ -125,7 +125,7 @@ export function DashboardPanel({ user, setActiveTab }: { user: any; setActiveTab
 }
 
 function AttStat({ label, value, color }: { label: string; value: number; color: string }) {
-  const map: any = { emerald: 'bg-emerald-50 text-emerald-700 border-emerald-200', rose: 'bg-red-50 text-red-700 border-red-200', amber: 'bg-amber-50 text-amber-700 border-amber-200' }
+  const map: any = { emerald: 'bg-slate-50 text-slate-700 border-slate-200', rose: 'bg-slate-50 text-red-700 border-slate-200', amber: 'bg-slate-50 text-slate-700 border-slate-200' }
   return <div className={`rounded-xl border p-3 text-center ${map[color]}`}><div className="text-2xl font-bold">{value}</div><div className="text-xs font-medium">{label}</div></div>
 }
 function FunnelRow({ label, value, total, color }: { label: string; value: number; total: number; color: string }) {
@@ -138,118 +138,26 @@ function FunnelRow({ label, value, total, color }: { label: string; value: numbe
   )
 }
 function DualBarChart({ data }: { data: { label: string; income: number; expense: number }[] }) {
-  // SVG line chart with smooth curves + gradient fill
-  const w = 480, h = 160, pad = 40, chartH = h - 50
   const max = Math.max(...data.flatMap((d) => [d.income, d.expense]), 1)
-  const stepX = data.length > 1 ? (w - pad - 20) / (data.length - 1) : 0
-
-  const incomePoints = data.map((d, i) => ({ x: pad + i * stepX, y: chartH - (d.income / max) * (chartH - 20) + 10, val: d.income }))
-  const expensePoints = data.map((d, i) => ({ x: pad + i * stepX, y: chartH - (d.expense / max) * (chartH - 20) + 10, val: d.expense }))
-
-  // Smooth curve path generator
-  function smoothPath(pts: { x: number; y: number }[]) {
-    if (pts.length < 2) return ''
-    let d = `M ${pts[0].x},${pts[0].y}`
-    for (let i = 1; i < pts.length; i++) {
-      const cp1x = pts[i - 1].x + stepX / 2
-      const cp1y = pts[i - 1].y
-      const cp2x = pts[i].x - stepX / 2
-      const cp2y = pts[i].y
-      d += ` C ${cp1x},${cp1y} ${cp2x},${cp2y} ${pts[i].x},${pts[i].y}`
-    }
-    return d
-  }
-
-  const incomePath = smoothPath(incomePoints)
-  const expensePath = smoothPath(expensePoints)
-  const incomeArea = incomePath + ` L ${incomePoints[incomePoints.length - 1]?.x || pad},${chartH + 10} L ${incomePoints[0]?.x || pad},${chartH + 10} Z`
-  const expenseArea = expensePath + ` L ${expensePoints[expensePoints.length - 1]?.x || pad},${chartH + 10} L ${expensePoints[0]?.x || pad},${chartH + 10} Z`
-
   return (
-<<<<<<< HEAD
     <div className="flex items-end gap-2 h-40">
       {data.map((d, i) => (
         <div key={i} className="flex-1 flex flex-col items-center gap-1.5">
           <div className="text-[10px] text-muted-foreground font-medium">{d.income > 0 ? Math.round(d.income / 1000) + 'k' : ''}</div>
           <div className="w-full flex items-end gap-0.5" style={{ height: '100%' }}>
-            <div className="flex-1 bg-muted rounded-t-lg overflow-hidden flex items-end"><motion.div initial={{ height: 0 }} animate={{ height: `${(d.income / max) * 100}%` }} transition={{ duration: 0.6, delay: i * 0.05 }} className="w-full bg-gradient-to-t from-slate-600 to-teal-400 rounded-t-lg" /></div>
-            <div className="flex-1 bg-muted rounded-t-lg overflow-hidden flex items-end"><motion.div initial={{ height: 0 }} animate={{ height: `${(d.expense / max) * 100}%` }} transition={{ duration: 0.6, delay: i * 0.05 + 0.1 }} className="w-full bg-gradient-to-t from-slate-600 to-pink-400 rounded-t-lg" /></div>
+            <div className="flex-1 bg-muted rounded-t-lg overflow-hidden flex items-end"><motion.div initial={{ height: 0 }} animate={{ height: `${(d.income / max) * 100}%` }} transition={{ duration: 0.6, delay: i * 0.05 }} className="w-full bg-slate-700 rounded-t-lg" /></div>
+            <div className="flex-1 bg-muted rounded-t-lg overflow-hidden flex items-end"><motion.div initial={{ height: 0 }} animate={{ height: `${(d.expense / max) * 100}%` }} transition={{ duration: 0.6, delay: i * 0.05 + 0.1 }} className="w-full bg-slate-400 rounded-t-lg" /></div>
           </div>
           <div className="text-[10px] text-muted-foreground">{d.label}</div>
-=======
-    <div className="w-full">
-      <svg viewBox={`0 0 ${w} ${h}`} className="w-full" style={{ maxHeight: '220px' }}>
-        <defs>
-          <linearGradient id="incomeAreaGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.3" />
-            <stop offset="100%" stopColor="#3b82f6" stopOpacity="0" />
-          </linearGradient>
-          <linearGradient id="expenseAreaGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#f43f5e" stopOpacity="0.25" />
-            <stop offset="100%" stopColor="#f43f5e" stopOpacity="0" />
-          </linearGradient>
-          <linearGradient id="incomeLineGrad" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%" stopColor="#3b82f6" />
-            <stop offset="100%" stopColor="#60a5fa" />
-          </linearGradient>
-          <linearGradient id="expenseLineGrad" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%" stopColor="#f43f5e" />
-            <stop offset="100%" stopColor="#fb7185" />
-          </linearGradient>
-        </defs>
-
-        {/* Grid lines */}
-        {[0, 0.25, 0.5, 0.75, 1].map((p, i) => (
-          <line key={i} x1={pad} y1={10 + p * (chartH - 10)} x2={w - 20} y2={10 + p * (chartH - 10)} stroke="currentColor" strokeWidth="0.5" opacity="0.08" />
-        ))}
-
-        {/* Y-axis labels */}
-        <text x="2" y="14" fontSize="9" fill="currentColor" opacity="0.5">{Math.round(max / 1000)}k</text>
-        <text x="2" y={chartH / 2 + 5} fontSize="9" fill="currentColor" opacity="0.5">{Math.round(max / 2000)}k</text>
-        <text x="8" y={chartH + 4} fontSize="9" fill="currentColor" opacity="0.5">0</text>
-
-        {/* Expense area fill */}
-        <path d={expenseArea} fill="url(#expenseAreaGrad)" />
-        {/* Income area fill */}
-        <path d={incomeArea} fill="url(#incomeAreaGrad)" />
-
-        {/* Expense line */}
-        <path d={expensePath} fill="none" stroke="url(#expenseLineGrad)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-
-        {/* Income line */}
-        <path d={incomePath} fill="none" stroke="url(#incomeLineGrad)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-
-        {/* Data points — Income */}
-        {incomePoints.map((p, i) => (
-          <g key={`inc-${i}`}>
-            <circle cx={p.x} cy={p.y} r="4" fill="#fff" stroke="#3b82f6" strokeWidth="2" />
-            {p.val > 0 && <text x={p.x} y={p.y - 8} fontSize="8" fill="#3b82f6" textAnchor="middle" fontWeight="bold">{Math.round(p.val / 1000)}k</text>}
-          </g>
-        ))}
-
-        {/* Data points — Expense */}
-        {expensePoints.map((p, i) => (
-          <g key={`exp-${i}`}>
-            <circle cx={p.x} cy={p.y} r="4" fill="#fff" stroke="#f43f5e" strokeWidth="2" />
-            {p.val > 0 && <text x={p.x} y={p.y + 14} fontSize="8" fill="#f43f5e" textAnchor="middle" fontWeight="bold">{Math.round(p.val / 1000)}k</text>}
-          </g>
-        ))}
-
-        {/* X-axis labels */}
-        {data.map((d, i) => (
-          <text key={i} x={pad + i * stepX} y={h - 4} fontSize="9" fill="currentColor" opacity="0.6" textAnchor="middle">{d.label}</text>
-        ))}
-      </svg>
-
-      {/* Legend */}
-      <div className="flex items-center gap-4 justify-center mt-2 text-xs">
+        </div>
+      ))}
+      <div className="flex items-center gap-4 ml-4 text-xs shrink-0">
         <div className="flex items-center gap-1.5">
-          <div className="w-3 h-0.5 rounded-full bg-gradient-to-r from-blue-500 to-blue-400" />
+          <div className="w-3 h-3 rounded bg-slate-700" />
           <span className="text-muted-foreground">Daromad</span>
->>>>>>> 60c09f695ed8547d48c6b25600dcf641241250cd
         </div>
         <div className="flex items-center gap-1.5">
-          <div className="w-3 h-0.5 rounded-full bg-gradient-to-r from-rose-500 to-pink-400" />
+          <div className="w-3 h-3 rounded bg-slate-400" />
           <span className="text-muted-foreground">Xarajat</span>
         </div>
       </div>
@@ -386,7 +294,7 @@ export function LeadsPanel() {
                   <LeadStatusChip status={s.status} />
                   <button
                     onClick={() => openAcceptModal(s)}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition-colors shadow-sm"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold transition-colors shadow-sm"
                     title="Lidni talabalar ro'yxatiga qo'shish"
                   >
                     <CheckCircle className="w-3.5 h-3.5" />
@@ -422,10 +330,10 @@ export function LeadsPanel() {
       >
         <div className="space-y-4">
           {acceptingLead && (
-            <div className="rounded-xl bg-amber-50 border border-amber-200 p-3 text-sm">
-              <div className="font-semibold text-amber-900">{acceptingLead.full_name}</div>
-              {acceptingLead.phone && <div className="text-amber-700 text-xs mt-0.5">Telefon: {acceptingLead.phone}</div>}
-              {acceptingLead.course && <div className="text-amber-700 text-xs">Qiziqqan kurs: {acceptingLead.course.name}</div>}
+            <div className="rounded-xl bg-slate-50 border border-slate-200 p-3 text-sm">
+              <div className="font-semibold text-slate-900">{acceptingLead.full_name}</div>
+              {acceptingLead.phone && <div className="text-slate-700 text-xs mt-0.5">Telefon: {acceptingLead.phone}</div>}
+              {acceptingLead.course && <div className="text-slate-700 text-xs">Qiziqqan kurs: {acceptingLead.course.name}</div>}
             </div>
           )}
 
@@ -463,7 +371,7 @@ export function LeadsPanel() {
             </Field>
           </div>
 
-          <div className="rounded-lg bg-blue-50 border border-blue-200 p-3 text-xs text-blue-800">
+          <div className="rounded-lg bg-slate-50 border border-slate-200 p-3 text-xs text-slate-700">
             <strong>Eslatma:</strong> Qabul qilingan lid &quot;Talabalar&quot; ro'yxatiga o&apos;tadi va &quot;Lidlar&quot; ro&apos;yxatidan o&apos;chiriladi.
           </div>
 
@@ -482,7 +390,7 @@ export function LeadsPanel() {
   )
 }
 function LeadStatusChip({ status }: { status: string }) {
-  const map: any = { new: { label: 'Yangi', cls: 'bg-amber-100 text-amber-700' }, contacted: { label: 'Bog\'lanilgan', cls: 'bg-blue-100 text-blue-700' }, visited: { label: 'Tashrif', cls: 'bg-violet-100 text-violet-700' }, enrolled: { label: 'Ro\'yxatga olingan', cls: 'bg-emerald-100 text-emerald-700' }, rejected: { label: 'Rad etilgan', cls: 'bg-red-100 text-red-700' } }
+  const map: any = { new: { label: 'Yangi', cls: 'bg-slate-100 text-slate-700' }, contacted: { label: 'Bog\'lanilgan', cls: 'bg-slate-100 text-slate-700' }, visited: { label: 'Tashrif', cls: 'bg-slate-100 text-slate-700' }, enrolled: { label: 'Ro\'yxatga olingan', cls: 'bg-slate-100 text-slate-700' }, rejected: { label: 'Rad etilgan', cls: 'bg-red-100 text-red-700' } }
   const s = map[status] || map.new
   return <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${s.cls}`}>{s.label}</span>
 }
@@ -600,7 +508,7 @@ export function StudentsPanel() {
   )
 }
 function StatusChip({ status }: { status: string }) {
-  const map: any = { active: { label: 'Faol', cls: 'bg-emerald-100 text-emerald-700' }, paused: { label: 'To\'xtatilgan', cls: 'bg-amber-100 text-amber-700' }, graduated: { label: 'Bitirgan', cls: 'bg-blue-100 text-blue-700' }, left: { label: 'Ketgan', cls: 'bg-red-100 text-red-700' } }
+  const map: any = { active: { label: 'Faol', cls: 'bg-slate-100 text-slate-700' }, paused: { label: 'To\'xtatilgan', cls: 'bg-slate-100 text-slate-700' }, graduated: { label: 'Bitirgan', cls: 'bg-slate-100 text-slate-700' }, left: { label: 'Ketgan', cls: 'bg-red-100 text-red-700' } }
   const s = map[status] || map.active
   return <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${s.cls}`}>{s.label}</span>
 }
