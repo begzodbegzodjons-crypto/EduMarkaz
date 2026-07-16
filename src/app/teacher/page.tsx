@@ -41,7 +41,6 @@ export default function TeacherPanelPage() {
   const [teacher, setTeacher] = useState<Teacher | null>(null)
   const [checkingAuth, setCheckingAuth] = useState(true)
 
-  const [centerInput, setCenterInput] = useState('')
   const [loginInput, setLoginInput] = useState('')
   const [passwordInput, setPasswordInput] = useState('')
   const [loginError, setLoginError] = useState('')
@@ -64,15 +63,15 @@ export default function TeacherPanelPage() {
   }, [])
 
   async function handleLogin() {
-    if (!centerInput || !loginInput || !passwordInput) {
-      setLoginError('O\'quv markazi nomi, login va parolni kiriting.')
+    if (!loginInput || !passwordInput) {
+      setLoginError('Login va parolni kiriting.')
       return
     }
     setLoggingIn(true)
     setLoginError('')
     const { ok, error, data } = await apiFetch('/api/teacher-auth/login', {
       method: 'POST',
-      body: JSON.stringify({ center_name: centerInput, login: loginInput, password: passwordInput }),
+      body: JSON.stringify({ login: loginInput, password: passwordInput }),
     })
     setLoggingIn(false)
     if (!ok) { setLoginError(error || 'Kirishda xatolik.'); return }
@@ -165,12 +164,8 @@ export default function TeacherPanelPage() {
           </div>
           <div className="space-y-3">
             <div>
-              <label className="text-xs font-semibold text-slate-600 block mb-1">🏫 O'quv markazi nomi</label>
-              <input type="text" value={centerInput} onChange={(e) => setCenterInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleLogin()} placeholder="Masalan: Anor" className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none text-sm" autoFocus />
-            </div>
-            <div>
               <label className="text-xs font-semibold text-slate-600 block mb-1">Login / Telefon</label>
-              <input type="text" value={loginInput} onChange={(e) => setLoginInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleLogin()} placeholder="Login yoki telefon raqami" className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none text-sm" />
+              <input type="text" value={loginInput} onChange={(e) => setLoginInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleLogin()} placeholder="Login yoki telefon raqami" className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none text-sm" autoFocus />
             </div>
             <div>
               <label className="text-xs font-semibold text-slate-600 block mb-1">Parol</label>

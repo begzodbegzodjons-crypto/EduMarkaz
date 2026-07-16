@@ -8,25 +8,45 @@ const COOKIE_MAX_AGE = 60 * 60 * 24 * 7
 
 export async function POST(req: NextRequest) {
   try {
-    const { login, password, center_name } = await req.json()
+    const { login, password } = await req.json()
 
-    if (!login || !password || !center_name) {
-      return NextResponse.json({ ok: false, error: 'O\'quv markazi nomi, login va parol majburiy.' }, { status: 400 })
+    if (!login || !password) {
+      return NextResponse.json({ ok: false, error: 'Login va parol majburiy.' }, { status: 400 })
     }
 
     const sb = getSupabase()
 
-    // 1) Markaz nomi bo'yicha topamiz (case-insensitive)
-    const { data: center, error: centerErr } = await sb.from('users')
-      .select('id, full_name, center_name, email, status, trial_ends_at, active_until')
-      .ilike('center_name', center_name.trim())
+    // 1) O'qituvchini login yoki telefon bo'yicha qidirish (barcha markazlarda)
+    const { data: teacher, error: teacherErr } = await sb.from('teachers')
+      .select('id, user_id, full_name, phone, login, subject, password_hash')
+      .or(`login.eq.${login},phone.eq.${login}`)
       .maybeSingle()
 
-    if (centerErr || !center) {
-      return NextResponse.json({ ok: false, error: 'Bunday o\'quv markazi topilmadi. Markaz nomini to\'g\'ri kiriting.' }, { status: 404 })
+    if (teacherErr || !teacher) {
+      return NextResponse.json({ ok: false, error: 'Login yoki parol noto\'g\'ri.' }, { status: 401 })
     }
 
-    // 2) Markaz holatini tekshirish
+    if (!teacher.password_hash) {
+      return NextResponse.json({ ok: false, error: 'Sizga parol o\'rnatilmagan. Markaz admini bilan bog\'laning.' }, { status: 403 })
+    }
+
+    // 2) Parol tekshirish
+    const ok = await verifyPassword(password, teacher.password_hash)
+    if (!ok) {
+      return NextResponse.json({ ok: false, error: 'Login yoki parol noto\'g\'ri.' }, { status: 401 })
+    }
+
+    // 3) Markaz ma'lumotlarini olish (teacher.user_id orqali)
+    const { data: center } = await sb.from('users')
+      .select('id, full_name, center_name, email, status, trial_ends_at, active_until')
+      .eq('id', teacher.user_id)
+      .maybeSingle()
+
+    if (!center) {
+      return NextResponse.json({ ok: false, error: 'O\'quv markazi topilmadi.' }, { status: 404 })
+    }
+
+    // 4) Markaz holatini tekshirish
     const now = new Date()
     let isBlocked = false
     if (center.status === 'blocked') {
@@ -37,31 +57,10 @@ export async function POST(req: NextRequest) {
       if (center.active_until && new Date(center.active_until) <= now) isBlocked = true
     }
     if (isBlocked) {
-      return NextResponse.json({ ok: false, error: 'O\'quv markazining ruxsat muddati tugagan.' }, { status: 403 })
+      return NextResponse.json({ ok: false, error: 'O\'quv markazining ruxsat muddati tugagan. Markaz admini bilan bog\'laning.' }, { status: 403 })
     }
 
-    // 3) FAQAT shu markazga tegishli o'qituvchini qidirish
-    const { data: teacher, error: teacherErr } = await sb.from('teachers')
-      .select('id, user_id, full_name, phone, login, subject, password_hash')
-      .eq('user_id', center.id)
-      .or(`login.eq.${login},phone.eq.${login}`)
-      .maybeSingle()
-
-    if (teacherErr || !teacher) {
-      return NextResponse.json({ ok: false, error: 'O\'qituvchi topilmadi. Login va parolni tekshiring.' }, { status: 401 })
-    }
-
-    if (!teacher.password_hash) {
-      return NextResponse.json({ ok: false, error: 'Sizga parol o\'rnatilmagan. Markaz admini bilan bog\'laning.' }, { status: 403 })
-    }
-
-    // 4) Parol tekshirish
-    const ok = await verifyPassword(password, teacher.password_hash)
-    if (!ok) {
-      return NextResponse.json({ ok: false, error: 'Login yoki parol noto\'g\'ri.' }, { status: 401 })
-    }
-
-    // 5) Token
+    // 5) Token yaratish
     const token = signToken({
       id: teacher.id,
       email: teacher.login || teacher.phone || '',
