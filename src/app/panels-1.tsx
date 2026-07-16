@@ -393,11 +393,7 @@ export function LeadsPanel() {
                   <LeadStatusChip status={s.status} />
                   <button
                     onClick={() => openAcceptModal(s)}
-<<<<<<< HEAD
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition-colors shadow-sm"
-=======
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold transition-colors shadow-sm"
->>>>>>> bad376165bf9a231143870406dff1be057c69c6c
                     title="Lidni talabalar ro'yxatiga qo'shish"
                   >
                     <CheckCircle className="w-3.5 h-3.5" />
@@ -433,17 +429,10 @@ export function LeadsPanel() {
       >
         <div className="space-y-4">
           {acceptingLead && (
-<<<<<<< HEAD
             <div className="rounded-xl bg-amber-50 border border-amber-200 p-3 text-sm">
               <div className="font-semibold text-amber-900">{acceptingLead.full_name}</div>
               {acceptingLead.phone && <div className="text-amber-700 text-xs mt-0.5">Telefon: {acceptingLead.phone}</div>}
               {acceptingLead.course && <div className="text-amber-700 text-xs">Qiziqqan kurs: {acceptingLead.course.name}</div>}
-=======
-            <div className="rounded-xl bg-slate-50 border border-slate-200 p-3 text-sm">
-              <div className="font-semibold text-slate-900">{acceptingLead.full_name}</div>
-              {acceptingLead.phone && <div className="text-indigo-700 text-xs mt-0.5">Telefon: {acceptingLead.phone}</div>}
-              {acceptingLead.course && <div className="text-indigo-700 text-xs">Qiziqqan kurs: {acceptingLead.course.name}</div>}
->>>>>>> bad376165bf9a231143870406dff1be057c69c6c
             </div>
           )}
 
@@ -481,11 +470,7 @@ export function LeadsPanel() {
             </Field>
           </div>
 
-<<<<<<< HEAD
           <div className="rounded-lg bg-blue-50 border border-blue-200 p-3 text-xs text-blue-800">
-=======
-          <div className="rounded-lg bg-slate-50 border border-slate-200 p-3 text-xs text-indigo-700">
->>>>>>> bad376165bf9a231143870406dff1be057c69c6c
             <strong>Eslatma:</strong> Qabul qilingan lid &quot;Talabalar&quot; ro'yxatiga o&apos;tadi va &quot;Lidlar&quot; ro&apos;yxatidan o&apos;chiriladi.
           </div>
 
