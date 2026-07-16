@@ -501,6 +501,8 @@ export function StudentsPanel() {
   const [items, setItems] = useState<any[]>([])
   const [groups, setGroups] = useState<any[]>([])
   const [courses, setCourses] = useState<any[]>([])
+  const [payments, setPayments] = useState<any[]>([])
+  const [attendance, setAttendance] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [courseFilter, setCourseFilter] = useState('all')
@@ -509,12 +511,23 @@ export function StudentsPanel() {
   const [editing, setEditing] = useState<any>(null)
   const [form, setForm] = useState<any>({ full_name: '', phone: '', parent_phone: '', birth_date: '', address: '', group_id: '', course_id: '', status: 'active', notes: '' })
 
+  // Detal ko'rinishi uchun
+  const [selectedStudent, setSelectedStudent] = useState<any>(null)
+
   const load = useCallback(async () => {
     setLoading(true)
-    const [s, g, c] = await Promise.all([apiFetch('/api/students'), apiFetch('/api/groups'), apiFetch('/api/courses')])
+    const [s, g, c, p, a] = await Promise.all([
+      apiFetch('/api/students'),
+      apiFetch('/api/groups'),
+      apiFetch('/api/courses'),
+      apiFetch('/api/payments?limit=1000'),
+      apiFetch('/api/attendance'),
+    ])
     if (s.ok) setItems(s.data?.students || [])
     if (g.ok) setGroups(g.data?.groups || [])
     if (c.ok) setCourses(c.data?.courses || [])
+    if (p.ok) setPayments(p.data?.payments || [])
+    if (a.ok) setAttendance(a.data?.attendance || [])
     setLoading(false)
   }, [])
 
@@ -540,10 +553,216 @@ export function StudentsPanel() {
   }
   async function handleDelete(id: string) { if (!confirm('O\'chirmoqchimisiz?')) return; const { ok, error } = await apiFetch(`/api/students?id=${id}`, { method: 'DELETE' }); if (!ok) return alert(error); load() }
 
+  // === Talaba detali uchun hisob-kitob ===
+  const studentDetail = useMemo(() => {
+    if (!selectedStudent) return null
+    const s = selectedStudent
+    const course = courses.find((c) => c.id === s.course_id)
+    const group = groups.find((g) => g.id === s.group_id)
+    const monthlyFee = Number(course?.price || 0)
+    const enrollDate = s.enrollment_date ? new Date(s.enrollment_date) : new Date()
+    const now = new Date()
+    const monthsEnrolled = Math.max(1, (now.getFullYear() - enrollDate.getFullYear()) * 12 + (now.getMonth() - enrollDate.getMonth()) + 1)
+    const totalDue = monthlyFee * monthsEnrolled
+
+    const studentPayments = payments.filter((p) => p.student_id === s.id)
+    const totalPaid = studentPayments.reduce((sum, p) => sum + Number(p.amount || 0), 0)
+    const remaining = Math.max(0, totalDue - totalPaid)
+
+    const studentAttendance = attendance.filter((a) => a.student_id === s.id)
+    const present = studentAttendance.filter((a) => a.status === 'present').length
+    const absent = studentAttendance.filter((a) => a.status === 'absent').length
+    const late = studentAttendance.filter((a) => a.status === 'late').length
+    const attRate = studentAttendance.length > 0 ? Math.round((present / studentAttendance.length) * 100) : 0
+
+    return { course, group, monthlyFee, monthsEnrolled, totalDue, totalPaid, remaining, studentPayments, studentAttendance, present, absent, late, attRate }
+  }, [selectedStudent, courses, groups, payments, attendance])
+
+  const WEEKDAYS = ['Yakshanba', 'Dushanba', 'Seshanba', 'Chorshanba', 'Payshanba', 'Juma', 'Shanba']
+
+  // === DETAL KO'RINISHI ===
+  if (selectedStudent && studentDetail) {
+    const s = selectedStudent
+    const d = studentDetail
+    return (
+      <div className="space-y-5">
+        {/* Orqaga qaytish */}
+        <div className="flex items-center gap-3">
+          <button onClick={() => setSelectedStudent(null)} className="p-2 rounded-lg hover:bg-muted text-muted-foreground" title="Talabalarga qaytish">
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" /></svg>
+          </button>
+          <div className="flex items-center gap-3">
+            <Avatar name={s.full_name} />
+            <div>
+              <h1 className="text-2xl lg:text-3xl font-bold">{s.full_name}</h1>
+              <p className="text-muted-foreground text-sm mt-0.5">{d.course?.name || '—'} · {d.group?.name || '—'}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* 1. Asosiy ma'lumotlar */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="bg-card rounded-2xl border border-border p-3"><div className="text-[10px] text-muted-foreground">Telefon</div><div className="text-sm font-semibold mt-0.5">{s.phone || '—'}</div></div>
+          <div className="bg-card rounded-2xl border border-border p-3"><div className="text-[10px] text-muted-foreground">Ota-ona telefoni</div><div className="text-sm font-semibold mt-0.5">{s.parent_phone || '—'}</div></div>
+          <div className="bg-card rounded-2xl border border-border p-3"><div className="text-[10px] text-muted-foreground">Qabul sanasi</div><div className="text-sm font-semibold mt-0.5">{formatDate(s.enrollment_date)}</div></div>
+          <div className="bg-card rounded-2xl border border-border p-3"><div className="text-[10px] text-muted-foreground">Tug'ilgan sana</div><div className="text-sm font-semibold mt-0.5">{formatDate(s.birth_date)}</div></div>
+        </div>
+
+        {/* 2. Statistika */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="bg-indigo-50 rounded-2xl border border-indigo-200 p-3"><div className="text-[10px] text-indigo-700">O'tgan oylar</div><div className="text-2xl font-bold mt-0.5 text-indigo-900">{d.monthsEnrolled}</div></div>
+          <div className="bg-amber-50 rounded-2xl border border-amber-200 p-3"><div className="text-[10px] text-amber-700">Oylik to'lov</div><div className="text-lg font-bold mt-0.5 text-amber-900">{formatMoney(d.monthlyFee)}</div></div>
+          <div className="bg-rose-50 rounded-2xl border border-rose-200 p-3"><div className="text-[10px] text-rose-700">Qoldiq (qarz)</div><div className="text-lg font-bold mt-0.5 text-rose-900">{formatMoney(d.remaining)}</div></div>
+          <div className="bg-emerald-50 rounded-2xl border border-emerald-200 p-3"><div className="text-[10px] text-emerald-700">Davomat darajasi</div><div className="text-2xl font-bold mt-0.5 text-emerald-900">{d.attRate}%</div></div>
+        </div>
+
+        {/* 3. Moliyaviy ma'lumot */}
+        <Card>
+          <CardHeader title="Moliyaviy ma'lumot" subtitle={`To'lash kerak: ${formatMoney(d.totalDue)} · To'langan: ${formatMoney(d.totalPaid)}`} />
+          <div className="p-4 pt-0 grid grid-cols-3 gap-3">
+            <div className="bg-amber-50 rounded-xl border border-amber-200 p-3 text-center">
+              <div className="text-[10px] text-amber-700">To'lash kerak</div>
+              <div className="text-lg font-bold mt-1 text-amber-900">{formatMoney(d.totalDue)}</div>
+            </div>
+            <div className="bg-emerald-50 rounded-xl border border-emerald-200 p-3 text-center">
+              <div className="text-[10px] text-emerald-700">To'langan</div>
+              <div className="text-lg font-bold mt-1 text-emerald-900">{formatMoney(d.totalPaid)}</div>
+            </div>
+            <div className="bg-rose-50 rounded-xl border border-rose-200 p-3 text-center">
+              <div className="text-[10px] text-rose-700">Qoldiq</div>
+              <div className="text-lg font-bold mt-1 text-rose-900">{formatMoney(d.remaining)}</div>
+            </div>
+          </div>
+        </Card>
+
+        {/* 4. To'lovlar tarixi */}
+        <Card>
+          <CardHeader title="To'lovlar tarixi" subtitle={`${d.studentPayments.length} ta to'lov`} />
+          {d.studentPayments.length === 0 ? (
+            <EmptyState title="To'lovlar yo'q" description="Bu talaba uchun hali to'lov kiritilmagan." />
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-border text-xs text-muted-foreground">
+                    <th className="text-left px-4 py-2 font-medium">#</th>
+                    <th className="text-left px-4 py-2 font-medium">Sana</th>
+                    <th className="text-right px-4 py-2 font-medium">Summa</th>
+                    <th className="text-left px-4 py-2 font-medium">Turi</th>
+                    <th className="text-left px-4 py-2 font-medium">Oy</th>
+                    <th className="text-left px-4 py-2 font-medium">Izoh</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {d.studentPayments.map((p, idx) => {
+                    const dt = p.created_at ? new Date(p.created_at) : new Date(p.payment_date)
+                    return (
+                      <tr key={p.id} className="border-b border-border/20 hover:bg-muted/40">
+                        <td className="px-4 py-2 text-muted-foreground text-xs">{idx + 1}</td>
+                        <td className="px-4 py-2">
+                          <div className="font-medium text-xs">{formatDate(p.payment_date)}</div>
+                          <div className="text-[10px] text-muted-foreground">{dt.toLocaleDateString('uz-UZ')} · {dt.toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' })}</div>
+                        </td>
+                        <td className="px-4 py-2 text-right font-bold text-emerald-600">{formatMoney(p.amount)}</td>
+                        <td className="px-4 py-2 text-xs">{p.payment_type === 'cash' ? 'Naqd' : p.payment_type === 'card' ? 'Karta' : p.payment_type === 'transfer' ? 'O\'tkazma' : p.payment_type}</td>
+                        <td className="px-4 py-2 text-muted-foreground text-xs">{p.for_month || '—'}</td>
+                        <td className="px-4 py-2 text-muted-foreground text-xs">{p.description || '—'}</td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+                <tfoot>
+                  <tr className="border-t-2 border-border bg-muted/30 font-bold">
+                    <td colSpan={2} className="px-4 py-2 text-right">Jami:</td>
+                    <td className="px-4 py-2 text-right text-emerald-600">{formatMoney(d.totalPaid)}</td>
+                    <td colSpan={3}></td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          )}
+        </Card>
+
+        {/* 5. Davomat */}
+        <Card>
+          <CardHeader title="Davomat" subtitle={`${d.studentAttendance.length} ta dars · Keldi: ${d.present} · Kelmadi: ${d.absent} · Kechikdi: ${d.late}`} />
+          {d.studentAttendance.length === 0 ? (
+            <EmptyState title="Davomat yo'q" description="Bu talaba uchun hali davomat belgilanmagan." />
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-border text-xs text-muted-foreground">
+                    <th className="text-left px-4 py-2 font-medium">#</th>
+                    <th className="text-left px-4 py-2 font-medium">Sana</th>
+                    <th className="text-center px-4 py-2 font-medium">Holat</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {d.studentAttendance.slice(0, 30).map((a, idx) => (
+                    <tr key={a.id} className="border-b border-border/20 hover:bg-muted/40">
+                      <td className="px-4 py-2 text-muted-foreground text-xs">{idx + 1}</td>
+                      <td className="px-4 py-2 font-medium text-xs">{formatDate(a.lesson_date)}</td>
+                      <td className="px-4 py-2 text-center">
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${a.status === 'present' ? 'bg-emerald-100 text-emerald-700' : a.status === 'absent' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>
+                          {a.status === 'present' ? 'Keldi' : a.status === 'absent' ? 'Kelmadi' : 'Kechikdi'}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </Card>
+
+        {/* 6. Qo'shimcha ma'lumotlar */}
+        <Card>
+          <CardHeader title="Qo'shimcha ma'lumotlar" />
+          <div className="p-4 pt-0 space-y-2">
+            {s.address && <Row label="Manzil" value={s.address} />}
+            <Row label="Holat" value={s.status === 'active' ? 'Faol' : s.status === 'paused' ? 'To\'xtatilgan' : s.status === 'graduated' ? 'Bitirgan' : 'Ketgan'} />
+            <Row label="Izoh" value={s.notes || '—'} />
+          </div>
+        </Card>
+
+        {/* Tahrirlash tugmasi */}
+        <div className="flex gap-2">
+          <PrimaryButton onClick={() => { setEditing(s); setForm({ full_name: s.full_name, phone: s.phone || '', parent_phone: s.parent_phone || '', birth_date: s.birth_date || '', address: s.address || '', group_id: s.group_id || '', course_id: s.course_id || '', status: s.status, notes: s.notes || '' }); setOpenModal(true) }}>
+            <Pencil className="w-4 h-4" /> Tahrirlash
+          </PrimaryButton>
+        </div>
+
+        {/* Tahrirlash modali */}
+        <Modal open={openModal} onClose={() => setOpenModal(false)} title="Talabani tahrirlash" size="lg">
+          <div className="space-y-3">
+            <Field label="F.I.O *"><input className="erp-input" value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} /></Field>
+            <div className="grid sm:grid-cols-2 gap-3">
+              <Field label="Telefon"><input className="erp-input" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></Field>
+              <Field label="Ota-ona telefoni"><input className="erp-input" value={form.parent_phone} onChange={(e) => setForm({ ...form, parent_phone: e.target.value })} /></Field>
+            </div>
+            <div className="grid sm:grid-cols-2 gap-3">
+              <Field label="Kurs"><select className="erp-input" value={form.course_id} onChange={(e) => setForm({ ...form, course_id: e.target.value, group_id: '' })}><option value="">— Tanlang —</option>{courses.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</select></Field>
+              <Field label="Guruh"><select className="erp-input" value={form.group_id} onChange={(e) => setForm({ ...form, group_id: e.target.value })}><option value="">— Tanlang —</option>{groups.filter((g) => !form.course_id || g.course_id === form.course_id).map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}</select></Field>
+            </div>
+            <div className="grid sm:grid-cols-2 gap-3">
+              <Field label="Tug'ilgan sana"><input type="date" className="erp-input" value={form.birth_date} onChange={(e) => setForm({ ...form, birth_date: e.target.value })} /></Field>
+              <Field label="Holat"><select className="erp-input" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}><option value="active">Faol</option><option value="paused">To'xtatilgan</option><option value="graduated">Bitirgan</option><option value="left">Ketgan</option></select></Field>
+            </div>
+            <Field label="Manzil"><input className="erp-input" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} /></Field>
+            <Field label="Izoh"><textarea className="erp-input" rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} /></Field>
+            <div className="flex gap-2 pt-2"><PrimaryButton onClick={handleSave} className="flex-1">Saqlash</PrimaryButton><GhostButton onClick={() => setOpenModal(false)}>Bekor</GhostButton></div>
+          </div>
+        </Modal>
+      </div>
+    )
+  }
+
+  // === ASOSIY RO'YXAT ===
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between flex-wrap gap-3">
-        <div><h1 className="text-2xl lg:text-3xl font-bold">Talabalar</h1><p className="text-muted-foreground text-sm mt-1">{filtered.length} talaba</p></div>
+        <div><h1 className="text-2xl lg:text-3xl font-bold">Talabalar</h1><p className="text-muted-foreground text-sm mt-1">{filtered.length} talaba · batafsil uchun talabani bosing</p></div>
         <PrimaryButton onClick={() => { setEditing(null); setForm({ full_name: '', phone: '', parent_phone: '', birth_date: '', address: '', group_id: '', course_id: '', status: 'active', notes: '' }); setOpenModal(true) }}><Plus className="w-4 h-4" /> Yangi talaba</PrimaryButton>
       </div>
       <div className="flex gap-2 flex-wrap">
@@ -564,21 +783,29 @@ export function StudentsPanel() {
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {filtered.map((s) => (
             <motion.div key={s.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-              <Card><div className="p-4">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3 min-w-0"><Avatar name={s.full_name} /><div className="min-w-0"><div className="font-semibold truncate">{s.full_name}</div><div className="text-xs text-muted-foreground truncate">{s.phone || '—'}</div></div></div>
-                  <div className="flex gap-1">
-                    <IconButton title="Tahrirlash" onClick={() => { setEditing(s); setForm({ full_name: s.full_name, phone: s.phone || '', parent_phone: s.parent_phone || '', birth_date: s.birth_date || '', address: s.address || '', group_id: s.group_id || '', course_id: s.course_id || '', status: s.status, notes: s.notes || '' }); setOpenModal(true) }}><Pencil className="w-3.5 h-3.5" /></IconButton>
-                    <IconButton title="O'chirish" danger onClick={() => handleDelete(s.id)}><Trash2 className="w-3.5 h-3.5" /></IconButton>
+              <Card>
+                <div className="p-4 cursor-pointer hover:bg-muted/30 transition-colors" onClick={() => setSelectedStudent(s)}>
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-3 min-w-0"><Avatar name={s.full_name} /><div className="min-w-0"><div className="font-semibold truncate">{s.full_name}</div><div className="text-xs text-muted-foreground truncate">{s.phone || '—'}</div></div></div>
+                    <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
+                      <IconButton title="Tahrirlash" onClick={() => { setEditing(s); setForm({ full_name: s.full_name, phone: s.phone || '', parent_phone: s.parent_phone || '', birth_date: s.birth_date || '', address: s.address || '', group_id: s.group_id || '', course_id: s.course_id || '', status: s.status, notes: s.notes || '' }); setOpenModal(true) }}><Pencil className="w-3.5 h-3.5" /></IconButton>
+                      <IconButton title="O'chirish" danger onClick={() => handleDelete(s.id)}><Trash2 className="w-3.5 h-3.5" /></IconButton>
+                    </div>
+                  </div>
+                  <div className="mt-3 space-y-1.5 text-xs">
+                    {s.group && <Row label="Guruh" value={s.group.name} />}
+                    {s.course && <Row label="Kurs" value={s.course.name} />}
+                    {s.parent_phone && <Row label="Ota-ona" value={s.parent_phone} />}
+                  </div>
+                  <div className="mt-3 pt-3 border-t border-border/40 flex items-center justify-between">
+                    <StatusChip status={s.status} />
+                    <span className="text-[10px] text-indigo-600 font-medium flex items-center gap-1">
+                      Batafsil
+                      <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><polyline points="9 18 15 12 9 6" /></svg>
+                    </span>
                   </div>
                 </div>
-                <div className="mt-3 space-y-1.5 text-xs">
-                  {s.group && <Row label="Guruh" value={s.group.name} />}
-                  {s.course && <Row label="Kurs" value={s.course.name} />}
-                  {s.parent_phone && <Row label="Ota-ona" value={s.parent_phone} />}
-                </div>
-                <div className="mt-3 pt-3 border-t border-border/40 flex items-center justify-between"><StatusChip status={s.status} /><span className="text-[10px] text-muted-foreground">{formatDate(s.enrollment_date)}</span></div>
-              </div></Card>
+              </Card>
             </motion.div>
           ))}
         </div>
