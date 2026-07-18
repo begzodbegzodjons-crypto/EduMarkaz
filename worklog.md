@@ -1,46 +1,54 @@
-# Worklog — EduMarkaz ERP
+# EduMarkaz ERP — O'zgartirishlar jurnali
+
+## 2026-07-03 — Lidlar → Talabaga aylantirish + Dashboard yaxshilanishi
+
+### Qilingan o'zgarishlar:
+
+#### 1. YANGI FAYL: `src/app/api/leads/accept/route.ts`
+- Lidni talabaga aylantiruvchi API endpoint
+- POST /api/leads/accept { lead_id, course_id, group_id }
+- Lid ma'lumotlarini o'qiydi → yangi talaba yozuvini yaratadi → lidni o'chiradi
+- Audit log yozadi
+- Xatoliklarni chuqur boshqarish (lead topilmasa, talaba yaratilmasa, o'chirilmasa)
+
+#### 2. TAHRIRLANGAN: `src/app/panels-1.tsx`
+
+**a) LeadsPanel funksiyasi (Lidlar bo'limi):**
+- Har bir lid kartasiga yashil "Qabul qilish" tugmasi qo'shildi
+- Yangi modal oyna: kurs va guruh tanlash uchun
+- Kurs tanlangach, faqat o'sha kursga tegishli guruhlar ko'rinadi
+- Agar kurs uchun guruhlar bo'lmasa — ogohlantirish chiqadi
+- Muvaffaqiyatli qabul qilingach — lid avtomatik ro'yxatdan o'chiriladi
+- Lidning "qiziqqan kurs"i avtomatik tanlanadi
+
+**b) DualBarChart funksiyasi (Dashboard diagrammasi):**
+- Bo'sh ma'lumotlar uchun chiroyli empty state (icon + matn)
+- Bar height calculation tuzatildi — endi barlar to'g'ri ko'rinadi
+- min-h-[2px] qo'shildi — kichik qiymatlar ham ko'rinadi
+- Chap tomonda o'lchov (max/2/0) qo'shildi
+- Barlar balandligi oshirildi (h-40 → h-48)
+
+**c) Xarajatlar tarkibi (Dashboard):**
+- Bo'sh holatda icon va tushuntirish matni qo'shildi
+- Har bir kategoriya uchun progress bar qo'shildi (foiz ko'rinishida)
+- Umumiy summadan nisbatan hisoblanadi
+
+#### 3. TAHRIRLANGAN: `src/app/panels-5.tsx` (Sozlamalar)
+- Oylik to'lov summasi maydoniga placeholder qo'shildi ("Masalan: 250000")
+- Qiymat 0 bo'lsa — sariq ogohlantirish kartochkasi chiqadi
+- Yordamchi matn kengaytirildi (qanday ishlashi tushuntirilgan)
 
 ---
-Task ID: 1
-Agent: Super Z (main agent)
-Task: O'quv Markazlari uchun to'liq ERP tizimi — Next.js + Supabase + Vercel. 14 kunlik bepul trial, bloklash, aktivatsiya kodi (admin generatsiya qiladi), bloklanganda faqat aktivatsiya kodi kiritish + @norinkomp Telegram kontakti. SQL sxema fayli. Chiroyli dizayn.
 
-Work Log:
-- fullstack-dev skill yuklandi va loyiha muhiti initializatsiya qilindi
-- `@supabase/supabase-js`, `bcryptjs`, `jsonwebtoken` paketlar o'rnatildi
-- `download/schema.sql` fayli yaratildi — to'liq Supabase SQL sxema (10 jadval: users, activation_codes, audit_log, teachers, courses, groups, students, payments, attendance, schedule + RLS + triggerlar + default admin)
-- `src/lib/supabase.ts` — Supabase service client
-- `src/lib/auth.ts` — bcrypt, JWT, session cookie, audit log, status compute
-- `src/lib/guards.ts` — requireActiveUser guard (bloklanganlarni to'xtatadi)
-- `src/lib/client.ts` — frontend `apiFetch` helper + `useUser` hook
-- API routes yaratildi:
-  - `/api/auth/{register,login,me,logout}`
-  - `/api/activate` — aktivatsiya kodini tekshirish va 30 kun qo'shish
-  - `/api/admin/generate-code` — POST (generatsiya) + GET (ro'yxat)
-  - `/api/admin/users` — barcha foydalanuvchilar ro'yxati
-  - `/api/{students,teachers,groups,courses,payments,attendance}` — to'liq CRUD
-  - `/api/dashboard` — statistika
-- `src/components/icons.tsx` — SVG ikonkalar (40+ ta)
-- `src/app/page.tsx` — yakka faylli ERP UI:
-  - AuthScreen (login/register) — premium aurora gradient dizayn
-  - BlockedScreen — bloklanganlar uchun, faqat aktivatsiya kodi + Telegram CTA
-  - AppShell — sidebar + dashboard + 7 panel (talabalar, o'qituvchilar, guruhlar, kurslar, to'lovlar, davomat, admin)
-  - AdminPanel — aktivatsiya kodi generatsiyasi (1-50 ta, 30 kun default), foydalanuvchilar ro'yxati
-- `src/app/globals.css` — Emerald/teal premium theme (light + dark), aurora animatsiya, shimmer text
-- `src/app/layout.tsx` — Uzbek metadata + lang
-- `.env.example` va `.env.local` yaratildi
-- `vercel.json` — Next.js framework config
-- `download/README.md` — to'liq deploy qo'llanmasi (Supabase + Vercel)
-- ESLint config yangilandi (`react-hooks/set-state-in-effect` off)
-- Bug fix: `useUser` hook to'g'rilandi (ok check `data.ok && data.user` emas, balki noto'g'ri `ok && data` edi)
-- Bug fix: `isSupabaseConfigured` import yo'llari tuzatildi (auth.ts → supabase.ts)
+### Sinovdan o'tkazish kerak:
+1. Lidlar bo'limiga kirib, "Qabul qilish" tugmasini bosish
+2. Modalda kurs va guruh tanlash
+3. Talabalar ro'yxatiga yangi talaba tushganini tekshirish
+4. Lidlar ro'yxatidan lid o'chirilganini tekshirish
+5. Dashboard diagrammasining to'g'ri ko'rinishini tekshirish
+6. Sozlamalarda oylik to'lov summasini kiritib, ogohlantirish yo'qolishini tekshirish
 
-Stage Summary:
-- Lint toza (0 xato)
-- Dev server port 3000 da ishlamoqda
-- Login/Register UI ishlayapti (Supabase sozlanmagani uchun login xato beradi — kutilgan)
-- SQL schema fayli: `download/schema.sql`
-- Deploy qo'llanmasi: `download/README.md`
-- Loyiha tuzilishi: 74 ta TS/TSX fayl, Next.js 16 App Router, TypeScript strict
-- Dizayn: Emerald/teal gradient, aurora background, glass cards, framer-motion animatsiyalar, mobil responsive
-- Foydalanuvchi Supabase project yarating → SQL ni joylashtiring → env ni to'ldiring → Vercel ga push qiling
+### Fayllar ro'yxati (o'zgartirilgan):
+- `src/app/api/leads/accept/route.ts` (YANGI)
+- `src/app/panels-1.tsx` (TAHRIRLANGAN)
+- `src/app/panels-5.tsx` (TAHRIRLANGAN)

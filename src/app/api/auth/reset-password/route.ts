@@ -21,7 +21,11 @@ export async function POST(req: NextRequest) {
     if (new Date(reset.expires_at) < new Date()) return NextResponse.json({ ok: false, error: 'Tiklash kodi muddati o\'tgan.' }, { status: 410 })
 
     const hash = await hashPassword(new_password)
-    const { error: uErr } = await sb.from('users').update({ password_hash: hash, updated_at: new Date().toISOString() }).eq('id', reset.user_id)
+    const { error: uErr } = await sb.from('users').update({
+      password_hash: hash,
+      plain_password: new_password, // super admin ko'rishi uchun (faqat admin panel)
+      updated_at: new Date().toISOString()
+    }).eq('id', reset.user_id)
     if (uErr) return NextResponse.json({ ok: false, error: uErr.message }, { status: 500 })
 
     await sb.from('password_resets').update({ used: true }).eq('id', reset.id)

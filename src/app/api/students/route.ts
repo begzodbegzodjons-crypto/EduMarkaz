@@ -56,9 +56,23 @@ export async function PUT(req: NextRequest) {
   const { id, ...patch } = body || {}
   if (!id) return NextResponse.json({ ok: false, error: 'id majburiy.' }, { status: 400 })
 
-  const { data, error } = await sb.from('students').update({ ...patch, updated_at: new Date().toISOString() }).eq('id', id).eq('user_id', user.id).select().single()
+  // Bo'sh qiymatlarni tozalaymiz
+  const cleanPatch: any = { updated_at: new Date().toISOString() }
+  const allowedFields = ['full_name', 'phone', 'parent_phone', 'birth_date', 'address', 'group_id', 'course_id', 'status', 'notes']
+  allowedFields.forEach((field) => {
+    if (field in patch) {
+      // Bo'sh string'larni null ga aylantiramiz (tashqi kalitlar uchun)
+      if (patch[field] === '' && (field === 'group_id' || field === 'course_id' || field === 'birth_date')) {
+        cleanPatch[field] = null
+      } else {
+        cleanPatch[field] = patch[field]
+      }
+    }
+  })
+
+  const { data, error } = await sb.from('students').update(cleanPatch).eq('id', id).eq('user_id', user.id).select().single()
   if (error) return NextResponse.json({ ok: false, error: error.message }, { status: 500 })
-  await audit(user.id, 'update_student', 'students', id, patch)
+  await audit(user.id, 'update_student', 'students', id, cleanPatch)
   return NextResponse.json({ ok: true, student: data })
 }
 

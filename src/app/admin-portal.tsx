@@ -223,32 +223,83 @@ function CentersTab({ password }: { password: string }) {
   }
 
   async function handleActivate(center: any) {
-    const daysStr = prompt(`Necha kunga aktivlashtirilsin?\n${center.center_name}`, '30')
+    const daysStr = prompt(
+      `Necha kunga aktivlashtirilsin?\n\n🏫 ${center.center_name}\n📊 Holat: ${center.status}\n📅 Qolgan kun: ${center.days_left}\n\nKun sonini kiriting:`,
+      '30'
+    )
     if (!daysStr) return
     const days = Number(daysStr)
-    if (!days || days < 1) return alert('Noto\'g\'ri kun')
-    const { ok, error } = await apiFetch(`/api/admin/centers/${center.id}/activate`, {
+    if (!days || days < 1) return alert('Noto\'g\'ri kun kiritildi. Musbat son bo\'lishi kerak.')
+
+    const { ok, error, data } = await apiFetch(`/api/admin/centers/${center.id}/activate`, {
       method: 'POST',
       body: JSON.stringify({ days }),
       headers: { 'x-admin-password': password },
     })
-    if (!ok) return alert(error)
-    alert(`${center.center_name} ${days} kunga aktivlashtirildi`)
+
+    if (!ok) {
+      alert(`❌ Xatolik: ${error || 'Noma\'lum xato'}\n\nMarkaz: ${center.center_name}\nKun: ${days}`)
+      return
+    }
+
+    // Yangi active_until ni ko'rsatamiz
+    const newActiveUntil = data?.user?.active_until
+    const dateStr = newActiveUntil ? new Date(newActiveUntil).toLocaleDateString('uz-UZ') : ''
+    alert(`✅ ${center.center_name}\n\n📅 ${days} kun qo'shildi!\n🗓 Yangi muddat: ${dateStr}`)
     load()
   }
 
   async function handleUnblock(center: any) {
-    const daysStr = prompt(`Blokdan olib, necha kun aktiv qilamiz?\n${center.center_name}`, '30')
+    const daysStr = prompt(
+      `Blokdan chiqarish - necha kunga aktiv qilamiz?\n\n🏫 ${center.center_name}\n📊 Holat: ${center.status}\n\nKun sonini kiriting:`,
+      '30'
+    )
     if (!daysStr) return
     const days = Number(daysStr)
-    if (!days || days < 1) return alert('Noto\'g\'ri kun')
-    const { ok, error } = await apiFetch(`/api/admin/centers/${center.id}/activate`, {
+    if (!days || days < 1) return alert('Noto\'g\'ri kun kiritildi. Musbat son bo\'lishi kerak.')
+
+    const { ok, error, data } = await apiFetch(`/api/admin/centers/${center.id}/activate`, {
       method: 'POST',
       body: JSON.stringify({ days }),
       headers: { 'x-admin-password': password },
     })
-    if (!ok) return alert(error)
-    alert(`${center.center_name} blokdan chiqarildi (${days} kun)`)
+
+    if (!ok) {
+      alert(`❌ Xatolik: ${error || 'Noma\'lum xato'}\n\nMarkaz: ${center.center_name}\nKun: ${days}`)
+      return
+    }
+
+    // Yangi active_until ni ko'rsatamiz
+    const newActiveUntil = data?.user?.active_until
+    const dateStr = newActiveUntil ? new Date(newActiveUntil).toLocaleDateString('uz-UZ') : ''
+    alert(`✅ ${center.center_name}\n\n🔓 Blokdan chiqarildi!\n📅 ${days} kun aktivlashtirildi\n🗓 Yangi muddat: ${dateStr}`)
+    load()
+  }
+
+  // === YANGI: Markazni butunlay o'chirish ===
+  async function handleDelete(center: any) {
+    const confirmText = `⚠️ DIQQAT!\n\n${center.center_name} (${center.email}) butunlay o'chiriladi.\n\nBarcha ma'lumotlar yo'qoladi:\n• Talabalar (${center.stats?.students_active || 0})\n• O'qituvchilar (${center.stats?.teachers_count || 0})\n• Guruhlar (${center.stats?.groups_count || 0})\n• Kurslar (${center.stats?.courses_count || 0})\n• To'lovlar va davomatlar\n\nBu amalni qaytarib bo'lmaydi!\n\nDavom etish uchun "O'CHIRISH" so'zini kiriting:`
+    const confirmInput = prompt(confirmText)
+    if (confirmInput !== "O'CHIRISH") {
+      if (confirmInput !== null) alert('Bekor qilindi. Tasdiq so\'zi noto\'g\'ri.')
+      return
+    }
+
+    const { ok, error, data } = await apiFetch(`/api/admin/centers/${center.id}/delete`, {
+      method: 'POST',
+      headers: { 'x-admin-password': password },
+    })
+
+    if (!ok) {
+      alert(error || 'O\'chirishda xatolik yuz berdi.')
+      return
+    }
+
+    let msg = `${center.center_name} muvaffaqiyatli o'chirildi!`
+    if (data?.partial_errors && data.partial_errors.length > 0) {
+      msg += `\n\nBa'zi ogohlantirishlar:\n${data.partial_errors.slice(0, 3).join('\n')}`
+    }
+    alert(msg)
     load()
   }
 
@@ -351,9 +402,38 @@ function CentersTab({ password }: { password: string }) {
                   </div>
                   <div className="min-w-0">
                     <div className="font-bold text-white truncate">{c.center_name}</div>
-                    <div className="text-xs text-slate-400 truncate">{c.full_name} • {c.email}</div>
+                    <div className="text-xs text-slate-400 truncate">
+                      {c.full_name} • <span className="text-amber-300/80">✉ {c.email}</span>
+                    </div>
                     <div className="text-[10px] text-slate-500 mt-0.5">
                       {c.phone || '—'} • {c.address || 'Manzil ko\'rsatilmagan'}
+                    </div>
+                    {/* Login ma'lumotlari */}
+                    <div className="text-[10px] text-slate-500 mt-1 flex items-center gap-2 flex-wrap">
+                      <span className="px-1.5 py-0.5 rounded bg-white/5 border border-white/10">
+                        🔑 Login: <span className="text-slate-300 font-mono">{c.email}</span>
+                      </span>
+                      {c.plain_password ? (
+                        <span className="px-1.5 py-0.5 rounded bg-amber-500/10 border border-amber-500/30">
+                          🔒 Parol: <span className="text-amber-300 font-mono font-bold">{c.plain_password}</span>
+                        </span>
+                      ) : (
+                        <span className="px-1.5 py-0.5 rounded bg-white/5 border border-white/10">
+                          🔒 Parol: <span className="text-slate-400">eski (yangilanmagan)</span>
+                        </span>
+                      )}
+                      {c.plain_password && (
+                        <button
+                          onClick={() => {
+                            navigator.clipboard.writeText(c.plain_password)
+                            alert(`Parol nusxalandi:\n${c.plain_password}`)
+                          }}
+                          className="px-1.5 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/20 transition"
+                          title="Parolni nusxalash"
+                        >
+                          📋 Nusxalash
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -423,6 +503,17 @@ function CentersTab({ password }: { password: string }) {
                     className="px-3 py-1.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 text-xs font-semibold transition"
                   >
                     + Kun uzaytirish
+                  </button>
+                )}
+                {/* O'chirish tugmasi (faqat blocked va trial uchun) */}
+                {(c.status === 'blocked' || c.status === 'trial') && (
+                  <button
+                    onClick={() => handleDelete(c)}
+                    className="px-3 py-1.5 rounded-lg bg-red-600/30 hover:bg-red-600/50 text-red-200 text-xs font-semibold transition border border-red-500/40 flex items-center gap-1"
+                    title="Butunlay o'chirish (barcha ma'lumotlar bilan)"
+                  >
+                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></svg>
+                    O'chirish
                   </button>
                 )}
               </div>
