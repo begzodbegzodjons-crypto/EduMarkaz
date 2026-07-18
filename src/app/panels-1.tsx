@@ -2,6 +2,7 @@
 import { useEffect, useState, useCallback, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { useUser, apiFetch, formatDate, formatDateTime, formatMoney } from '@/lib/client'
+import { exportToExcel } from '@/lib/excel-export'
 import {
   Users, Wallet, Calendar, BarChart3, BookOpen, UserCog, LayoutDashboard,
   Plus, Trash2, Pencil, Search, Sparkles, CheckCircle, Star, TrendingUp,
@@ -161,6 +162,7 @@ function DualBarChart({ data }: { data: { label: string; income: number; expense
 export function LeadsPanel() {
   const [items, setItems] = useState<any[]>([])
   const [courses, setCourses] = useState<any[]>([])
+  const [allGroups, setAllGroups] = useState<any[]>([]) // barcha guruhlar (kurs bo'yicha filtrlash uchun)
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
@@ -168,17 +170,34 @@ export function LeadsPanel() {
   const [editing, setEditing] = useState<any>(null)
   const [form, setForm] = useState<any>({ full_name: '', phone: '', source: '', interested_course_id: '', status: 'new', notes: '' })
 
+  // Qabul qilish modali uchun state
+  const [acceptModal, setAcceptModal] = useState(false)
+  const [acceptingLead, setAcceptingLead] = useState<any>(null)
+  const [acceptForm, setAcceptForm] = useState<{ course_id: string; group_id: string }>({ course_id: '', group_id: '' })
+  const [accepting, setAccepting] = useState(false)
+
   const load = useCallback(async () => {
     setLoading(true)
-    const [l, c] = await Promise.all([apiFetch(`/api/leads?status=${statusFilter}`), apiFetch('/api/courses')])
+    const [l, c, g] = await Promise.all([
+      apiFetch(`/api/leads?status=${statusFilter}`),
+      apiFetch('/api/courses'),
+      apiFetch('/api/groups'),
+    ])
     if (l.ok) setItems(l.data?.leads || [])
     if (c.ok) setCourses(c.data?.courses || [])
+    if (g.ok) setAllGroups(g.data?.groups || [])
     setLoading(false)
   }, [statusFilter])
 
   useEffect(() => { load() }, [load])
 
   const filtered = items.filter((s) => !search || s.full_name?.toLowerCase().includes(search.toLowerCase()) || s.phone?.includes(search))
+
+  // Qabul qilish modali uchun: tanlangan kursga mos guruhlar
+  const acceptGroups = useMemo(() => {
+    if (!acceptForm.course_id) return []
+    return allGroups.filter((g) => g.course_id === acceptForm.course_id)
+  }, [acceptForm.course_id, allGroups])
 
   async function handleSave() {
     if (editing) {
@@ -191,6 +210,45 @@ export function LeadsPanel() {
     setOpenModal(false); setEditing(null); load()
   }
   async function handleDelete(id: string) { if (!confirm('O\'chirmoqchimisiz?')) return; const { ok, error } = await apiFetch(`/api/leads?id=${id}`, { method: 'DELETE' }); if (!ok) return alert(error); load() }
+
+  // === YANGI: Lidni talabaga aylantirish (Qabul qilish) ===
+  function openAcceptModal(lead: any) {
+    setAcceptingLead(lead)
+    // Agar lidning qiziqqan kursi bo'lsa, avtomatik tanlab qo'yamiz
+    setAcceptForm({
+      course_id: lead.interested_course_id || '',
+      group_id: '',
+    })
+    setAcceptModal(true)
+  }
+
+  async function handleAccept() {
+    if (!acceptingLead) return
+    if (!acceptForm.course_id) return alert('Iltimos, kursni tanlang.')
+    if (!acceptForm.group_id) return alert('Iltimos, guruhni tanlang.')
+
+    setAccepting(true)
+    const { ok, error, data } = await apiFetch('/api/leads/accept', {
+      method: 'POST',
+      body: JSON.stringify({
+        lead_id: acceptingLead.id,
+        course_id: acceptForm.course_id,
+        group_id: acceptForm.group_id,
+      }),
+    })
+    setAccepting(false)
+
+    if (!ok) {
+      alert(error || 'Qabul qilishda xatolik yuz berdi.')
+      return
+    }
+
+    alert(`${acceptingLead.full_name} muvaffaqiyatli talabalar ro'yxatiga qo'shildi!`)
+    setAcceptModal(false)
+    setAcceptingLead(null)
+    setAcceptForm({ course_id: '', group_id: '' })
+    load()
+  }
 
   return (
     <div className="space-y-5">
@@ -223,7 +281,17 @@ export function LeadsPanel() {
                   {s.source && <Row label="Manba" value={s.source} />}
                   {s.course && <Row label="Qiziqqan kurs" value={s.course.name} />}
                 </div>
-                <div className="mt-3 pt-3 border-t border-border/40"><LeadStatusChip status={s.status} /></div>
+                <div className="mt-3 pt-3 border-t border-border/40 flex items-center justify-between gap-2">
+                  <LeadStatusChip status={s.status} />
+                  <button
+                    onClick={() => openAcceptModal(s)}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition-colors shadow-sm"
+                    title="Lidni talabalar ro'yxatiga qo'shish"
+                  >
+                    <CheckCircle className="w-3.5 h-3.5" />
+                    Qabul qilish
+                  </button>
+                </div>
               </div></Card>
             </motion.div>
           ))}
@@ -244,6 +312,71 @@ export function LeadsPanel() {
           <div className="flex gap-2 pt-2"><PrimaryButton onClick={handleSave} className="flex-1">Saqlash</PrimaryButton><GhostButton onClick={() => setOpenModal(false)}>Bekor</GhostButton></div>
         </div>
       </Modal>
+
+      {/* === YANGI: Qabul qilish modali === */}
+      <Modal
+        open={acceptModal}
+        onClose={() => { if (!accepting) { setAcceptModal(false); setAcceptingLead(null) } }}
+        title={acceptingLead ? `Qabul qilish: ${acceptingLead.full_name}` : 'Qabul qilish'}
+      >
+        <div className="space-y-4">
+          {acceptingLead && (
+            <div className="rounded-xl bg-amber-50 border border-amber-200 p-3 text-sm">
+              <div className="font-semibold text-amber-900">{acceptingLead.full_name}</div>
+              {acceptingLead.phone && <div className="text-amber-700 text-xs mt-0.5">Telefon: {acceptingLead.phone}</div>}
+              {acceptingLead.course && <div className="text-amber-700 text-xs">Qiziqqan kurs: {acceptingLead.course.name}</div>}
+            </div>
+          )}
+
+          <div className="space-y-3">
+            <Field label="Kursni tanlang *">
+              <select
+                className="erp-input"
+                value={acceptForm.course_id}
+                onChange={(e) => setAcceptForm({ course_id: e.target.value, group_id: '' })}
+                disabled={accepting}
+              >
+                <option value="">— Tanlang —</option>
+                {courses.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+              </select>
+            </Field>
+
+            <Field label="Guruhni tanlang *">
+              <select
+                className="erp-input"
+                value={acceptForm.group_id}
+                onChange={(e) => setAcceptForm({ ...acceptForm, group_id: e.target.value })}
+                disabled={accepting || !acceptForm.course_id}
+              >
+                <option value="">— Tanlang —</option>
+                {acceptGroups.map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}
+                {acceptForm.course_id && acceptGroups.length === 0 && (
+                  <option value="" disabled>Bu kurs uchun guruhlar yo'q</option>
+                )}
+              </select>
+              {acceptForm.course_id && acceptGroups.length === 0 && (
+                <p className="text-xs text-red-600 mt-1">
+                  Bu kurs uchun guruhlar mavjud emas. Avval &quot;Guruhlar&quot; bo'limida yangi guruh qo'shing.
+                </p>
+              )}
+            </Field>
+          </div>
+
+          <div className="rounded-lg bg-blue-50 border border-blue-200 p-3 text-xs text-blue-800">
+            <strong>Eslatma:</strong> Qabul qilingan lid &quot;Talabalar&quot; ro'yxatiga o&apos;tadi va &quot;Lidlar&quot; ro&apos;yxatidan o&apos;chiriladi.
+          </div>
+
+          <div className="flex gap-2 pt-2">
+            <PrimaryButton onClick={handleAccept} className="flex-1" disabled={accepting || !acceptForm.course_id || !acceptForm.group_id}>
+              {accepting ? 'Qabul qilinmoqda...' : 'Qabul qilish'}
+            </PrimaryButton>
+            <GhostButton onClick={() => { if (!accepting) { setAcceptModal(false); setAcceptingLead(null) } }}>
+              Bekor
+            </GhostButton>
+          </div>
+        </div>
+      </Modal>
+      {/* === END: Qabul qilish modali === */}
     </div>
   )
 }
@@ -303,7 +436,43 @@ export function StudentsPanel() {
     <div className="space-y-5">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div><h1 className="text-2xl lg:text-3xl font-bold">Talabalar</h1><p className="text-muted-foreground text-sm mt-1">{filtered.length} talaba</p></div>
-        <PrimaryButton onClick={() => { setEditing(null); setForm({ full_name: '', phone: '', parent_phone: '', birth_date: '', address: '', group_id: '', course_id: '', status: 'active', notes: '' }); setOpenModal(true) }}><Plus className="w-4 h-4" /> Yangi talaba</PrimaryButton>
+        <div className="flex gap-2">
+          <GhostButton onClick={() => exportToExcel({
+            filename: 'talabalar',
+            title: 'Talabalar ro\'yxati',
+            headerColor: '#4F46E5',
+            columns: [
+              { header: '#', key: 'num', width: 40 },
+              { header: 'F.I.O', key: 'full_name', width: 200 },
+              { header: 'Telefon', key: 'phone', width: 120 },
+              { header: 'Ota-ona telefoni', key: 'parent_phone', width: 120 },
+              { header: 'Kurs', key: 'course_name', width: 150 },
+              { header: 'Guruh', key: 'group_name', width: 150 },
+              { header: 'Qabul sanasi', key: 'enrollment_date', width: 100 },
+              { header: 'Tug\'ilgan sana', key: 'birth_date', width: 100 },
+              { header: 'Manzil', key: 'address', width: 200 },
+              { header: 'Holat', key: 'status_label', width: 100 },
+              { header: 'Izoh', key: 'notes', width: 200 },
+            ],
+            data: filtered.map((s, i) => ({
+              num: i + 1,
+              full_name: s.full_name,
+              phone: s.phone || '',
+              parent_phone: s.parent_phone || '',
+              course_name: s.course?.name || '—',
+              group_name: s.group?.name || '—',
+              enrollment_date: formatDate(s.enrollment_date),
+              birth_date: formatDate(s.birth_date),
+              address: s.address || '',
+              status_label: s.status === 'active' ? 'Faol' : s.status === 'paused' ? 'To\'xtatilgan' : s.status === 'graduated' ? 'Bitirgan' : 'Ketgan',
+              notes: s.notes || '',
+            })),
+          })}>
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
+            Excel
+          </GhostButton>
+          <PrimaryButton onClick={() => { setEditing(null); setForm({ full_name: '', phone: '', parent_phone: '', birth_date: '', address: '', group_id: '', course_id: '', status: 'active', notes: '' }); setOpenModal(true) }}><Plus className="w-4 h-4" /> Yangi talaba</PrimaryButton>
+        </div>
       </div>
       <div className="flex gap-2 flex-wrap">
         <div className="flex items-center gap-2 px-3 py-2 bg-card rounded-xl border border-border/50 flex-1 min-w-[200px]">

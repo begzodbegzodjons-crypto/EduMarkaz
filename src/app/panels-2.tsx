@@ -2,6 +2,7 @@
 import { useEffect, useState, useCallback, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { apiFetch, formatDate, formatMoney } from '@/lib/client'
+import { exportToExcel } from '@/lib/excel-export'
 import {
   Users, Wallet, BookOpen, UserCog, Plus, Trash2, Pencil, Search, Star,
 } from '@/components/icons'
@@ -45,7 +46,39 @@ export function TeachersPanel() {
     <div className="space-y-5">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div><h1 className="text-2xl lg:text-3xl font-bold">O'qituvchilar</h1><p className="text-muted-foreground text-sm mt-1">{items.length} murabbiy</p></div>
-        <PrimaryButton onClick={() => { setEditing(null); setForm({ full_name: '', phone: '', subject: '', salary_amount: 0, hire_date: '', notes: '' }); setOpenModal(true) }}><Plus className="w-4 h-4" /> Yangi o'qituvchi</PrimaryButton>
+        <div className="flex gap-2">
+          <GhostButton onClick={() => exportToExcel({
+            filename: 'oqituvchilar',
+            title: 'O\'qituvchilar ro\'yxati',
+            headerColor: '#0891B2',
+            columns: [
+              { header: '#', key: 'num', width: 40 },
+              { header: 'F.I.O', key: 'full_name', width: 200 },
+              { header: 'Telefon', key: 'phone', width: 120 },
+              { header: 'Fan', key: 'subject', width: 150 },
+              { header: 'Maosh', key: 'salary', width: 120 },
+              { header: 'Ish boshlagan', key: 'hire_date', width: 100 },
+              { header: 'Login', key: 'login', width: 120 },
+              { header: 'Parol holati', key: 'has_pass', width: 100 },
+              { header: 'Izoh', key: 'notes', width: 200 },
+            ],
+            data: items.map((t, i) => ({
+              num: i + 1,
+              full_name: t.full_name,
+              phone: t.phone || '',
+              subject: t.subject || '',
+              salary: formatMoney(t.salary_amount),
+              hire_date: formatDate(t.hire_date),
+              login: t.login || t.phone || '',
+              has_pass: t.has_password ? 'Parol bor' : 'Parol yo\'q',
+              notes: t.notes || '',
+            })),
+          })}>
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
+            Excel
+          </GhostButton>
+          <PrimaryButton onClick={() => { setEditing(null); setForm({ full_name: '', phone: '', subject: '', salary_amount: 0, hire_date: '', notes: '' }); setOpenModal(true) }}><Plus className="w-4 h-4" /> Yangi o'qituvchi</PrimaryButton>
+        </div>
       </div>
       {loading ? <PanelLoader /> : items.length === 0 ? <Card><EmptyState title="O'qituvchilar yo'q" description="Birinchi murabbiyingizni qo'shing." /></Card> : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -130,7 +163,42 @@ export function GroupsPanel() {
     <div className="space-y-5">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div><h1 className="text-2xl lg:text-3xl font-bold">Guruhlar</h1><p className="text-muted-foreground text-sm mt-1">{filtered.length} guruh</p></div>
-        <PrimaryButton onClick={() => { setEditing(null); setForm({ name: '', course_id: '', teacher_id: '', start_date: '', end_date: '', schedule: '', max_students: 12 }); setOpenModal(true) }}><Plus className="w-4 h-4" /> Yangi guruh</PrimaryButton>
+        <div className="flex gap-2">
+          <GhostButton onClick={() => exportToExcel({
+            filename: 'guruhlar',
+            title: 'Guruhlar ro\'yxati',
+            headerColor: '#0EA5E9',
+            columns: [
+              { header: '#', key: 'num', width: 40 },
+              { header: 'Guruh nomi', key: 'name', width: 200 },
+              { header: 'Kurs', key: 'course_name', width: 150 },
+              { header: 'O\'qituvchi', key: 'teacher_name', width: 200 },
+              { header: 'Jadval', key: 'schedule', width: 150 },
+              { header: 'Talabalar soni', key: 'student_count', width: 100 },
+              { header: 'Maks talabalar', key: 'max_students', width: 100 },
+              { header: 'Boshlanish', key: 'start_date', width: 100 },
+              { header: 'Tugash', key: 'end_date', width: 100 },
+            ],
+            data: filtered.map((g, i) => {
+              const count = students.filter((s) => s.group_id === g.id).length
+              return {
+                num: i + 1,
+                name: g.name,
+                course_name: g.course?.name || '—',
+                teacher_name: g.teacher?.full_name || '—',
+                schedule: g.schedule || '—',
+                student_count: count,
+                max_students: g.max_students,
+                start_date: formatDate(g.start_date),
+                end_date: formatDate(g.end_date),
+              }
+            }),
+          })}>
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
+            Excel
+          </GhostButton>
+          <PrimaryButton onClick={() => { setEditing(null); setForm({ name: '', course_id: '', teacher_id: '', start_date: '', end_date: '', schedule: '', max_students: 12 }); setOpenModal(true) }}><Plus className="w-4 h-4" /> Yangi guruh</PrimaryButton>
+        </div>
       </div>
       <div className="flex gap-2 flex-wrap">
         <select value={courseFilter} onChange={(e) => setCourseFilter(e.target.value)} className="px-3 py-2 rounded-xl border border-border/50 text-sm bg-card">
@@ -226,7 +294,39 @@ export function CoursesPanel() {
     <div className="space-y-5">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div><h1 className="text-2xl lg:text-3xl font-bold">Kurslar</h1><p className="text-muted-foreground text-sm mt-1">{items.length} kurs</p></div>
-        <PrimaryButton onClick={() => { setEditing(null); setForm({ name: '', description: '', duration_months: 3, price: 0 }); setOpenModal(true) }}><Plus className="w-4 h-4" /> Yangi kurs</PrimaryButton>
+        <div className="flex gap-2">
+          <GhostButton onClick={() => exportToExcel({
+            filename: 'kurslar',
+            title: 'Kurslar ro\'yxati',
+            headerColor: '#8B5CF6',
+            columns: [
+              { header: '#', key: 'num', width: 40 },
+              { header: 'Kurs nomi', key: 'name', width: 200 },
+              { header: 'Tavsif', key: 'description', width: 300 },
+              { header: 'Davomiyligi (oy)', key: 'duration', width: 100 },
+              { header: 'Oylik to\'lov', key: 'price', width: 120 },
+              { header: 'Guruhlar soni', key: 'group_count', width: 100 },
+              { header: 'Talabalar soni', key: 'student_count', width: 100 },
+            ],
+            data: items.map((c, i) => {
+              const groupCount = groups.filter((g) => g.course_id === c.id).length
+              const studentCount = students.filter((s) => s.course_id === c.id && s.status === 'active').length
+              return {
+                num: i + 1,
+                name: c.name,
+                description: c.description || '',
+                duration: c.duration_months,
+                price: formatMoney(c.price),
+                group_count: groupCount,
+                student_count: studentCount,
+              }
+            }),
+          })}>
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
+            Excel
+          </GhostButton>
+          <PrimaryButton onClick={() => { setEditing(null); setForm({ name: '', description: '', duration_months: 3, price: 0 }); setOpenModal(true) }}><Plus className="w-4 h-4" /> Yangi kurs</PrimaryButton>
+        </div>
       </div>
       {loading ? <PanelLoader /> : items.length === 0 ? <Card><EmptyState title="Kurslar yo'q" description="Birinchi kursingizni yarating." /></Card> : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
