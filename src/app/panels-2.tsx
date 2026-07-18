@@ -377,7 +377,6 @@ export function TeachersPanel() {
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between flex-wrap gap-3">
-<<<<<<< HEAD
         <div><h1 className="text-2xl lg:text-3xl font-bold">O'qituvchilar</h1><p className="text-muted-foreground text-sm mt-1">{items.length} murabbiy</p></div>
         <div className="flex gap-2">
           <GhostButton onClick={() => exportToExcel({
@@ -411,22 +410,6 @@ export function TeachersPanel() {
             Excel
           </GhostButton>
           <PrimaryButton onClick={() => { setEditing(null); setForm({ full_name: '', phone: '', subject: '', salary_amount: 0, hire_date: '', notes: '' }); setOpenModal(true) }}><Plus className="w-4 h-4" /> Yangi o'qituvchi</PrimaryButton>
-=======
-        <div>
-          <h1 className="text-2xl lg:text-3xl font-bold">O'qituvchilar</h1>
-          <p className="text-muted-foreground text-sm mt-1">{items.length} murabbiy · batafsil uchun o'qituvchini bosing</p>
-        </div>
-        <div className="flex gap-2">
-          <a
-            href="/teacher"
-            target="_blank"
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-50 hover:bg-indigo-100 text-indigo-700 text-sm font-semibold border border-slate-200"
-          >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /><polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" /></svg>
-            O'qituvchi paneli
-          </a>
-          <PrimaryButton onClick={() => { setEditing(null); setForm({ full_name: '', phone: '', login: '', subject: '', salary_amount: 0, hire_date: '', notes: '', password: '' }); setOpenModal(true) }}><Plus className="w-4 h-4" /> Yangi o'qituvchi</PrimaryButton>
->>>>>>> 830a08eb24d86d9da8e3041616ea01bc3eca811d
         </div>
       </div>
 
@@ -812,7 +795,6 @@ export function GroupsPanel() {
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between flex-wrap gap-3">
-<<<<<<< HEAD
         <div><h1 className="text-2xl lg:text-3xl font-bold">Guruhlar</h1><p className="text-muted-foreground text-sm mt-1">{filtered.length} guruh</p></div>
         <div className="flex gap-2">
           <GhostButton onClick={() => exportToExcel({
@@ -850,10 +832,6 @@ export function GroupsPanel() {
           </GhostButton>
           <PrimaryButton onClick={() => { setEditing(null); setForm({ name: '', course_id: '', teacher_id: '', start_date: '', end_date: '', schedule: '', max_students: 12 }); setOpenModal(true) }}><Plus className="w-4 h-4" /> Yangi guruh</PrimaryButton>
         </div>
-=======
-        <div><h1 className="text-2xl lg:text-3xl font-bold">Guruhlar</h1><p className="text-muted-foreground text-sm mt-1">{filtered.length} guruh · batafsil uchun guruhni bosing</p></div>
-        <PrimaryButton onClick={() => { setEditing(null); setForm({ name: '', course_id: '', teacher_id: '', start_date: '', end_date: '', schedule: '', max_students: 12 }); setOpenModal(true) }}><Plus className="w-4 h-4" /> Yangi guruh</PrimaryButton>
->>>>>>> 830a08eb24d86d9da8e3041616ea01bc3eca811d
       </div>
       <div className="flex gap-2 flex-wrap">
         <select value={courseFilter} onChange={(e) => setCourseFilter(e.target.value)} className="px-3 py-2 rounded-xl border border-border/50 text-sm bg-card">
@@ -1295,7 +1273,6 @@ export function CoursesPanel() {
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between flex-wrap gap-3">
-<<<<<<< HEAD
         <div><h1 className="text-2xl lg:text-3xl font-bold">Kurslar</h1><p className="text-muted-foreground text-sm mt-1">{items.length} kurs</p></div>
         <div className="flex gap-2">
           <GhostButton onClick={() => exportToExcel({
@@ -1330,10 +1307,6 @@ export function CoursesPanel() {
           </GhostButton>
           <PrimaryButton onClick={() => { setEditing(null); setForm({ name: '', description: '', duration_months: 3, price: 0 }); setOpenModal(true) }}><Plus className="w-4 h-4" /> Yangi kurs</PrimaryButton>
         </div>
-=======
-        <div><h1 className="text-2xl lg:text-3xl font-bold">Kurslar</h1><p className="text-muted-foreground text-sm mt-1">{items.length} kurs · batafsil uchun kursni bosing</p></div>
-        <PrimaryButton onClick={() => { setEditing(null); setForm({ name: '', description: '', duration_months: 3, price: 0 }); setOpenModal(true) }}><Plus className="w-4 h-4" /> Yangi kurs</PrimaryButton>
->>>>>>> 830a08eb24d86d9da8e3041616ea01bc3eca811d
       </div>
       {loading ? <PanelLoader /> : items.length === 0 ? <Card color="indigo"><EmptyState title="Kurslar yo'q" description="Birinchi kursingizni yarating." /></Card> : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
