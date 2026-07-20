@@ -554,8 +554,12 @@ export function DebtsPanel() {
 
   function exportCSV() {
     if (!data?.debts?.length) return alert('Eksport qilish uchun ma\'lumot yo\'q')
-    const headers = ['Talaba', 'Telefon', 'Ota-ona telefoni', 'Guruh', 'Kurs narxi', 'To\'lagan', 'Qarz']
-    const rows = data.debts.map((d: any) => [d.full_name, d.phone || '', d.parent_phone || '', d.group_name || '', d.expected_amount, d.paid_amount, d.debt_amount])
+    const headers = ['Talaba', 'Telefon', 'Ota-ona telefoni', 'Guruh', 'Kurs narxi', 'Jadval darslari', 'O\'tilgan darslar', '1 dars narxi', 'Chegirma', 'Hisob', 'To\'lagan', 'Qarz']
+    const rows = data.debts.map((d: any) => [
+      d.full_name, d.phone || '', d.parent_phone || '', d.group_name || '',
+      d.course_price, d.scheduled_lessons, d.taught_lessons, d.per_lesson_price,
+      d.discount_amount, d.expected_amount, d.paid_amount, d.debt_amount,
+    ])
     const csv = [headers, ...rows].map((r) => r.map((c: any) => `"${c}"`).join(',')).join('\n')
     const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' })
     const url = URL.createObjectURL(blob)
@@ -584,6 +588,18 @@ export function DebtsPanel() {
         <StatCard label="Umumiy qarz" value={formatMoney(s.total_debt || 0)} sub={`Kutilgan: ${formatMoney(s.total_expected || 0)}`} icon={Wallet} color="amber" />
       </div>
 
+      {/* Hisoblash tushuntirishi */}
+      <div className="bg-blue-50/50 border border-blue-200/50 rounded-2xl p-4 text-xs text-blue-900 leading-relaxed">
+        <div className="font-semibold mb-1 flex items-center gap-1.5"><Wallet className="w-3.5 h-3.5" /> Hisoblash mantig'i</div>
+        <div className="text-blue-800/90">
+          1 dars narxi = kurs narxi ÷ oyiga darslar soni (jadval bo'yicha). Talaba qarzi = (1 dars narxi × o'tilgan darslar soni) − chegirma − to'langan.
+          Faqat davomati belgilangan darslar hisoblanadi (o'qituvchi tomonidan davomat belgilanganda dars o'tilgan deb topiladi).
+          {(s.no_lessons_count || 0) > 0 && (
+            <span className="block mt-1 text-amber-700 font-medium">⚠ {s.no_lessons_count} ta talabada bu oyda dars o'tilmagan — qarz 0.</span>
+          )}
+        </div>
+      </div>
+
       <Card>
         <CardHeader title="Qarzdor talabalar ro'yxati" subtitle={`${data?.debts?.length || 0} talaba`} />
         {data?.debts?.length === 0 ? <EmptyState title="Bu oyga ma'lumot yo'q" /> : (
@@ -592,22 +608,61 @@ export function DebtsPanel() {
               <thead><tr className="border-b border-border/40 text-xs text-muted-foreground">
                 <th className="text-left px-4 py-3 font-medium">Talaba</th>
                 <th className="text-left px-4 py-3 font-medium">Guruh</th>
-                <th className="text-right px-4 py-3 font-medium">Kurs narxi</th>
+                <th className="text-center px-4 py-3 font-medium">Darslar</th>
+                <th className="text-right px-4 py-3 font-medium">1 dars</th>
+                <th className="text-right px-4 py-3 font-medium">Hisob</th>
+                <th className="text-right px-4 py-3 font-medium">Chegirma</th>
                 <th className="text-right px-4 py-3 font-medium">To'lagan</th>
                 <th className="text-right px-4 py-3 font-medium">Qarz</th>
                 <th className="text-center px-4 py-3 font-medium">Holat</th>
               </tr></thead>
               <tbody>
-                {data?.debts?.map((d: any) => (
-                  <tr key={d.student_id} className={`border-b border-border/20 hover:bg-muted/40 ${d.debt_amount > 0 ? 'bg-slate-50/30' : ''}`}>
-                    <td className="px-4 py-3"><div className="font-medium">{d.full_name}</div>{d.parent_phone && <div className="text-[10px] text-muted-foreground">👤 {d.parent_phone}</div>}</td>
-                    <td className="px-4 py-3 text-muted-foreground">{d.group_name || '—'}</td>
-                    <td className="px-4 py-3 text-right">{formatMoney(d.expected_amount)}</td>
-                    <td className="px-4 py-3 text-right text-indigo-700 font-medium">{formatMoney(d.paid_amount)}</td>
-                    <td className="px-4 py-3 text-right font-bold text-red-600">{formatMoney(d.debt_amount)}</td>
-                    <td className="px-4 py-3 text-center">{d.is_paid ? <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-indigo-100 text-indigo-700">To'langan</span> : <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-red-100 text-red-700">Qarz</span>}</td>
-                  </tr>
-                ))}
+                {data?.debts?.map((d: any) => {
+                  const noLessons = d.calc_mode === 'no_lessons_yet'
+                  const noSchedule = d.calc_mode === 'no_schedule'
+                  return (
+                    <tr key={d.student_id} className={`border-b border-border/20 hover:bg-muted/40 ${d.debt_amount > 0 ? 'bg-slate-50/40' : ''}`}>
+                      <td className="px-4 py-3">
+                        <div className="font-medium">{d.full_name}</div>
+                        {d.parent_phone && <div className="text-[10px] text-muted-foreground">👤 {d.parent_phone}</div>}
+                        {d.enrollment_date && <div className="text-[10px] text-muted-foreground">📅 {formatDate(d.enrollment_date)}</div>}
+                      </td>
+                      <td className="px-4 py-3 text-muted-foreground">
+                        <div>{d.group_name || '—'}</div>
+                        {d.course_name && <div className="text-[10px] text-muted-foreground">{d.course_name}</div>}
+                        <div className="text-[10px] text-muted-foreground">{formatMoney(d.course_price)}</div>
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        {noSchedule ? (
+                          <span className="text-[10px] text-muted-foreground">Jadval yo'q</span>
+                        ) : (
+                          <>
+                            <div className="font-semibold text-indigo-700">{d.taught_lessons}<span className="text-muted-foreground">/{d.scheduled_lessons}</span></div>
+                            <div className="text-[10px] text-muted-foreground">o'tilgan/reja</div>
+                          </>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-right text-muted-foreground">
+                        {d.per_lesson_price > 0 ? formatMoney(d.per_lesson_price) : '—'}
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <div className="font-medium">{formatMoney(d.expected_raw)}</div>
+                        {noLessons && <div className="text-[10px] text-amber-600">dars yo'q</div>}
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        {d.discount_amount > 0 ? (
+                          <div>
+                            <div className="text-amber-600 font-medium">−{formatMoney(d.discount_amount)}</div>
+                            {d.discount_name && <div className="text-[10px] text-muted-foreground">{d.discount_name}</div>}
+                          </div>
+                        ) : <span className="text-muted-foreground">—</span>}
+                      </td>
+                      <td className="px-4 py-3 text-right text-indigo-700 font-medium">{formatMoney(d.paid_amount)}</td>
+                      <td className="px-4 py-3 text-right font-bold text-red-600">{formatMoney(d.debt_amount)}</td>
+                      <td className="px-4 py-3 text-center">{d.is_paid ? <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-indigo-100 text-indigo-700">To'langan</span> : <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-red-100 text-red-700">Qarz</span>}</td>
+                    </tr>
+                  )
+                })}
               </tbody>
             </table>
           </div>
