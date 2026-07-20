@@ -504,6 +504,7 @@ export function StudentsPanel() {
   const [courses, setCourses] = useState<any[]>([])
   const [payments, setPayments] = useState<any[]>([])
   const [attendance, setAttendance] = useState<any[]>([])
+  const [discounts, setDiscounts] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [courseFilter, setCourseFilter] = useState('all')
@@ -517,18 +518,20 @@ export function StudentsPanel() {
 
   const load = useCallback(async () => {
     setLoading(true)
-    const [s, g, c, p, a] = await Promise.all([
+    const [s, g, c, p, a, dc] = await Promise.all([
       apiFetch('/api/students'),
       apiFetch('/api/groups'),
       apiFetch('/api/courses'),
       apiFetch('/api/payments?limit=1000'),
       apiFetch('/api/attendance'),
+      apiFetch('/api/discounts?active=true'),
     ])
     if (s.ok) setItems(s.data?.students || [])
     if (g.ok) setGroups(g.data?.groups || [])
     if (c.ok) setCourses(c.data?.courses || [])
     if (p.ok) setPayments(p.data?.payments || [])
     if (a.ok) setAttendance(a.data?.attendance || [])
+    if (dc.ok) setDiscounts(dc.data?.discounts || [])
     setLoading(false)
   }, [])
 
@@ -554,7 +557,7 @@ export function StudentsPanel() {
   }
   async function handleDelete(id: string) { if (!confirm('O\'chirmoqchimisiz?')) return; const { ok, error } = await apiFetch(`/api/students?id=${id}`, { method: 'DELETE' }); if (!ok) return alert(error); load() }
 
-  // === Talaba detali uchun hisob-kitob ===
+  // === Talaba detali uchun hisob-kitob (chegirma bilan) ===
   const studentDetail = useMemo(() => {
     if (!selectedStudent) return null
     const s = selectedStudent
@@ -564,7 +567,41 @@ export function StudentsPanel() {
     const enrollDate = s.enrollment_date ? new Date(s.enrollment_date) : new Date()
     const now = new Date()
     const monthsEnrolled = Math.max(1, (now.getFullYear() - enrollDate.getFullYear()) * 12 + (now.getMonth() - enrollDate.getMonth()) + 1)
-    const totalDue = monthlyFee * monthsEnrolled
+    const totalDueRaw = monthlyFee * monthsEnrolled
+
+    // === CHEGIRMA HISOBLASH ===
+    // Mos chegirma: talabaga > kursga > hammaga (eng birinchi topilgan qo'llaniladi)
+    const nowDate = now.toISOString().slice(0, 10)
+    const inRange = (d: any) => {
+      const from = d.valid_from ? String(d.valid_from).slice(0, 10) : null
+      const until = d.valid_until ? String(d.valid_until).slice(0, 10) : null
+      if (from && nowDate < from) return false
+      if (until && nowDate > until) return false
+      return true
+    }
+    let discount: any | null = null
+    // 1. Talabaga bog'langan
+    discount = discounts.find((d: any) => d.applies_to === 'student' && d.student_id === s.id && d.is_active !== false && inRange(d)) || null
+    // 2. Kursga bog'langan
+    if (!discount && s.course_id) {
+      discount = discounts.find((d: any) => d.applies_to === 'course' && d.course_id === s.course_id && d.is_active !== false && inRange(d)) || null
+    }
+    // 3. Hamma uchun
+    if (!discount) {
+      discount = discounts.find((d: any) => d.applies_to === 'all' && d.is_active !== false && inRange(d)) || null
+    }
+
+    let discountAmount = 0
+    if (discount) {
+      if (discount.discount_type === 'percent') {
+        const pct = Math.max(0, Math.min(100, Number(discount.value) || 0))
+        discountAmount = Math.round((totalDueRaw * pct) / 100)
+      } else {
+        // fixed
+        discountAmount = Math.min(Number(discount.value) || 0, totalDueRaw)
+      }
+    }
+    const totalDue = Math.max(0, totalDueRaw - discountAmount)
 
     const studentPayments = payments.filter((p) => p.student_id === s.id)
     const totalPaid = studentPayments.reduce((sum, p) => sum + Number(p.amount || 0), 0)
@@ -576,8 +613,13 @@ export function StudentsPanel() {
     const late = studentAttendance.filter((a) => a.status === 'late').length
     const attRate = studentAttendance.length > 0 ? Math.round((present / studentAttendance.length) * 100) : 0
 
-    return { course, group, monthlyFee, monthsEnrolled, totalDue, totalPaid, remaining, studentPayments, studentAttendance, present, absent, late, attRate }
-  }, [selectedStudent, courses, groups, payments, attendance])
+    return {
+      course, group, monthlyFee, monthsEnrolled,
+      totalDueRaw, discount, discountAmount, totalDue,
+      totalPaid, remaining,
+      studentPayments, studentAttendance, present, absent, late, attRate,
+    }
+  }, [selectedStudent, courses, groups, payments, attendance, discounts])
 
   const WEEKDAYS = ['Yakshanba', 'Dushanba', 'Seshanba', 'Chorshanba', 'Payshanba', 'Juma', 'Shanba']
 
@@ -617,22 +659,64 @@ export function StudentsPanel() {
           <div className="bg-emerald-50 rounded-2xl border border-emerald-200 p-3"><div className="text-[10px] text-emerald-700">Davomat darajasi</div><div className="text-2xl font-bold mt-0.5 text-emerald-900">{d.attRate}%</div></div>
         </div>
 
-        {/* 3. Moliyaviy ma'lumot */}
+        {/* 3. Moliyaviy ma'lumot (chegirma bilan) */}
         <Card>
-          <CardHeader title="Moliyaviy ma'lumot" subtitle={`To'lash kerak: ${formatMoney(d.totalDue)} · To'langan: ${formatMoney(d.totalPaid)}`} />
-          <div className="p-4 pt-0 grid grid-cols-3 gap-3">
-            <div className="bg-amber-50 rounded-xl border border-amber-200 p-3 text-center">
-              <div className="text-[10px] text-amber-700">To'lash kerak</div>
-              <div className="text-lg font-bold mt-1 text-amber-900">{formatMoney(d.totalDue)}</div>
+          <CardHeader
+            title="Moliyaviy ma'lumot"
+            subtitle={d.discount ? `Chegirma qo'llanilgan: ${d.discount.name}` : 'Chegirma yo\'q — to\'liq narx'}
+          />
+          <div className="p-4 pt-0 space-y-3">
+            {/* Asosiy 3 ustun */}
+            <div className="grid grid-cols-3 gap-3">
+              <div className="bg-amber-50 rounded-xl border border-amber-200 p-3 text-center">
+                <div className="text-[10px] text-amber-700">To'lash kerak (chegirma bilan)</div>
+                <div className="text-lg font-bold mt-1 text-amber-900">{formatMoney(d.totalDue)}</div>
+              </div>
+              <div className="bg-emerald-50 rounded-xl border border-emerald-200 p-3 text-center">
+                <div className="text-[10px] text-emerald-700">To'langan</div>
+                <div className="text-lg font-bold mt-1 text-emerald-900">{formatMoney(d.totalPaid)}</div>
+              </div>
+              <div className="bg-rose-50 rounded-xl border border-rose-200 p-3 text-center">
+                <div className="text-[10px] text-rose-700">Qoldiq</div>
+                <div className="text-lg font-bold mt-1 text-rose-900">{formatMoney(d.remaining)}</div>
+              </div>
             </div>
-            <div className="bg-emerald-50 rounded-xl border border-emerald-200 p-3 text-center">
-              <div className="text-[10px] text-emerald-700">To'langan</div>
-              <div className="text-lg font-bold mt-1 text-emerald-900">{formatMoney(d.totalPaid)}</div>
-            </div>
-            <div className="bg-rose-50 rounded-xl border border-rose-200 p-3 text-center">
-              <div className="text-[10px] text-rose-700">Qoldiq</div>
-              <div className="text-lg font-bold mt-1 text-rose-900">{formatMoney(d.remaining)}</div>
-            </div>
+
+            {/* Chegirma tafsilotlari (agar chegirma bo'lsa) */}
+            {d.discount && d.discountAmount > 0 ? (
+              <div className="rounded-xl bg-indigo-50 border border-indigo-200 p-3">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="text-xs font-semibold text-indigo-700 flex items-center gap-1.5">
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+                    Chegirma: {d.discount.name}
+                  </div>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-100 text-indigo-700">
+                    {d.discount.discount_type === 'percent' ? `−${d.discount.value}%` : `−${formatMoney(Number(d.discount.value) || 0)}`}
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div className="flex justify-between">
+                    <span className="text-indigo-700">Asl summa:</span>
+                    <span className="font-semibold text-slate-900">{formatMoney(d.totalDueRaw)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-indigo-700">Chegirma miqdori:</span>
+                    <span className="font-semibold text-indigo-700">−{formatMoney(d.discountAmount)}</span>
+                  </div>
+                  <div className="flex justify-between col-span-2 border-t border-indigo-200 pt-2 mt-1">
+                    <span className="font-semibold text-slate-900">To'lash kerak (chegirma bilan):</span>
+                    <span className="font-bold text-slate-900">{formatMoney(d.totalDue)}</span>
+                  </div>
+                </div>
+                {d.discount.valid_until && (
+                  <div className="text-[10px] text-indigo-700/70 mt-2">Amal qilish muddati: {formatDate(d.discount.valid_until)}</div>
+                )}
+              </div>
+            ) : (
+              <div className="rounded-xl bg-muted/30 border border-border/50 p-3 text-xs text-muted-foreground text-center">
+                Bu talabaga chegirma qo'llanilmagan. To'lash kerak = {d.monthsEnrolled} oy × {formatMoney(d.monthlyFee)} = {formatMoney(d.totalDueRaw)}
+              </div>
+            )}
           </div>
         </Card>
 
